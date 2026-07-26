@@ -1,0 +1,2542 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hiraya Manawari — Reading Tracker</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#3B2A55">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Hiraya Manawari">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Special+Elite&display=swap');
+
+:root{
+  --ink:#3B2A55;
+  --paper:#E3D6DC;
+  --card:#FBF7FF;
+  --card-hover:#F5EEFC;
+  --muted:#7C6D94;
+  --line:rgba(59,42,85,0.14);
+  --line-strong:rgba(59,42,85,0.28);
+  --accent:#8C6BB5;
+  --accent-deep:#6B4E93;
+  --want:#9C9AD1;
+  --want-deep:#5F5C99;
+  --reading:#B07CC6;
+  --reading-deep:#7A4E8F;
+  --finished:#7A5A9E;
+  --finished-deep:#573D74;
+  --dnf:#C285AE;
+  --dnf-deep:#8A4E71;
+  --hold:#CBA35C;
+  --hold-deep:#8F6F3C;
+  --radius:10px;
+  --font-display:'Courier Prime', monospace;
+  --font-body:'Courier Prime', monospace;
+  --font-mono:'Courier Prime', monospace;
+  --font-script:'Dancing Script', cursive;
+  --font-stamp:'Special Elite', monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;background-color:var(--paper);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.23  0 0 0 0 0.16  0 0 0 0 0.33  0 0 0 0.22 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");background-repeat:repeat;color:var(--ink);font-family:var(--font-body);}
+.app{max-width:1080px;margin:0 auto;padding:28px 20px 80px;}
+
+.header{position:relative;display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;gap:16px;flex-wrap:wrap;}
+.header-text{position:relative;z-index:1;display:flex;align-items:center;gap:12px;}
+.logo-mark{flex:none;}
+.header h1{font-family:var(--font-script);font-weight:700;font-size:42px;margin:0 0 2px;letter-spacing:0.01em;color:var(--accent-deep);}
+.header p{margin:0;color:var(--muted);font-size:14px;}
+
+.view-nav{display:flex;gap:8px;margin-bottom:20px;}
+.view-tab{border:1px solid var(--line-strong);background:var(--card);border-radius:20px;padding:7px 16px;font-size:13px;font-family:var(--font-body);color:var(--muted);cursor:pointer;}
+.view-tab.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+
+.reader-intro{margin-bottom:18px;}
+.reader-intro h2{font-family:var(--font-display);font-size:24px;margin:0 0 4px;}
+.reader-intro p{color:var(--muted);font-size:13px;margin:0;}
+.links-list{display:flex;flex-direction:column;gap:10px;}
+.link-row{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px;}
+.link-row input{border:none;background:none;font-family:var(--font-body);font-size:13px;color:var(--ink);padding:6px 4px;}
+.link-row input:focus{outline:none;background:var(--card-hover);border-radius:5px;}
+.link-row .link-label{width:130px;flex:none;font-weight:500;border-right:1px solid var(--line);}
+.link-row .link-url{flex:1;min-width:0;color:var(--muted);}
+.copy-btn{flex:none;background:none;border:1px solid var(--line-strong);border-radius:7px;padding:7px 9px;cursor:pointer;color:var(--muted);display:flex;align-items:center;}
+.copy-btn:hover{border-color:var(--accent);color:var(--accent-deep);}
+.copy-btn.copied{background:var(--accent);color:#fff;border-color:var(--accent);}
+.copy-btn svg{width:13px;height:13px;}
+.link-remove{flex:none;background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:2px 4px;}
+.link-remove:hover{color:var(--dnf-deep);}
+.blob{position:absolute;z-index:0;pointer-events:none;filter:blur(16px);opacity:0.55;border-radius:60% 40% 30% 70% / 60% 30% 70% 40%;}
+.blob-lav{background:radial-gradient(circle at 30% 30%, #C9A8E8, transparent 72%);}
+.blob-pink{background:radial-gradient(circle at 65% 65%, #E7B9DA, transparent 72%);}
+.blob-blue{background:radial-gradient(circle at 40% 60%, #ADA4E0, transparent 72%);}
+.sync-badge{position:relative;z-index:1;display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;color:var(--muted);padding:6px 10px;border:1px solid var(--line);border-radius:20px;background:var(--card);white-space:nowrap;}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--finished);flex:none;}
+.sync-dot.syncing{background:var(--accent);animation:pulse 1s infinite ease-in-out;}
+.sync-dot.error{background:var(--dnf-deep);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.35;}}
+
+.banner{background:var(--card);border:1px solid var(--dnf-deep);color:var(--dnf-deep);border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:16px;display:none;}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px;}
+.month-stats{grid-template-columns:repeat(auto-fit,minmax(130px,1fr));margin-bottom:26px;opacity:0.92;}
+.month-stats .stat{padding:10px 14px;}
+.month-stats .stat .num{font-size:20px;}
+.month-stats .stat .label{font-size:11px;}
+
+.series-group{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:14px;}
+.series-group h3{font-family:var(--font-display);font-size:17px;margin:0 0 10px;}
+.series-book-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:13px;}
+.series-book-row:first-of-type{border-top:none;}
+.series-book-num{flex:none;width:26px;height:26px;border-radius:50%;background:var(--card-hover);color:var(--muted);font-family:var(--font-mono);font-size:11px;display:flex;align-items:center;justify-content:center;}
+.series-book-title{flex:1;min-width:0;}
+.series-book-status{flex:none;font-size:11px;padding:3px 9px;border-radius:10px;background:rgba(59,42,85,0.07);color:var(--muted);}
+.series-book-status.next-up{background:var(--accent);color:var(--card);}
+
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.cal-header h2{font-family:var(--font-display);font-size:20px;margin:0;}
+.cal-nav-btn{background:var(--card);border:1px solid var(--line-strong);border-radius:7px;padding:6px 12px;cursor:pointer;font-size:14px;color:var(--ink);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+.cal-dow{text-align:center;font-size:11px;color:var(--muted);font-family:var(--font-mono);padding-bottom:4px;}
+.cal-cell{min-height:74px;border:1px solid var(--line);border-radius:8px;padding:5px;background:var(--card);font-size:11px;}
+.cal-cell.empty-cell{background:transparent;border:none;}
+.cal-cell.today{border-color:var(--accent);border-width:2px;}
+.cal-date-num{font-family:var(--font-mono);color:var(--muted);font-size:10.5px;margin-bottom:3px;}
+.cal-item{background:var(--accent);color:var(--card);border-radius:5px;padding:2px 5px;margin-top:2px;font-size:10px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;}
+.cal-item.overdue{background:var(--dnf-deep);}
+.cal-empty-note{color:var(--muted);font-size:13px;text-align:center;padding:30px 0;}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;}
+.stat .num{font-family:var(--font-display);font-size:26px;font-weight:600;line-height:1;}
+.stat .label{font-size:12px;color:var(--muted);margin-top:6px;}
+.stat.alert .num{color:var(--dnf-deep);}
+
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px;}
+.search-wrap{position:relative;flex:1;min-width:200px;}
+.search-wrap input{width:100%;padding:9px 12px 9px 32px;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--card);font-family:var(--font-body);font-size:14px;color:var(--ink);}
+.search-wrap input:focus{outline:2px solid var(--accent);outline-offset:1px;}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--muted);}
+select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--card);font-family:var(--font-body);font-size:13px;color:var(--ink);cursor:pointer;}
+.btn-add,.btn-export{background:var(--ink);color:var(--paper);border:none;border-radius:var(--radius);padding:9px 16px;font-family:var(--font-body);font-weight:500;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.btn-add:hover,.btn-export:hover{background:var(--accent-deep);}
+.export-wrap{position:relative;}
+.export-menu{position:absolute;top:calc(100% + 6px);right:0;background:var(--card);border:1px solid var(--line-strong);border-radius:10px;padding:6px;min-width:190px;box-shadow:0 4px 16px rgba(59,42,85,0.15);z-index:20;display:none;}
+.export-menu button{width:100%;text-align:left;background:none;border:none;padding:9px 10px;border-radius:7px;font-size:13px;font-family:var(--font-body);color:var(--ink);cursor:pointer;}
+.export-menu button:hover{background:var(--card-hover);}
+
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 20px;}
+.tab{border:1px solid var(--line);background:transparent;border-radius:20px;padding:6px 13px;font-size:13px;font-family:var(--font-body);color:var(--muted);cursor:pointer;}
+.tab.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
+.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 16px 14px;overflow:hidden;transition:border-color .15s;}
+.card:hover{border-color:var(--line-strong);}
+.status-tab{position:absolute;top:0;left:0;right:0;height:4px;}
+.status-tab.want{background:var(--want);}
+.status-tab.reading{background:var(--reading);}
+.status-tab.finished{background:var(--finished);}
+.status-tab.dnf{background:var(--dnf);}
+.status-tab.hold{background:var(--hold);}
+
+.genre-tab{display:inline-block;font-family:var(--font-body);font-size:10px;font-weight:600;color:var(--ink);padding:4px 12px;border-radius:6px 6px 0 0;margin:-16px 0 10px 0;letter-spacing:0.02em;}
+.card-top{display:flex;gap:12px;align-items:flex-start;}
+.cover-col{flex:none;display:flex;flex-direction:column;align-items:center;width:70px;}
+.cover-thumb{flex:none;width:70px;height:105px;border-radius:5px;overflow:hidden;background:radial-gradient(circle at 30% 20%, #E4D2F2, transparent 65%), radial-gradient(circle at 70% 80%, #F0DCEA, transparent 65%), var(--card-hover);border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;}
+.cover-thumb img{width:100%;height:100%;object-fit:cover;}
+.cover-thumb .ph{font-size:9px;color:var(--muted);text-align:center;padding:2px;font-family:var(--font-mono);}
+.format-label{font-size:9.5px;color:var(--muted);text-align:center;margin-top:5px;line-height:1.25;font-family:var(--font-mono);}
+.card-info{flex:1;min-width:0;}
+.card h3{font-family:var(--font-display);font-size:17px;font-weight:600;margin:0 0 3px;line-height:1.25;}
+.card .byline{font-size:12.5px;color:var(--muted);font-style:italic;margin:0;}
+.card .series{color:var(--muted);margin:2px 0 0;}
+.series-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;}
+
+.stamp-col{display:flex;flex-direction:column;gap:6px;align-items:center;flex:none;}
+.stamp{flex:none;font-family:var(--font-stamp);font-size:10px;text-align:center;border:1px solid var(--accent);border-top:3px double var(--accent-deep);color:var(--accent-deep);background:var(--card);border-radius:2px;width:54px;padding:5px 4px 4px;line-height:1.35;box-shadow:1px 1px 3px rgba(59,42,85,0.18);}
+.stamp.overdue{border-color:var(--dnf-deep);border-top-color:var(--dnf-deep);color:var(--dnf-deep);}
+.stamp .lbl{display:block;font-size:7px;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line-strong);padding-bottom:2px;margin-bottom:2px;}
+.stamp.overdue .lbl{color:var(--dnf-deep);border-bottom-color:var(--dnf-deep);opacity:0.7;}
+.read-stamp{flex:none;font-family:var(--font-stamp);font-size:11px;font-weight:400;letter-spacing:0.1em;text-align:center;border:1.5px dashed var(--finished-deep);color:var(--finished-deep);background:radial-gradient(circle at 35% 35%, rgba(122,90,158,0.18), transparent 70%);border-radius:4px;padding:7px 9px;transform:rotate(5deg);line-height:1.15;}
+.dnf-stamp{flex:none;font-family:var(--font-stamp);font-size:11px;font-weight:400;letter-spacing:0.08em;text-align:center;border:1.5px dashed var(--dnf-deep);color:var(--dnf-deep);background:radial-gradient(circle at 35% 35%, rgba(138,78,113,0.18), transparent 70%);border-radius:4px;padding:7px 9px;transform:rotate(-4deg);line-height:1.15;}
+.hold-stamp{flex:none;font-family:var(--font-stamp);font-size:10px;font-weight:400;letter-spacing:0.06em;text-align:center;border:1.5px dashed var(--hold-deep);color:var(--hold-deep);background:radial-gradient(circle at 35% 35%, rgba(143,111,60,0.18), transparent 70%);border-radius:4px;padding:7px 8px;transform:rotate(3deg);line-height:1.15;}
+.arc-source{font-size:10.5px;color:var(--muted);margin-top:2px;font-family:var(--font-mono);}
+.arc-link{display:inline-block;font-size:10.5px;color:var(--accent-deep);margin-top:3px;text-decoration:underline;font-family:var(--font-body);}
+
+.manage-link{background:none;border:none;color:var(--accent-deep);font-size:11px;font-weight:500;cursor:pointer;padding:0;margin-left:6px;text-decoration:underline;}
+.manage-list{display:flex;flex-direction:column;gap:4px;max-height:150px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--card);margin-bottom:8px;}
+.manage-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:3px 4px;}
+
+.stars{position:relative;display:inline-block;font-size:14px;line-height:1;letter-spacing:2px;height:14px;}
+.stars-bg,.stars-fill{white-space:nowrap;}
+.stars-bg{color:var(--line-strong);}
+.stars-fill{position:absolute;top:0;left:0;overflow:hidden;color:var(--accent-deep);}
+.rating-row{display:flex;align-items:center;gap:6px;margin:8px 0 2px;}
+.rating-num{font-family:var(--font-mono);font-size:11px;color:var(--muted);}
+
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0;}
+.tag{font-size:11px;background:rgba(59,42,85,0.07);color:var(--muted);border-radius:10px;padding:3px 9px;font-family:var(--font-body);}
+
+.progress-wrap{margin:10px 0 6px;}
+.progress-bar{height:5px;background:rgba(59,42,85,0.1);border-radius:3px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--reading-deep);border-radius:3px;}
+.progress-text{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);margin-top:4px;}
+
+.dates{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:4px;}
+
+.card-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:12px;border-top:1px solid var(--line);padding-top:10px;}
+.icon-btn{background:none;border:1px solid var(--line);border-radius:7px;padding:5px 9px;cursor:pointer;color:var(--muted);font-size:11px;font-family:var(--font-body);display:flex;align-items:center;gap:4px;}
+.icon-btn:hover{border-color:var(--line-strong);color:var(--ink);}
+.icon-btn.danger{color:var(--dnf-deep);}
+.icon-btn.danger.confirming{background:var(--dnf-deep);color:#fff;border-color:var(--dnf-deep);}
+.icon-btn svg{width:12px;height:12px;}
+
+.empty{text-align:center;padding:60px 20px;color:var(--muted);}
+.empty .icon-wrap{position:relative;width:90px;height:90px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;}
+.empty .icon-wrap .blob{width:90px;height:90px;top:0;left:0;opacity:0.6;}
+.empty .icon{position:relative;z-index:1;font-size:36px;}
+.empty h3{font-family:var(--font-display);color:var(--ink);font-size:20px;margin:0 0 6px;}
+
+.overlay{position:fixed;inset:0;background:rgba(59,42,85,0.45);display:flex;align-items:flex-start;justify-content:center;padding:5vh 16px;overflow-y:auto;z-index:50;}
+.modal{background:var(--paper);border-radius:14px;max-width:560px;width:100%;padding:26px;border:1px solid var(--line-strong);margin-bottom:5vh;}
+.modal h2{font-family:var(--font-display);font-size:22px;margin:0 0 18px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:500;}
+.field input[type=text],.field input[type=number],.field input[type=date],.field select{width:100%;padding:9px 11px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);font-family:var(--font-body);font-size:14px;color:var(--ink);}
+.field input:focus,.field select:focus{outline:2px solid var(--accent);outline-offset:1px;}
+.checkbox-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.wrapped-status-checks{display:flex;flex-wrap:wrap;gap:8px 16px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);}
+.wrapped-status-checks label{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;}
+.wrapped-status-checks input{width:14px;height:14px;}
+.checkbox-row input{width:16px;height:16px;}
+.checkbox-row label{font-size:13px;font-weight:500;}
+
+.cover-upload{display:flex;align-items:center;gap:12px;}
+.cover-preview{width:64px;height:96px;border-radius:6px;border:1.5px dashed var(--line-strong);background:radial-gradient(circle at 30% 20%, #E4D2F2, transparent 65%), radial-gradient(circle at 70% 80%, #F0DCEA, transparent 65%), var(--card);display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none;}
+.cover-preview img{width:100%;height:100%;object-fit:cover;}
+.cover-preview .ph{font-size:9px;color:var(--muted);text-align:center;padding:4px;}
+.cover-btns{display:flex;flex-direction:column;gap:6px;}
+.small-btn{background:var(--card);border:1px solid var(--line-strong);border-radius:7px;padding:7px 12px;font-size:12px;font-family:var(--font-body);cursor:pointer;color:var(--ink);}
+.small-btn:hover{border-color:var(--accent);}
+
+.trope-chips{display:flex;flex-wrap:wrap;gap:6px;min-height:26px;margin-bottom:8px;}
+.trope-chip{background:var(--accent);color:var(--card);border-radius:12px;padding:4px 8px 4px 12px;font-size:12px;display:flex;align-items:center;gap:6px;}
+.trope-chip button{background:none;border:none;color:var(--card);cursor:pointer;font-size:14px;line-height:1;padding:0;opacity:0.85;}
+.trope-chip button:hover{opacity:1;}
+.trope-chips-empty{font-size:12px;color:var(--muted);}
+.custom-trope-row{display:flex;gap:8px;margin-top:8px;}
+.custom-trope-row input{flex:1;padding:7px 10px;border:1px solid var(--line-strong);border-radius:7px;background:var(--card);font-size:13px;}
+
+.rating-input-row{display:flex;align-items:center;gap:10px;}
+.rating-input-row input[type=number]{width:80px;}
+.star-preview{font-size:18px;}
+
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;}
+.detail-row{display:flex;gap:12px;font-size:13px;padding:8px 0;border-bottom:1px solid var(--line);}
+.detail-row .dl{width:120px;flex:none;color:var(--muted);font-weight:500;}
+.detail-row .dv{flex:1;}
+.view-header{display:flex;gap:16px;align-items:flex-start;margin-bottom:6px;}
+.view-cover{flex:none;width:100px;height:150px;border-radius:8px;overflow:hidden;background:radial-gradient(circle at 30% 20%, #E4D2F2, transparent 65%), radial-gradient(circle at 70% 80%, #F0DCEA, transparent 65%), var(--card);border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;}
+.view-cover img{width:100%;height:100%;object-fit:cover;}
+.card.clickable{cursor:pointer;}
+.btn-secondary{background:none;border:1px solid var(--line-strong);border-radius:8px;padding:9px 16px;font-size:14px;font-family:var(--font-body);cursor:pointer;color:var(--ink);}
+.btn-primary{background:var(--ink);color:var(--paper);border:none;border-radius:8px;padding:9px 18px;font-size:14px;font-family:var(--font-body);font-weight:500;cursor:pointer;}
+.btn-primary:hover{background:var(--accent-deep);}
+.hint{font-size:11px;color:var(--muted);margin-top:4px;}
+
+.header-right{position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+.account-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);}
+.account-row img{width:20px;height:20px;border-radius:50%;}
+.signout-link{background:none;border:none;color:var(--accent-deep);font-size:12px;font-family:var(--font-body);cursor:pointer;text-decoration:underline;padding:0;}
+.notif-badge{font-family:var(--font-mono);font-size:11px;color:var(--muted);padding:6px 10px;border:1px solid var(--line);border-radius:20px;background:var(--card);white-space:nowrap;cursor:pointer;}
+.notif-badge:hover{border-color:var(--line-strong);}
+.notif-badge.on{color:var(--finished-deep);border-color:var(--finished-deep);}
+.notif-badge.blocked{color:var(--dnf-deep);border-color:var(--dnf-deep);cursor:not-allowed;}
+
+.login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.login-card{background:var(--card);border:1px solid var(--line-strong);border-radius:16px;padding:40px 32px;max-width:380px;width:100%;text-align:center;}
+.login-card h1{font-family:var(--font-script);font-weight:700;font-size:38px;margin:0 0 6px;color:var(--accent-deep);}
+.login-card p{color:var(--muted);font-size:14px;margin:0 0 26px;}
+.google-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:#fff;border:1px solid var(--line-strong);border-radius:10px;padding:11px 16px;font-family:var(--font-body);font-weight:500;font-size:14px;color:var(--ink);cursor:pointer;}
+.google-btn:hover{border-color:var(--accent);}
+.login-error{color:var(--dnf-deep);font-size:12.5px;margin-top:14px;display:none;}
+.login-loading{color:var(--muted);font-size:12.5px;margin-top:14px;}
+
+@media(max-width:520px){.field-row{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <h1>Hiraya Manawari</h1>
+    <p>Sign in to sync your reading log across every device.</p>
+    <button class="google-btn" id="googleSignInBtn">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6 29.6 4 24 4c-7.4 0-13.8 4.2-17.1 10.4z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.6C29.6 35.1 27 36 24 36c-5.2 0-9.6-3.3-11.2-8l-6.6 5.1C9.5 39.7 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.3-4.1 5.7l6.6 5.6C39.9 37 44 31.1 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+      Sign in with Google
+    </button>
+    <div class="login-loading" id="loginLoading" style="display:none;">Signing in...</div>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<div class="app" id="appRoot" style="display:none;">
+  <div class="header">
+    <div class="blob blob-lav" style="width:150px;height:110px;top:-35px;left:-25px;"></div>
+    <div class="blob blob-pink" style="width:110px;height:95px;top:5px;left:70px;"></div>
+    <div class="header-text">
+      <div>
+        <h1>Hiraya Manawari</h1>
+        <p>Escape the ordinary. Inhabit the extraordinary.</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="sync-badge"><span class="sync-dot" id="syncDot"></span><span id="syncText">Synced</span></div>
+      <button type="button" class="notif-badge" id="notifBtn">🔔 Enable reminders</button>
+      <div class="account-row" id="accountRow"></div>
+    </div>
+  </div>
+
+  <div class="banner" id="saveBanner"></div>
+
+  <div class="view-nav">
+    <button class="view-tab active" id="navLibrary">My Library</button>
+    <button class="view-tab" id="navSeries">Series</button>
+    <button class="view-tab" id="navCalendar">Calendar</button>
+    <button class="view-tab" id="navReader">Reader Page</button>
+  </div>
+
+  <div id="libraryView">
+  <div class="stats" id="stats"></div>
+  <div class="stats month-stats" id="monthStats"></div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="Search title, author, series...">
+    </div>
+    <select id="genreFilter"><option value="">All genres</option></select>
+    <select id="sortSelect">
+      <option value="due" selected>Due date soonest</option>
+      <option value="due_pages">Due soonest, then fewest pages</option>
+      <option value="added">Recently added</option>
+      <option value="title">Title A–Z</option>
+      <option value="rating">Rating highest</option>
+      <option value="pages">Pages: fewest first</option>
+    </select>
+    <div class="export-wrap">
+      <button class="btn-export" id="exportBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export
+      </button>
+      <div class="export-menu" id="exportMenu">
+        <button id="exportCardBtn">Download as library card</button>
+        <button id="exportReceiptBtn">Download as receipt</button>
+        <button id="exportWrappedBtn">Download year/month in books</button>
+        <div style="height:1px;background:var(--line);margin:6px 2px;"></div>
+        <button id="exportBackupBtn">Download full backup (.json)</button>
+        <button id="restoreBtn">Restore from backup</button>
+        <button id="importCsvBtn">Import from Goodreads/StoryGraph CSV</button>
+      </div>
+      <input type="file" id="restoreInput" accept="application/json" style="display:none;">
+      <input type="file" id="csvInput" accept=".csv,text/csv" style="display:none;">
+    </div>
+    <button class="btn-add" id="addBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add book
+    </button>
+  </div>
+
+  <div class="tabs" id="statusTabs"></div>
+
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="emptyState" style="display:none;">
+    <div class="icon-wrap">
+      <div class="blob blob-blue"></div>
+      <div class="icon">🌙</div>
+    </div>
+    <h3 id="emptyTitle">Your shelf is empty</h3>
+    <p id="emptySub">Add the first book you're reading, waiting on, or reviewing.</p>
+  </div>
+  </div>
+
+  <div id="seriesView" style="display:none;"></div>
+  <div id="calendarView" style="display:none;"></div>
+
+  <div id="readerView" style="display:none;">
+    <div class="reader-intro">
+      <h2>Reader Page</h2>
+      <p>Your social and review links in one place — tap the copy icon to grab any link.</p>
+    </div>
+    <div class="links-list" id="linksList"></div>
+    <button class="btn-add" id="addLinkBtn" style="margin-top:14px;">+ Add link</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" style="display:none;">
+  <div class="modal">
+    <h2 id="modalTitle">Add a book</h2>
+    <form id="bookForm">
+      <div class="field">
+        <label>Cover image</label>
+        <div class="cover-upload">
+          <div class="cover-preview" id="coverPreview"><span class="ph">No cover</span></div>
+          <div class="cover-btns">
+            <label class="small-btn" for="f_cover" style="text-align:center;">Choose image</label>
+            <input type="file" id="f_cover" accept="image/*" style="display:none;">
+            <button type="button" class="small-btn" id="removeCoverBtn">Remove</button>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Title *</label>
+        <input type="text" id="f_title" required placeholder="The Book of the New Sun">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Author</label>
+          <input type="text" id="f_author" placeholder="Gene Wolfe">
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="f_status">
+            <option value="want">Want to read</option>
+            <option value="reading" id="statusReadingOption">Reading</option>
+            <option value="hold">On Hold</option>
+            <option value="finished">Finished</option>
+            <option value="dnf">Did not finish</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Series</label>
+          <input type="text" id="f_series" placeholder="e.g. The Broken Earth">
+        </div>
+        <div class="field">
+          <label>Book # in series</label>
+          <input type="number" id="f_seriesNum" min="1" placeholder="1">
+        </div>
+      </div>
+      <div class="field">
+        <label>Format</label>
+        <select id="f_format">
+          <option value="">Select a format</option>
+          <option value="Paperback">Paperback</option>
+          <option value="eBook / ePub">eBook / ePub</option>
+          <option value="Audiobook">Audiobook</option>
+        </select>
+      </div>
+      <div class="field-row" id="ownershipFields" style="display:none;">
+        <div class="field">
+          <label>Ownership</label>
+          <select id="f_ownership">
+            <option value="Owned">Owned</option>
+            <option value="Borrowed">Borrowed</option>
+          </select>
+        </div>
+        <div class="field" id="borrowDueField" style="display:none;">
+          <label>Borrowed — due back</label>
+          <input type="date" id="f_borrowDueDate" lang="en-US">
+        </div>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="f_isArc">
+        <label for="f_isArc">This is an ARC (advance reader copy)</label>
+      </div>
+      <div id="arcFields" style="display:none;">
+        <div class="field-row">
+          <div class="field">
+            <label>ARC source <button type="button" class="manage-link" id="openManageArcBtn">Manage list</button></label>
+            <input type="text" id="f_arcSource" list="arcSourceOptions" placeholder="NetGalley, a promoter, a publisher...">
+            <datalist id="arcSourceOptions"></datalist>
+            <p class="hint">Type any source — new ones are saved for next time.</p>
+          </div>
+          <div class="field">
+            <label>Review due date</label>
+            <input type="date" id="f_dueDate" lang="en-US">
+          </div>
+        </div>
+        <div class="field">
+          <label>Review form link</label>
+          <input type="text" id="f_arcFormLink" placeholder="https://forms.gle/...">
+          <p class="hint">If the promoter needs a feedback form filled out, paste the link here.</p>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label id="totalPagesLabel">Total pages</label>
+          <input type="number" id="f_totalPages" min="0" placeholder="320">
+        </div>
+        <div class="field">
+          <label id="currentPageLabel">Current page</label>
+          <input type="number" id="f_currentPage" min="0" placeholder="0">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Date started</label>
+          <input type="date" id="f_dateStarted" lang="en-US">
+        </div>
+        <div class="field">
+          <label>Date finished</label>
+          <input type="date" id="f_dateFinished" lang="en-US">
+        </div>
+      </div>
+      <div class="field">
+        <label>Rating</label>
+        <div class="rating-input-row">
+          <input type="number" id="f_rating" min="0" max="5" step="0.5" placeholder="0.0">
+          <span class="star-preview" id="starPreview"></span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Genre <button type="button" class="manage-link" id="openManageGenreBtn">Manage list</button></label>
+        <select id="f_genre">
+          <option value="">Select a genre</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Tropes <button type="button" class="manage-link" id="openManageTropeBtn">Manage list</button></label>
+        <div class="trope-chips" id="tropeChips"></div>
+        <div class="custom-trope-row">
+          <input type="text" id="tropeSearchInput" list="tropeOptions" placeholder="Type to search or add a trope...">
+          <datalist id="tropeOptions"></datalist>
+          <button type="button" class="small-btn" id="addTropeBtn">Add</button>
+        </div>
+        <p class="hint">Start typing to see matching tropes you've already used, or type a new one and hit Add.</p>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
+        <button type="submit" class="btn-primary" id="saveBtn">Save book</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="overlay" id="postcardOverlay" style="display:none;">
+  <div class="modal" style="max-width:640px;">
+    <h2>Share as postcard</h2>
+    <div class="field">
+      <label>Size</label>
+      <select id="postcardSize">
+        <option value="a6_landscape">A6 Landscape (postcard)</option>
+        <option value="a6_portrait">A6 Portrait (postcard)</option>
+        <option value="ig_post">Instagram Post (square)</option>
+      </select>
+    </div>
+    <div id="postcardPreviewWrap" style="display:flex;justify-content:center;overflow:auto;max-height:60vh;margin-bottom:16px;padding:6px 0;"></div>
+    <div class="field">
+      <label>Your review (optional)</label>
+      <textarea id="postcardReview" rows="3" placeholder="A line or two about this one..." style="width:100%;padding:10px 11px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);font-family:var(--font-body);font-size:13px;color:var(--ink);resize:vertical;"></textarea>
+      <p class="hint">This is saved to the book, so it'll be here next time too.</p>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" id="postcardCancelBtn">Cancel</button>
+      <button type="button" class="btn-primary" id="postcardDownloadBtn">Download postcard</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="manageOverlay" style="display:none;">
+  <div class="modal" style="max-width:480px;">
+    <h2 id="manageTitle">Manage genres</h2>
+    <div class="manage-list" id="manageList"></div>
+    <div class="custom-trope-row">
+      <input type="text" id="manageNewInput" placeholder="Add new">
+      <button type="button" class="small-btn" id="manageAddBtn">Add</button>
+    </div>
+    <p class="hint">Click a name to rename it — this updates any books using it too. Deleting only removes it from the picker; books that already used it keep it on their card.</p>
+    <div class="modal-actions">
+      <button type="button" class="btn-primary" id="manageCloseBtn">Done</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="viewOverlay" style="display:none;">
+  <div class="modal" style="max-width:560px;">
+    <div id="viewContent"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" id="viewCloseBtn">Close</button>
+      <button type="button" class="btn-primary" id="viewEditBtn">Edit this book</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="wrappedOverlay" style="display:none;">
+  <div class="modal" style="max-width:640px;">
+    <h2>Year / month in books</h2>
+    <div class="field-row">
+      <div class="field">
+        <label>Year</label>
+        <select id="wrappedYear"></select>
+      </div>
+      <div class="field">
+        <label>Month</label>
+        <select id="wrappedMonth"></select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Include statuses</label>
+      <div class="wrapped-status-checks">
+        <label><input type="checkbox" class="wrappedStatusCb" value="want"> Want to read</label>
+        <label><input type="checkbox" class="wrappedStatusCb" value="reading"> Reading</label>
+        <label><input type="checkbox" class="wrappedStatusCb" value="hold"> On Hold</label>
+        <label><input type="checkbox" class="wrappedStatusCb" value="finished" checked> Finished</label>
+        <label><input type="checkbox" class="wrappedStatusCb" value="dnf"> Did not finish</label>
+      </div>
+      <p class="hint">This only decides which books get pulled in — the export itself just shows covers, titles, and ratings, no status labels.</p>
+    </div>
+    <div id="wrappedPreviewWrap" style="margin-bottom:16px;"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" id="wrappedCancelBtn">Close</button>
+      <button type="button" class="btn-primary" id="wrappedDownloadBtn">Download PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     FIREBASE SETUP — this is already configured with your project
+     (lunaria-app-21a35). If you ever create a new Firebase project,
+     swap the values below. See SETUP.md for background.
+     ============================================================ -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import {
+    getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+  import {
+    getFirestore, collection, doc, getDoc, getDocs, setDoc, deleteDoc, writeBatch
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCFhXW0y0lEpgpE1bPzM1D7-X5-e3VTEzU",
+    authDomain: "lunaria-app-21a35.firebaseapp.com",
+    projectId: "lunaria-app-21a35",
+    storageBucket: "lunaria-app-21a35.firebasestorage.app",
+    messagingSenderId: "29627980624",
+    appId: "1:29627980624:web:f41033674613f5c3c46a55",
+    measurementId: "G-L1682GCGL4"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const provider = new GoogleAuthProvider();
+  let currentUser = null;
+
+  function booksCol(){ return collection(db, 'users', currentUser.uid, 'books'); }
+  function metaDoc(){ return doc(db, 'users', currentUser.uid, 'meta', 'settings'); }
+
+  window.cloudStore = {
+    onAuthChange(cb){
+      onAuthStateChanged(auth, function(user){
+        currentUser = user;
+        cb(user);
+      });
+    },
+    async signIn(){ await signInWithPopup(auth, provider); },
+    async signOut(){ await signOut(auth); },
+    async loadAll(){
+      const booksSnap = await getDocs(booksCol());
+      const books = booksSnap.docs.map(function(d){ return Object.assign({id: d.id}, d.data()); });
+      let meta = {};
+      try{
+        const metaSnap = await getDoc(metaDoc());
+        if(metaSnap.exists()) meta = metaSnap.data();
+      }catch(e){}
+      return {
+        books: books,
+        tropeList: meta.tropeList || [],
+        genreList: meta.genreList || [],
+        arcSourceList: meta.arcSourceList || [],
+        readerLinks: meta.readerLinks || []
+      };
+    },
+    async saveBook(book){
+      const id = book.id;
+      const rest = Object.assign({}, book);
+      delete rest.id;
+      await setDoc(doc(booksCol(), id), rest);
+    },
+    async deleteBook(id){
+      await deleteDoc(doc(booksCol(), id));
+    },
+    async saveMeta(partial){
+      // merge:true so saving one list (e.g. readerLinks) never wipes out the others
+      await setDoc(metaDoc(), partial, {merge: true});
+    },
+    async replaceAllBooks(arr){
+      const existing = await getDocs(booksCol());
+      const batch = writeBatch(db);
+      existing.docs.forEach(function(d){ batch.delete(d.ref); });
+      arr.forEach(function(b){
+        const id = b.id || ('b_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8));
+        const rest = Object.assign({}, b);
+        delete rest.id;
+        batch.set(doc(booksCol(), id), rest);
+      });
+      await batch.commit();
+    }
+  };
+
+  if('serviceWorker' in navigator){
+    var swReloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function(){
+      if(swReloaded) return;
+      swReloaded = true;
+      window.location.reload();
+    });
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('./sw.js').catch(function(){});
+    });
+  }
+
+  const googleBtn = document.getElementById('googleSignInBtn');
+  const loginLoading = document.getElementById('loginLoading');
+  const loginError = document.getElementById('loginError');
+
+  googleBtn.addEventListener('click', async function(){
+    loginError.style.display = 'none';
+    loginLoading.style.display = 'block';
+    googleBtn.disabled = true;
+    try{
+      await window.cloudStore.signIn();
+    }catch(e){
+      loginLoading.style.display = 'none';
+      googleBtn.disabled = false;
+      loginError.textContent = 'Sign-in failed: ' + (e && e.message ? e.message : 'please try again.');
+      loginError.style.display = 'block';
+    }
+  });
+
+  window.cloudStore.onAuthChange(function(user){
+    const loginScreen = document.getElementById('loginScreen');
+    const appRoot = document.getElementById('appRoot');
+    loginLoading.style.display = 'none';
+    googleBtn.disabled = false;
+    if(user){
+      loginScreen.style.display = 'none';
+      appRoot.style.display = 'block';
+      const accountRow = document.getElementById('accountRow');
+      accountRow.innerHTML = (user.photoURL ? '<img src="' + user.photoURL + '" alt="">' : '') +
+        '<span>' + (user.displayName || user.email || '') + '</span>' +
+        '<button class="signout-link" id="signOutBtn">Sign out</button>';
+      document.getElementById('signOutBtn').onclick = function(){ window.cloudStore.signOut(); };
+      if(window.LunariaApp && window.LunariaApp.init) window.LunariaApp.init();
+    } else {
+      loginScreen.style.display = 'flex';
+      appRoot.style.display = 'none';
+    }
+  });
+</script>
+
+<script>
+(function(){
+  var STORAGE_KEY = 'library';
+  var TROPES_KEY = 'tropeList';
+  var GENRE_KEY = 'genreList';
+  var ARC_KEY = 'arcSourceList';
+  var LINKS_KEY = 'readerLinks';
+  var books = [];
+  var readerLinks = [];
+  var currentPostcardBook = null;
+  var editingId = null;
+  var selectedTropes = [];
+  var tropeList = [];
+  var genreList = [];
+  var arcSourceList = [];
+  var pendingCover = null;
+  var activeStatus = 'all';
+  var confirmingDelete = null;
+  var manageMode = null;
+
+  var defaultTropes = ['Enemies to lovers','Slow burn','Found family','Chosen one','Love triangle','Second chance romance','Fake dating','Forbidden love','Morally gray character','Grumpy x sunshine','Redemption arc','Anti-hero','Multiple POV','Time skip','Coming of age','Revenge','Royalty / court intrigue','Workplace romance','Unreliable narrator','Plot twist ending'];
+  var defaultGenres = ['Fantasy','Science Fiction','Romance','Mystery / Thriller','Horror','Literary Fiction','Historical Fiction','Young Adult','Contemporary Fiction','Nonfiction','Biography / Memoir','Poetry','Graphic Novel / Manga','Classics','Other'];
+  var defaultArcSources = ['NetGalley','Edelweiss','BookSirens','BookishFirst','Publisher (direct)','Author (direct)'];
+
+  var statusMeta = {
+    all: {label:'All'},
+    want: {label:'Want to read'},
+    reading: {label:'Reading'},
+    hold: {label:'On Hold'},
+    finished: {label:'Finished'},
+    dnf: {label:'Did not finish'}
+  };
+
+  function uid(){
+    return 'b_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+  }
+
+  function setSync(state){
+    var dot = document.getElementById('syncDot');
+    var text = document.getElementById('syncText');
+    dot.className = 'sync-dot' + (state === 'syncing' ? ' syncing' : state === 'error' ? ' error' : '');
+    text.textContent = state === 'syncing' ? 'Syncing...' : state === 'error' ? 'Not synced' : 'Synced';
+  }
+
+  function showBanner(msg){
+    var b = document.getElementById('saveBanner');
+    b.textContent = msg;
+    b.style.display = 'block';
+    setTimeout(function(){ b.style.display = 'none'; }, 6000);
+  }
+
+  var appInitialized = false;
+
+  async function loadBooks(){
+    setSync('syncing');
+    try{
+      var data = await window.cloudStore.loadAll();
+      books = data.books || [];
+      if(data.tropeList && data.tropeList.length){ tropeList = data.tropeList; }
+      else { tropeList = defaultTropes.slice(); saveTropeList(); }
+      if(data.genreList && data.genreList.length){ genreList = data.genreList; }
+      else { genreList = defaultGenres.slice(); saveGenreList(); }
+      if(data.arcSourceList && data.arcSourceList.length){ arcSourceList = data.arcSourceList; }
+      else { arcSourceList = defaultArcSources.slice(); saveArcSourceList(); }
+      readerLinks = data.readerLinks || [];
+      setSync('idle');
+    }catch(e){
+      books = [];
+      tropeList = defaultTropes.slice();
+      genreList = defaultGenres.slice();
+      arcSourceList = defaultArcSources.slice();
+      readerLinks = [];
+      setSync('error');
+      showBanner("Couldn't load your library from the cloud. Check your connection and refresh.");
+    }
+    renderArcSourceList();
+    renderLinks();
+    render();
+    updateNotifBadge();
+    checkDueSoonNotify(false);
+  }
+
+  async function saveBookRemote(book){
+    setSync('syncing');
+    try{
+      await window.cloudStore.saveBook(book);
+      setSync('idle');
+    }catch(e){
+      setSync('error');
+      showBanner("Couldn't save your last change. Try a smaller cover image, then try again.");
+    }
+  }
+
+  async function deleteBookRemote(id){
+    setSync('syncing');
+    try{
+      await window.cloudStore.deleteBook(id);
+      setSync('idle');
+    }catch(e){
+      setSync('error');
+      showBanner("Couldn't delete that book. Check your connection and try again.");
+    }
+  }
+
+  async function saveTropeList(){
+    try{ await window.cloudStore.saveMeta({tropeList: tropeList}); }catch(e){}
+  }
+
+  async function saveGenreList(){
+    try{ await window.cloudStore.saveMeta({genreList: genreList}); }catch(e){}
+  }
+
+  async function saveArcSourceList(){
+    try{ await window.cloudStore.saveMeta({arcSourceList: arcSourceList}); }catch(e){}
+  }
+
+  function renderArcSourceList(){
+    var dl = document.getElementById('arcSourceOptions');
+    dl.innerHTML = arcSourceList.map(function(s){ return '<option value="' + escapeHtml(s) + '">'; }).join('');
+  }
+
+  function daysUntil(dateStr){
+    if(!dateStr) return null;
+    var today = new Date(); today.setHours(0,0,0,0);
+    var d = new Date(dateStr + 'T00:00:00');
+    return Math.round((d - today) / 86400000);
+  }
+
+  function fmtDate(dateStr){
+    if(!dateStr) return '';
+    var d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('en-US', {month:'2-digit', day:'2-digit', year:'numeric'});
+  }
+
+  function fmtShort(dateStr){
+    if(!dateStr) return '';
+    var d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('en-US', {month:'2-digit', day:'2-digit'});
+  }
+
+  function allGenres(){
+    var set = {};
+    books.forEach(function(b){ if(b.genre) set[b.genre] = true; });
+    return Object.keys(set).sort();
+  }
+
+  function starsHtml(rating, size){
+    rating = Math.max(0, Math.min(5, rating || 0));
+    var pct = (rating / 5) * 100;
+    var fontSize = size || 14;
+    return '<span class="stars" style="font-size:' + fontSize + 'px;">' +
+      '<span class="stars-bg">★★★★★</span>' +
+      '<span class="stars-fill" style="width:' + pct + '%;">★★★★★</span>' +
+      '</span>';
+  }
+
+  function starsPlain(rating){
+    rating = Math.max(0, Math.min(5, rating || 0));
+    var full = Math.floor(rating);
+    var half = (rating - full) >= 0.5;
+    var s = '';
+    for(var i=0;i<full;i++) s += '★';
+    if(half) s += '⯨';
+    for(var i=0;i<(5-full-(half?1:0));i++) s += '☆';
+    return s;
+  }
+
+  function renderStats(){
+    var reading = books.filter(function(b){ return b.status === 'reading'; }).length;
+    var dueSoon = getDueSoonBooks(DUE_SOON_DAYS).length;
+    var thisYear = new Date().getFullYear();
+    var finishedThisYearBooks = books.filter(function(b){
+      return b.status === 'finished' && b.dateFinished && new Date(b.dateFinished + 'T00:00:00').getFullYear() === thisYear;
+    });
+    var finishedThisYear = finishedThisYearBooks.length;
+    var pagesThisYear = finishedThisYearBooks.reduce(function(sum, b){ return sum + (b.totalPages || 0); }, 0);
+
+    var el = document.getElementById('stats');
+    el.innerHTML =
+      '<div class="stat"><div class="num">' + reading + '</div><div class="label">Currently reading</div></div>' +
+      '<div class="stat' + (dueSoon > 0 ? ' alert' : '') + '"><div class="num">' + dueSoon + '</div><div class="label">Due within ' + DUE_SOON_DAYS + ' days</div></div>' +
+      '<div class="stat"><div class="num">' + finishedThisYear + '</div><div class="label">Books read in ' + thisYear + '</div></div>' +
+      '<div class="stat"><div class="num">' + pagesThisYear.toLocaleString() + '</div><div class="label">Pages read in ' + thisYear + '</div></div>';
+  }
+
+  function monthName(monthIndex){
+    return ['January','February','March','April','May','June','July','August','September','October','November','December'][monthIndex];
+  }
+
+  function getFinishedInMonth(year, monthIndex){
+    return books.filter(function(b){
+      if(b.status !== 'finished' || !b.dateFinished) return false;
+      var d = new Date(b.dateFinished + 'T00:00:00');
+      return d.getFullYear() === year && d.getMonth() === monthIndex;
+    });
+  }
+
+  function renderMonthStats(){
+    var now = new Date();
+    var finishedThisMonth = getFinishedInMonth(now.getFullYear(), now.getMonth());
+    var pages = finishedThisMonth.reduce(function(sum, b){ return sum + (b.totalPages || 0); }, 0);
+    var ratedBooks = finishedThisMonth.filter(function(b){ return b.rating > 0; });
+    var avgRating = ratedBooks.length ? (ratedBooks.reduce(function(sum, b){ return sum + b.rating; }, 0) / ratedBooks.length) : 0;
+
+    var el = document.getElementById('monthStats');
+    el.innerHTML =
+      '<div class="stat"><div class="num">' + finishedThisMonth.length + '</div><div class="label">Books read in ' + monthName(now.getMonth()) + '</div></div>' +
+      '<div class="stat"><div class="num">' + pages.toLocaleString() + '</div><div class="label">Pages read in ' + monthName(now.getMonth()) + '</div></div>' +
+      '<div class="stat"><div class="num">' + (avgRating ? avgRating.toFixed(1) : '—') + '</div><div class="label">Avg rating this month</div></div>';
+  }
+
+  function renderTabs(){
+    var el = document.getElementById('statusTabs');
+    el.innerHTML = '';
+    Object.keys(statusMeta).forEach(function(key){
+      var btn = document.createElement('button');
+      btn.className = 'tab' + (activeStatus === key ? ' active' : '');
+      btn.textContent = statusMeta[key].label;
+      btn.onclick = function(){ activeStatus = key; render(); };
+      el.appendChild(btn);
+    });
+  }
+
+  function renderGenreFilter(){
+    var sel = document.getElementById('genreFilter');
+    var current = sel.value;
+    var genres = allGenres();
+    sel.innerHTML = '<option value="">All genres</option>' + genres.map(function(g){
+      return '<option value="' + g.replace(/"/g,'&quot;') + '">' + g + '</option>';
+    }).join('');
+    if(genres.indexOf(current) !== -1) sel.value = current;
+  }
+
+  function escapeHtml(s){
+    if(!s) return '';
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  function effectiveDueDate(b){
+    return b.dueDate || (b.format === 'Paperback' && b.ownership === 'Borrowed' ? b.borrowDueDate : '') || '';
+  }
+
+  var DUE_SOON_DAYS = 7;
+
+  function getDueSoonBooks(days){
+    return books.filter(function(b){
+      if(b.status === 'finished' || b.status === 'dnf' || b.status === 'hold') return false;
+      var due = effectiveDueDate(b);
+      if(!due) return false;
+      var d = daysUntil(due);
+      return d !== null && d <= days;
+    }).sort(compareDue);
+  }
+
+  function updateNotifBadge(){
+    var btn = document.getElementById('notifBtn');
+    if(!btn) return;
+    if(!('Notification' in window)){ btn.style.display = 'none'; return; }
+    btn.classList.remove('on', 'blocked');
+    if(Notification.permission === 'granted'){
+      btn.textContent = '🔔 Reminders on';
+      btn.classList.add('on');
+    } else if(Notification.permission === 'denied'){
+      btn.textContent = '🔕 Reminders blocked';
+      btn.classList.add('blocked');
+    } else {
+      btn.textContent = '🔔 Enable reminders';
+    }
+  }
+
+  function checkDueSoonNotify(force){
+    if(!('Notification' in window) || Notification.permission !== 'granted') return;
+    var todayKey = 'lunaria_notified_' + new Date().toISOString().slice(0,10);
+    if(!force){
+      try{ if(localStorage.getItem(todayKey)) return; }catch(e){}
+    }
+    var soon = getDueSoonBooks(DUE_SOON_DAYS);
+    if(!soon.length){
+      if(force){
+        try{ new Notification('Hiraya Manawari', {body: 'Nothing due in the next ' + DUE_SOON_DAYS + ' days. 🌙', icon: './icon-192.png'}); }catch(e){}
+      }
+      try{ localStorage.setItem(todayKey, '1'); }catch(e){}
+      return;
+    }
+    var names = soon.slice(0, 3).map(function(b){ return b.title; }).join(', ');
+    var extra = soon.length > 3 ? ' + ' + (soon.length - 3) + ' more' : '';
+    try{
+      var notif = new Notification('📚 Due within ' + DUE_SOON_DAYS + ' days', {
+        body: names + extra,
+        icon: './icon-192.png'
+      });
+      notif.onclick = function(){ window.focus(); notif.close(); };
+    }catch(e){}
+    try{ localStorage.setItem(todayKey, '1'); }catch(e){}
+  }
+
+  document.getElementById('notifBtn').addEventListener('click', function(){
+    if(!('Notification' in window)) return;
+    if(Notification.permission === 'granted'){
+      checkDueSoonNotify(true);
+      return;
+    }
+    if(Notification.permission === 'denied'){
+      showBanner("Reminders are blocked in your browser's site settings — you'll need to allow notifications for this site to turn them back on.");
+      return;
+    }
+    Notification.requestPermission().then(function(){
+      updateNotifBadge();
+      checkDueSoonNotify(true);
+    });
+  });
+
+  function compareDue(a, b){
+    var da = effectiveDueDate(a) ? new Date(effectiveDueDate(a)) : null;
+    var db = effectiveDueDate(b) ? new Date(effectiveDueDate(b)) : null;
+    if(!da && !db) return 0;
+    if(!da) return 1;
+    if(!db) return -1;
+    return da - db;
+  }
+
+  function comparePages(a, b){
+    var pa = a.totalPages || Infinity;
+    var pb = b.totalPages || Infinity;
+    return pa - pb;
+  }
+
+  function getFilteredSorted(){
+    var search = document.getElementById('searchInput').value.trim().toLowerCase();
+    var genre = document.getElementById('genreFilter').value;
+    var sort = document.getElementById('sortSelect').value;
+
+    var filtered = books.filter(function(b){
+      if(activeStatus !== 'all' && b.status !== activeStatus) return false;
+      if(genre && b.genre !== genre) return false;
+      if(search){
+        var hay = [b.title, b.author, b.series].join(' ').toLowerCase();
+        if(hay.indexOf(search) === -1) return false;
+      }
+      return true;
+    });
+
+    if(sort === 'title'){
+      filtered.sort(function(a,b){ return (a.title||'').localeCompare(b.title||''); });
+    } else if(sort === 'due'){
+      filtered.sort(compareDue);
+    } else if(sort === 'due_pages'){
+      filtered.sort(function(a,b){
+        var dueCompare = compareDue(a,b);
+        if(dueCompare !== 0) return dueCompare;
+        return comparePages(a,b);
+      });
+    } else if(sort === 'rating'){
+      filtered.sort(function(a,b){ return (b.rating||0) - (a.rating||0); });
+    } else if(sort === 'pages'){
+      filtered.sort(comparePages);
+    } else {
+      filtered.sort(function(a,b){ return (b.createdAt||0) - (a.createdAt||0); });
+    }
+
+    // Finished and DNF books always sink to the bottom, on top of whichever
+    // sort is selected above. Array.sort is stable, so this preserves the
+    // ordering already established within each group.
+    filtered.sort(function(a,b){ return doneWeight(a) - doneWeight(b); });
+
+    return filtered;
+  }
+
+  function doneWeight(b){
+    return (b.status === 'finished' || b.status === 'dnf') ? 1 : 0;
+  }
+
+  function statusLabelFor(b){
+    if(b.status === 'reading' && b.format === 'Audiobook') return 'Listening';
+    return statusMeta[b.status] ? statusMeta[b.status].label : b.status;
+  }
+
+  function dnfStampSpan(){
+    return '<span style="display:inline-block;font-family:\'Special Elite\',monospace;border:1.5px solid #8A4E71;color:#8A4E71;padding:1px 7px;border-radius:3px;font-size:10px;letter-spacing:0.06em;transform:rotate(-6deg);">DNF</span>';
+  }
+
+  function exportStatusCell(b){
+    if(b.status === 'dnf') return dnfStampSpan();
+    if(b.status === 'finished') return b.dateFinished ? fmtDate(b.dateFinished) : 'Finished';
+    return escapeHtml(statusLabelFor(b));
+  }
+
+  var GENRE_COLOR_PALETTE = ['#D9CBEA','#E4D2F2','#CFC2E8','#DCC9E8','#D6C4EC','#E0D0EE','#CBB8E3','#D8C6E9','#E6D5F0','#D2BEE6','#C9B7E0','#DFCBE7'];
+
+  function genreColorFor(genre){
+    if(!genre) return GENRE_COLOR_PALETTE[0];
+    var hash = 0;
+    for(var i = 0; i < genre.length; i++){ hash = (hash * 31 + genre.charCodeAt(i)) & 0xffffffff; }
+    var idx = Math.abs(hash) % GENRE_COLOR_PALETTE.length;
+    return GENRE_COLOR_PALETTE[idx];
+  }
+
+  function bookCard(b){
+    var unit = b.format === 'Audiobook' ? 'chapters' : 'pages';
+    var progressHtml = '';
+    if((b.status === 'reading' || b.status === 'hold') && b.totalPages){
+      var pct = Math.max(0, Math.min(100, Math.round((b.currentPage||0) / b.totalPages * 100)));
+      progressHtml = '<div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%"></div></div>' +
+        '<div class="progress-text">' + (b.currentPage||0) + ' / ' + b.totalPages + ' ' + unit + ' · ' + pct + '%</div></div>';
+    }
+
+    var showDueStamp = b.status !== 'finished' && b.status !== 'dnf' && b.status !== 'hold';
+    var stampHtml = '';
+    if(showDueStamp && b.isARC && b.dueDate){
+      var d = daysUntil(b.dueDate);
+      var overdue = d !== null && d < 0;
+      stampHtml = '<div class="stamp' + (overdue ? ' overdue' : '') + '"><span class="lbl">' + (overdue ? 'overdue' : 'due') + '</span><span>' + fmtShort(b.dueDate) + '</span></div>';
+    } else if(showDueStamp && b.isARC){
+      stampHtml = '<div class="stamp"><span class="lbl">ARC</span></div>';
+    } else if(showDueStamp && b.format === 'Paperback' && b.ownership === 'Borrowed' && b.borrowDueDate){
+      var bd = daysUntil(b.borrowDueDate);
+      var bOverdue = bd !== null && bd < 0;
+      stampHtml = '<div class="stamp' + (bOverdue ? ' overdue' : '') + '"><span class="lbl">' + (bOverdue ? 'overdue' : 'return by') + '</span><span>' + fmtShort(b.borrowDueDate) + '</span></div>';
+    }
+
+    var readStampHtml = b.status === 'finished' ? '<div class="read-stamp">READ</div>' : '';
+    var dnfStampHtml = b.status === 'dnf' ? '<div class="dnf-stamp">DNF</div>' : '';
+    var holdStampHtml = b.status === 'hold' ? '<div class="hold-stamp">ON HOLD</div>' : '';
+    var stampColHtml = (stampHtml || readStampHtml || dnfStampHtml || holdStampHtml) ? '<div class="stamp-col">' + stampHtml + readStampHtml + dnfStampHtml + holdStampHtml + '</div>' : '';
+
+    var arcSourceHtml = (b.isARC && b.arcSource) ? '<div class="arc-source">via ' + escapeHtml(b.arcSource) + '</div>' : '';
+    var arcLinkHtml = (b.isARC && b.arcFormLink) ? '<a class="arc-link" href="' + escapeHtml(b.arcFormLink) + '" target="_blank" rel="noopener">Review form ↗</a>' : '';
+
+    var tagsHtml = '';
+    if(b.tropes && b.tropes.length){
+      tagsHtml = '<div class="tags">' + b.tropes.map(function(t){ return '<span class="tag">' + escapeHtml(t) + '</span>'; }).join('') + '</div>';
+    }
+
+    var seriesHtml = b.series ? '<p class="series series-line">' + escapeHtml(b.series) + (b.seriesNumber ? ' · Book ' + b.seriesNumber : '') + '</p>' : '';
+
+    var ratingHtml = (b.rating || b.rating === 0) && b.rating > 0 ? '<div class="rating-row">' + starsHtml(b.rating) + '<span class="rating-num">' + b.rating.toFixed(1) + '</span></div>' : '';
+
+    var isConfirming = confirmingDelete === b.id;
+
+    var coverHtml = b.cover ? '<img src="' + b.cover + '" alt="">' : '<span class="ph">No cover</span>';
+    var formatLabelHtml = b.format ? '<div class="format-label">' + escapeHtml(b.format) + '</div>' : '';
+    var genreTabHtml = b.genre ? '<div class="genre-tab" style="background:' + genreColorFor(b.genre) + ';">' + escapeHtml(b.genre) + '</div>' : '';
+
+    var card = document.createElement('div');
+    card.className = 'card clickable';
+    card.innerHTML =
+      '<div class="status-tab ' + b.status + '"></div>' +
+      genreTabHtml +
+      '<div class="card-top">' +
+        '<div class="cover-col"><div class="cover-thumb">' + coverHtml + '</div>' + formatLabelHtml + '</div>' +
+        '<div class="card-info"><h3>' + escapeHtml(b.title) + '</h3>' +
+        (b.author ? '<p class="byline">' + escapeHtml(b.author) + '</p>' : '') +
+        seriesHtml + arcSourceHtml + arcLinkHtml + '</div>' +
+        stampColHtml +
+      '</div>' +
+      ratingHtml + tagsHtml + progressHtml +
+      '<div class="card-actions">' +
+        '<button class="icon-btn postcard-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="m2 8 10 6 10-6"/></svg>Postcard</button>' +
+        '<button class="icon-btn edit-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>Edit</button>' +
+        '<button class="icon-btn danger del-btn' + (isConfirming ? ' confirming' : '') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>' + (isConfirming ? 'Confirm?' : 'Delete') + '</button>' +
+      '</div>';
+
+    card.addEventListener('click', function(e){
+      if(e.target.closest('button') || e.target.closest('a')) return;
+      openViewModal(b.id);
+    });
+
+    card.querySelector('.postcard-btn').onclick = function(){ openPostcardModal(b.id); };
+
+    card.querySelector('.edit-btn').onclick = function(){ openModal(b.id); };
+    card.querySelector('.del-btn').onclick = function(){
+      if(confirmingDelete === b.id){
+        var deletedId = b.id;
+        books = books.filter(function(x){ return x.id !== deletedId; });
+        confirmingDelete = null;
+        deleteBookRemote(deletedId);
+        render();
+      } else {
+        confirmingDelete = b.id;
+        render();
+        setTimeout(function(){
+          if(confirmingDelete === b.id){ confirmingDelete = null; render(); }
+        }, 3000);
+      }
+    };
+    return card;
+  }
+
+  function shrinkSeriesLines(){
+    document.querySelectorAll('.series-line').forEach(function(el){
+      var size = 12;
+      el.style.fontSize = size + 'px';
+      var guard = 0;
+      while(el.scrollWidth > el.clientWidth && size > 8.5 && guard < 20){
+        size -= 0.5;
+        el.style.fontSize = size + 'px';
+        guard++;
+      }
+    });
+  }
+
+  function render(){
+    renderStats();
+    renderMonthStats();
+    renderTabs();
+    renderGenreFilter();
+
+    var filtered = getFilteredSorted();
+
+    var grid = document.getElementById('grid');
+    var empty = document.getElementById('emptyState');
+    grid.innerHTML = '';
+
+    if(filtered.length === 0){
+      grid.style.display = 'none';
+      empty.style.display = 'block';
+      if(books.length === 0){
+        document.getElementById('emptyTitle').textContent = 'Your shelf is empty';
+        document.getElementById('emptySub').textContent = "Add the first book you're reading, waiting on, or reviewing.";
+      } else {
+        document.getElementById('emptyTitle').textContent = 'No books match';
+        document.getElementById('emptySub').textContent = 'Try a different search or filter.';
+      }
+    } else {
+      grid.style.display = 'grid';
+      empty.style.display = 'none';
+      filtered.forEach(function(b){ grid.appendChild(bookCard(b)); });
+      shrinkSeriesLines();
+    }
+  }
+
+  function renderTropeChips(){
+    var wrap = document.getElementById('tropeChips');
+    if(!selectedTropes.length){
+      wrap.innerHTML = '<span class="trope-chips-empty">No tropes added yet.</span>';
+      return;
+    }
+    wrap.innerHTML = selectedTropes.map(function(t){
+      return '<span class="trope-chip">' + escapeHtml(t) + '<button type="button" data-trope="' + escapeHtml(t) + '" title="Remove">×</button></span>';
+    }).join('');
+    wrap.querySelectorAll('button[data-trope]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var t = btn.getAttribute('data-trope');
+        selectedTropes = selectedTropes.filter(function(x){ return x !== t; });
+        renderTropeChips();
+        renderTropeOptions();
+      });
+    });
+  }
+
+  function renderTropeOptions(){
+    var dl = document.getElementById('tropeOptions');
+    dl.innerHTML = tropeList.filter(function(t){ return selectedTropes.indexOf(t) === -1; }).map(function(t){
+      return '<option value="' + escapeHtml(t) + '">';
+    }).join('');
+  }
+
+  function addTropeFromInput(){
+    var input = document.getElementById('tropeSearchInput');
+    var val = input.value.trim();
+    if(!val) return;
+    var existing = tropeList.find(function(t){ return t.toLowerCase() === val.toLowerCase(); });
+    var finalVal = existing || val;
+    if(!existing){
+      tropeList.push(finalVal);
+      saveTropeList();
+    }
+    if(selectedTropes.indexOf(finalVal) === -1) selectedTropes.push(finalVal);
+    input.value = '';
+    renderTropeChips();
+    renderTropeOptions();
+    input.focus();
+  }
+
+  function renderGenreSelect(currentValue){
+    var sel = document.getElementById('f_genre');
+    var options = genreList.slice();
+    if(currentValue && options.indexOf(currentValue) === -1) options.push(currentValue);
+    sel.innerHTML = '<option value="">Select a genre</option>' + options.map(function(g){
+      return '<option value="' + escapeHtml(g) + '">' + escapeHtml(g) + '</option>';
+    }).join('');
+    sel.value = currentValue || '';
+  }
+
+  document.getElementById('addTropeBtn').onclick = addTropeFromInput;
+  document.getElementById('tropeSearchInput').addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ e.preventDefault(); addTropeFromInput(); }
+  });
+
+  function openManageModal(mode){
+    manageMode = mode;
+    document.getElementById('manageTitle').textContent = mode === 'genre' ? 'Manage genres' : mode === 'arc' ? 'Manage ARC sources' : 'Manage tropes';
+    document.getElementById('manageNewInput').placeholder = mode === 'genre' ? 'Add a genre' : mode === 'arc' ? 'Add an ARC source' : 'Add a trope';
+    renderManageList();
+    document.getElementById('manageOverlay').style.display = 'flex';
+  }
+
+  function cascadeRename(field, oldVal, newVal){
+    var affected = [];
+    books = books.map(function(b){
+      if(field === 'tropes'){
+        if(!b.tropes || b.tropes.indexOf(oldVal) === -1) return b;
+        var newTropes = b.tropes.map(function(t){ return t === oldVal ? newVal : t; });
+        // dedupe in case newVal was already present
+        newTropes = newTropes.filter(function(t, i){ return newTropes.indexOf(t) === i; });
+        var updated = Object.assign({}, b, {tropes: newTropes});
+        affected.push(updated);
+        return updated;
+      } else {
+        if(b[field] !== oldVal) return b;
+        var updated2 = Object.assign({}, b, {});
+        updated2[field] = newVal;
+        affected.push(updated2);
+        return updated2;
+      }
+    });
+    affected.forEach(function(b){ saveBookRemote(b); });
+    return affected.length;
+  }
+
+  function renderManageList(){
+    var list = manageMode === 'genre' ? genreList : manageMode === 'arc' ? arcSourceList : tropeList;
+    var field = manageMode === 'genre' ? 'genre' : manageMode === 'arc' ? 'arcSource' : 'tropes';
+    var wrap = document.getElementById('manageList');
+    if(!list.length){
+      wrap.innerHTML = '<p style="color:var(--muted);font-size:12.5px;margin:2px;">Nothing here yet — add one below.</p>';
+      return;
+    }
+    wrap.innerHTML = '';
+    list.forEach(function(item){
+      var row = document.createElement('div');
+      row.className = 'manage-row';
+      row.innerHTML = '<input type="text" class="manage-edit-input" value="' + escapeHtml(item) + '" style="flex:1;border:none;background:none;font-size:13px;color:var(--ink);padding:3px 4px;font-family:var(--font-body);">' +
+        '<button type="button" class="link-remove" title="Delete">×</button>';
+      var input = row.querySelector('.manage-edit-input');
+      input.addEventListener('focus', function(){ input.style.background = 'var(--card-hover)'; input.style.borderRadius = '5px'; });
+      function commitRename(){
+        var newVal = input.value.trim();
+        input.style.background = 'none';
+        if(!newVal || newVal === item){ input.value = item; return; }
+        var list2 = manageMode === 'genre' ? genreList : manageMode === 'arc' ? arcSourceList : tropeList;
+        var mergingInto = list2.indexOf(newVal) !== -1 && newVal !== item;
+        if(manageMode === 'genre'){
+          if(mergingInto){ genreList = genreList.filter(function(g){ return g !== item; }); }
+          else { genreList = genreList.map(function(g){ return g === item ? newVal : g; }); }
+          saveGenreList();
+          var currentGenreVal = document.getElementById('f_genre').value;
+          renderGenreSelect(currentGenreVal === item ? newVal : currentGenreVal);
+        } else if(manageMode === 'arc'){
+          if(mergingInto){ arcSourceList = arcSourceList.filter(function(s){ return s !== item; }); }
+          else { arcSourceList = arcSourceList.map(function(s){ return s === item ? newVal : s; }); }
+          saveArcSourceList();
+          renderArcSourceList();
+        } else {
+          if(mergingInto){ tropeList = tropeList.filter(function(t){ return t !== item; }); }
+          else { tropeList = tropeList.map(function(t){ return t === item ? newVal : t; }); }
+          selectedTropes = selectedTropes.map(function(t){ return t === item ? newVal : t; }).filter(function(t, i, arr){ return arr.indexOf(t) === i; });
+          saveTropeList();
+          renderTropeChips();
+          renderTropeOptions();
+        }
+        var count = cascadeRename(field, item, newVal);
+        render();
+        renderManageList();
+        if(count > 0) showBanner('Updated ' + count + ' book' + (count === 1 ? '' : 's') + ' using "' + item + '" to "' + newVal + '".');
+      }
+      input.addEventListener('blur', commitRename);
+      input.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); input.blur(); } });
+      row.querySelector('.link-remove').onclick = function(){
+        if(manageMode === 'genre'){
+          genreList = genreList.filter(function(g){ return g !== item; });
+          saveGenreList();
+          renderGenreSelect(document.getElementById('f_genre').value === item ? '' : document.getElementById('f_genre').value);
+        } else if(manageMode === 'arc'){
+          arcSourceList = arcSourceList.filter(function(s){ return s !== item; });
+          saveArcSourceList();
+          renderArcSourceList();
+        } else {
+          tropeList = tropeList.filter(function(t){ return t !== item; });
+          selectedTropes = selectedTropes.filter(function(t){ return t !== item; });
+          saveTropeList();
+          renderTropeChips();
+          renderTropeOptions();
+        }
+        renderManageList();
+      };
+      wrap.appendChild(row);
+    });
+  }
+
+  document.getElementById('openManageGenreBtn').onclick = function(){ openManageModal('genre'); };
+  document.getElementById('openManageTropeBtn').onclick = function(){ openManageModal('trope'); };
+  document.getElementById('openManageArcBtn').onclick = function(){ openManageModal('arc'); };
+  document.getElementById('manageCloseBtn').onclick = function(){ document.getElementById('manageOverlay').style.display = 'none'; };
+  document.getElementById('manageOverlay').addEventListener('click', function(e){
+    if(e.target.id === 'manageOverlay') document.getElementById('manageOverlay').style.display = 'none';
+  });
+  document.getElementById('manageAddBtn').onclick = function(){
+    var input = document.getElementById('manageNewInput');
+    var val = input.value.trim();
+    if(!val) return;
+    if(manageMode === 'genre'){
+      if(genreList.indexOf(val) === -1){ genreList.push(val); saveGenreList(); renderGenreSelect(document.getElementById('f_genre').value); }
+    } else if(manageMode === 'arc'){
+      if(arcSourceList.indexOf(val) === -1){ arcSourceList.push(val); saveArcSourceList(); renderArcSourceList(); }
+    } else {
+      if(tropeList.indexOf(val) === -1){ tropeList.push(val); saveTropeList(); renderTropeChips(); renderTropeOptions(); }
+    }
+    input.value = '';
+    renderManageList();
+  };
+
+  function resizeImage(file, maxW, quality){
+    return new Promise(function(resolve, reject){
+      var reader = new FileReader();
+      reader.onload = function(e){
+        var img = new Image();
+        img.onload = function(){
+          var scale = Math.min(1, maxW / img.width);
+          var w = Math.round(img.width * scale);
+          var h = Math.round(img.height * scale);
+          var canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  document.getElementById('f_cover').addEventListener('change', function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    resizeImage(file, 200, 0.82).then(function(dataUrl){
+      pendingCover = dataUrl;
+      document.getElementById('coverPreview').innerHTML = '<img src="' + dataUrl + '" alt="">';
+    });
+  });
+
+  document.getElementById('removeCoverBtn').onclick = function(){
+    pendingCover = null;
+    document.getElementById('coverPreview').innerHTML = '<span class="ph">No cover</span>';
+    document.getElementById('f_cover').value = '';
+  };
+
+  document.getElementById('f_rating').addEventListener('input', function(e){
+    var v = parseFloat(e.target.value) || 0;
+    document.getElementById('starPreview').textContent = starsPlain(v);
+  });
+
+  function applyFormatUI(){
+    var format = document.getElementById('f_format').value;
+    var isAudiobook = format === 'Audiobook';
+    var isPaperback = format === 'Paperback';
+
+    document.getElementById('statusReadingOption').textContent = isAudiobook ? 'Listening' : 'Reading';
+    document.getElementById('totalPagesLabel').textContent = isAudiobook ? 'Total chapters' : 'Total pages';
+    document.getElementById('currentPageLabel').textContent = isAudiobook ? 'Current chapter' : 'Current page';
+    document.getElementById('f_totalPages').placeholder = isAudiobook ? '18' : '320';
+    document.getElementById('f_currentPage').placeholder = '0';
+
+    document.getElementById('ownershipFields').style.display = isPaperback ? 'grid' : 'none';
+    if(!isPaperback){
+      document.getElementById('f_ownership').value = 'Owned';
+      document.getElementById('f_borrowDueDate').value = '';
+      document.getElementById('borrowDueField').style.display = 'none';
+    } else {
+      document.getElementById('borrowDueField').style.display = document.getElementById('f_ownership').value === 'Borrowed' ? 'block' : 'none';
+    }
+  }
+
+  function openModal(id){
+    editingId = id || null;
+    var b = id ? books.find(function(x){ return x.id === id; }) : null;
+    document.getElementById('modalTitle').textContent = b ? 'Edit book' : 'Add a book';
+    document.getElementById('f_title').value = b ? b.title || '' : '';
+    document.getElementById('f_author').value = b ? b.author || '' : '';
+    document.getElementById('f_status').value = b ? b.status || 'want' : 'want';
+    document.getElementById('f_series').value = b ? b.series || '' : '';
+    document.getElementById('f_seriesNum').value = b && b.seriesNumber ? b.seriesNumber : '';
+    document.getElementById('f_format').value = b ? b.format || '' : '';
+    document.getElementById('f_ownership').value = b && b.ownership ? b.ownership : 'Owned';
+    document.getElementById('f_borrowDueDate').value = b ? b.borrowDueDate || '' : '';
+    document.getElementById('f_isArc').checked = b ? !!b.isARC : false;
+    document.getElementById('f_arcSource').value = b ? b.arcSource || '' : '';
+    document.getElementById('f_dueDate').value = b ? b.dueDate || '' : '';
+    document.getElementById('f_arcFormLink').value = b ? b.arcFormLink || '' : '';
+    document.getElementById('f_totalPages').value = b && b.totalPages ? b.totalPages : '';
+    document.getElementById('f_currentPage').value = b && b.currentPage ? b.currentPage : '';
+    document.getElementById('f_dateStarted').value = b ? b.dateStarted || '' : '';
+    document.getElementById('f_dateFinished').value = b ? b.dateFinished || '' : '';
+    renderGenreSelect(b ? b.genre || '' : '');
+    document.getElementById('f_rating').value = b && b.rating ? b.rating : '';
+    document.getElementById('starPreview').textContent = starsPlain(b ? b.rating : 0);
+    pendingCover = b ? (b.cover || null) : null;
+    document.getElementById('coverPreview').innerHTML = pendingCover ? '<img src="' + pendingCover + '" alt="">' : '<span class="ph">No cover</span>';
+    document.getElementById('f_cover').value = '';
+    selectedTropes = b && b.tropes ? b.tropes.slice() : [];
+    renderTropeChips();
+    renderTropeOptions();
+    document.getElementById('tropeSearchInput').value = '';
+    document.getElementById('arcFields').style.display = document.getElementById('f_isArc').checked ? 'block' : 'none';
+    applyFormatUI();
+    document.getElementById('overlay').style.display = 'flex';
+    document.getElementById('f_title').focus();
+  }
+
+  function closeModal(){
+    document.getElementById('overlay').style.display = 'none';
+    editingId = null;
+  }
+
+  document.getElementById('addBtn').onclick = function(){ openModal(null); };
+  document.getElementById('cancelBtn').onclick = closeModal;
+  document.getElementById('overlay').addEventListener('click', function(e){
+    if(e.target.id === 'overlay') closeModal();
+  });
+
+  document.getElementById('f_isArc').addEventListener('change', function(e){
+    document.getElementById('arcFields').style.display = e.target.checked ? 'block' : 'none';
+  });
+
+  document.getElementById('f_format').addEventListener('change', applyFormatUI);
+  document.getElementById('f_ownership').addEventListener('change', function(){
+    document.getElementById('borrowDueField').style.display = this.value === 'Borrowed' ? 'block' : 'none';
+    if(this.value !== 'Borrowed') document.getElementById('f_borrowDueDate').value = '';
+  });
+
+  document.getElementById('bookForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var title = document.getElementById('f_title').value.trim();
+    if(!title) return;
+
+    var data = {
+      title: title,
+      author: document.getElementById('f_author').value.trim(),
+      status: document.getElementById('f_status').value,
+      series: document.getElementById('f_series').value.trim(),
+      seriesNumber: document.getElementById('f_seriesNum').value ? Number(document.getElementById('f_seriesNum').value) : null,
+      format: document.getElementById('f_format').value,
+      ownership: document.getElementById('f_format').value === 'Paperback' ? document.getElementById('f_ownership').value : '',
+      borrowDueDate: (document.getElementById('f_format').value === 'Paperback' && document.getElementById('f_ownership').value === 'Borrowed') ? document.getElementById('f_borrowDueDate').value : '',
+      isARC: document.getElementById('f_isArc').checked,
+      arcSource: document.getElementById('f_isArc').checked ? document.getElementById('f_arcSource').value.trim() : '',
+      dueDate: document.getElementById('f_isArc').checked ? document.getElementById('f_dueDate').value : '',
+      arcFormLink: document.getElementById('f_isArc').checked ? document.getElementById('f_arcFormLink').value.trim() : '',
+      totalPages: document.getElementById('f_totalPages').value ? Number(document.getElementById('f_totalPages').value) : null,
+      currentPage: document.getElementById('f_currentPage').value ? Number(document.getElementById('f_currentPage').value) : null,
+      dateStarted: document.getElementById('f_dateStarted').value,
+      dateFinished: document.getElementById('f_dateFinished').value,
+      genre: document.getElementById('f_genre').value,
+      rating: document.getElementById('f_rating').value ? Math.round(parseFloat(document.getElementById('f_rating').value) * 2) / 2 : 0,
+      tropes: selectedTropes.slice(),
+      cover: pendingCover
+    };
+
+    if(data.arcSource && arcSourceList.indexOf(data.arcSource) === -1){
+      arcSourceList.push(data.arcSource);
+      saveArcSourceList();
+      renderArcSourceList();
+    }
+
+    var finalBook = data;
+    if(editingId){
+      data.id = editingId;
+      books = books.map(function(b){
+        if(b.id !== editingId) return b;
+        finalBook = Object.assign({}, b, data);
+        return finalBook;
+      });
+    } else {
+      data.id = uid();
+      data.createdAt = Date.now();
+      books.push(data);
+    }
+
+    saveBookRemote(finalBook);
+    closeModal();
+    render();
+  });
+
+  document.getElementById('searchInput').addEventListener('input', render);
+  document.getElementById('genreFilter').addEventListener('change', render);
+  document.getElementById('sortSelect').addEventListener('change', render);
+
+  document.getElementById('exportBtn').onclick = function(){
+    var menu = document.getElementById('exportMenu');
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+  };
+  document.addEventListener('click', function(e){
+    if(!document.getElementById('exportBtn').contains(e.target) && !document.getElementById('exportMenu').contains(e.target)){
+      document.getElementById('exportMenu').style.display = 'none';
+    }
+  });
+
+  function todayStr(){
+    return new Date().toLocaleDateString('en-US', {month:'2-digit', day:'2-digit', year:'numeric'});
+  }
+
+  function buildLibraryCardHtml(list){
+    var rows = list.map(function(b){
+      return '<tr style="border-bottom:1px solid rgba(59,42,85,0.15);">' +
+        '<td style="padding:6px 4px;max-width:150px;">' + escapeHtml(b.title) + '</td>' +
+        '<td style="padding:6px 4px;color:#7C6D94;">' + escapeHtml(b.author||'—') + '</td>' +
+        '<td style="padding:6px 4px;">' + exportStatusCell(b) + '</td>' +
+        '<td style="padding:6px 4px;text-align:right;">' + (b.rating ? b.rating.toFixed(1) : '—') + '</td>' +
+        '</tr>';
+    }).join('');
+    return '<div style="width:440px;padding:26px;background:#FBF7FF;border:2px solid #3B2A55;font-family:\'Courier Prime\',monospace;color:#3B2A55;">' +
+      '<div style="text-align:center;border-bottom:2px solid #3B2A55;padding-bottom:12px;margin-bottom:14px;">' +
+      '<div style="font-family:\'Dancing Script\',cursive;font-size:30px;font-weight:700;color:#6B4E93;">Hiraya Manawari</div>' +
+      '<div style="font-size:10px;letter-spacing:0.15em;color:#7C6D94;margin-top:2px;">READING RECORD</div>' +
+      '</div>' +
+      '<table style="width:100%;font-size:11px;border-collapse:collapse;">' +
+      '<thead><tr style="border-bottom:2px solid #3B2A55;text-align:left;font-size:9px;letter-spacing:0.08em;color:#7C6D94;">' +
+      '<th style="padding:4px;">TITLE</th><th style="padding:4px;">AUTHOR</th><th style="padding:4px;">STATUS</th><th style="padding:4px;text-align:right;">RATING</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody></table>' +
+      '<div style="margin-top:16px;border-top:1px dashed #3B2A55;padding-top:8px;font-size:9px;display:flex;justify-content:space-between;color:#7C6D94;">' +
+      '<span>' + list.length + ' BOOK' + (list.length===1?'':'S') + '</span><span>ISSUED ' + todayStr().toUpperCase() + '</span></div>' +
+      '</div>';
+  }
+
+  function buildReceiptHtml(list){
+    var lines = list.map(function(b){
+      var r = b.rating ? starsPlain(b.rating) : '';
+      return '<div style="display:flex;justify-content:space-between;font-size:10.5px;padding:4px 0;border-bottom:1px dashed rgba(59,42,85,0.2);">' +
+        '<span style="max-width:170px;">' + escapeHtml(b.title) + (b.author ? '<br><span style="color:#7C6D94;font-size:9px;">' + escapeHtml(b.author) + '</span>' : '') + '</span>' +
+        '<span style="text-align:right;white-space:nowrap;">' + exportStatusCell(b) + (r ? '<br>' + r : '') + '</span>' +
+        '</div>';
+    }).join('');
+    return '<div style="width:320px;padding:22px 18px;background:#FBF7FF;font-family:\'Courier Prime\',monospace;color:#3B2A55;">' +
+      '<div style="text-align:center;">' +
+      '<div style="font-family:\'Dancing Script\',cursive;font-size:24px;font-weight:700;color:#6B4E93;">Hiraya Manawari</div>' +
+      '<div style="font-size:9px;letter-spacing:0.1em;color:#7C6D94;">READING RECEIPT</div>' +
+      '<div style="font-size:9px;color:#7C6D94;margin-top:4px;">' + todayStr() + '</div>' +
+      '<div style="border-top:1px dashed #3B2A55;margin:10px 0;"></div>' +
+      '</div>' +
+      lines +
+      '<div style="border-top:1px dashed #3B2A55;margin-top:10px;padding-top:10px;display:flex;justify-content:space-between;font-size:11px;font-weight:500;">' +
+      '<span>TOTAL BOOKS</span><span>' + list.length + '</span></div>' +
+      '<div style="text-align:center;font-size:9px;color:#7C6D94;margin-top:14px;">thank you for reading</div>' +
+      '</div>';
+  }
+
+  function downloadCanvas(html, filename){
+    var host = document.createElement('div');
+    host.style.position = 'fixed';
+    host.style.left = '-9999px';
+    host.style.top = '0';
+    host.innerHTML = html;
+    document.body.appendChild(host);
+    var target = host.firstChild;
+
+    function capture(){
+      window.html2canvas(target, {scale:2, backgroundColor:null, useCORS:true}).then(function(canvas){
+        var link = document.createElement('a');
+        link.download = filename;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        document.body.removeChild(host);
+      }).catch(function(){
+        document.body.removeChild(host);
+        showBanner("Couldn't generate the image. Try again.");
+      });
+    }
+
+    if(document.fonts && document.fonts.ready){
+      document.fonts.ready.then(capture);
+    } else {
+      setTimeout(capture, 300);
+    }
+  }
+
+  document.getElementById('exportCardBtn').onclick = function(){
+    document.getElementById('exportMenu').style.display = 'none';
+    var list = getFilteredSorted();
+    if(!list.length){ showBanner('No books in the current view to export.'); return; }
+    downloadCanvas(buildLibraryCardHtml(list), 'lunaria-library-card.png');
+  };
+  document.getElementById('exportReceiptBtn').onclick = function(){
+    document.getElementById('exportMenu').style.display = 'none';
+    var list = getFilteredSorted();
+    if(!list.length){ showBanner('No books in the current view to export.'); return; }
+    downloadCanvas(buildReceiptHtml(list), 'lunaria-receipt.png');
+  };
+
+  document.getElementById('exportBackupBtn').onclick = function(){
+    document.getElementById('exportMenu').style.display = 'none';
+    var payload = {books: books, tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, exportedAt: new Date().toISOString()};
+    var blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = 'lunaria-backup-' + new Date().toISOString().slice(0,10) + '.json';
+    link.click();
+    URL.revokeObjectURL(url);
+    showBanner('Backup downloaded.');
+  };
+
+  document.getElementById('restoreBtn').onclick = function(){
+    document.getElementById('exportMenu').style.display = 'none';
+    document.getElementById('restoreInput').click();
+  };
+
+  function showRestoreConfirm(data){
+    var b = document.getElementById('saveBanner');
+    var count = data.books.length;
+    b.innerHTML = 'Restore ' + count + ' book' + (count===1?'':'s') + ' from this backup? This replaces your current library.' +
+      ' <button id="confirmRestoreBtn" style="margin-left:8px;padding:4px 10px;border-radius:6px;border:1px solid var(--dnf-deep);background:none;color:var(--dnf-deep);cursor:pointer;font-size:12px;">Yes, restore</button>' +
+      '<button id="cancelRestoreBtn" style="margin-left:6px;padding:4px 10px;border-radius:6px;border:1px solid var(--line-strong);background:none;color:var(--ink);cursor:pointer;font-size:12px;">Cancel</button>';
+    b.style.display = 'block';
+    document.getElementById('confirmRestoreBtn').onclick = async function(){
+      books = data.books;
+      tropeList = data.tropeList || data.customTropes || defaultTropes.slice();
+      genreList = data.genreList || defaultGenres.slice();
+      arcSourceList = data.arcSourceList || data.customArcSources || defaultArcSources.slice();
+      readerLinks = data.readerLinks || [];
+      setSync('syncing');
+      try{
+        await window.cloudStore.replaceAllBooks(books);
+        await window.cloudStore.saveMeta({tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks});
+        setSync('idle');
+      }catch(e){
+        setSync('error');
+        showBanner("Restore partially failed — check your connection and try again.");
+        return;
+      }
+      renderArcSourceList();
+      renderLinks();
+      render();
+      b.textContent = 'Backup restored.';
+      setTimeout(function(){ b.style.display = 'none'; }, 4000);
+    };
+    document.getElementById('cancelRestoreBtn').onclick = function(){ b.style.display = 'none'; };
+  }
+
+  document.getElementById('restoreInput').addEventListener('change', function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      try{
+        var data = JSON.parse(ev.target.result);
+        if(!data.books || !Array.isArray(data.books)) throw new Error('bad format');
+        showRestoreConfirm(data);
+      }catch(err){
+        showBanner("That file doesn't look like a Hiraya Manawari backup.");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  var NAV_TABS = {
+    navLibrary: 'libraryView',
+    navSeries: 'seriesView',
+    navCalendar: 'calendarView',
+    navReader: 'readerView'
+  };
+
+  function switchView(activeNavId){
+    Object.keys(NAV_TABS).forEach(function(navId){
+      var isActive = navId === activeNavId;
+      document.getElementById(navId).classList.toggle('active', isActive);
+      document.getElementById(NAV_TABS[navId]).style.display = isActive ? 'block' : 'none';
+    });
+    if(activeNavId === 'navSeries') renderSeriesView();
+    if(activeNavId === 'navCalendar') renderCalendarView();
+  }
+
+  document.getElementById('navLibrary').onclick = function(){ switchView('navLibrary'); };
+  document.getElementById('navSeries').onclick = function(){ switchView('navSeries'); };
+  document.getElementById('navCalendar').onclick = function(){ switchView('navCalendar'); };
+  document.getElementById('navReader').onclick = function(){ switchView('navReader'); };
+
+  async function saveLinks(){
+    try{ await window.cloudStore.saveMeta({readerLinks: readerLinks}); }catch(e){
+      showBanner("Couldn't save your links. Try again in a moment.");
+    }
+  }
+
+  function copyToClipboard(text, btn){
+    function done(ok){
+      if(ok){
+        var original = btn.innerHTML;
+        btn.classList.add('copied');
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+        setTimeout(function(){ btn.classList.remove('copied'); btn.innerHTML = original; }, 1500);
+      }
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ done(true); }).catch(function(){ fallbackCopy(text, done); });
+    } else {
+      fallbackCopy(text, done);
+    }
+  }
+
+  function fallbackCopy(text, done){
+    try{
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      done(ok);
+    }catch(e){
+      done(false);
+    }
+  }
+
+  function renderLinks(){
+    var wrap = document.getElementById('linksList');
+    if(!readerLinks.length){
+      wrap.innerHTML = '<p style="color:var(--muted);font-size:13px;">No links yet — add your Goodreads, StoryGraph, Instagram, blog, wherever people find your reviews.</p>';
+      return;
+    }
+    wrap.innerHTML = '';
+    readerLinks.forEach(function(link){
+      var row = document.createElement('div');
+      row.className = 'link-row';
+      row.innerHTML =
+        '<input type="text" class="link-label" value="' + escapeHtml(link.label) + '" placeholder="Label">' +
+        '<input type="text" class="link-url" value="' + escapeHtml(link.url) + '" placeholder="https://...">' +
+        '<button type="button" class="copy-btn" title="Copy link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>' +
+        '<button type="button" class="link-remove" title="Remove">×</button>';
+      row.querySelector('.link-label').addEventListener('change', function(e){ link.label = e.target.value; saveLinks(); });
+      row.querySelector('.link-url').addEventListener('change', function(e){ link.url = e.target.value; saveLinks(); });
+      row.querySelector('.copy-btn').addEventListener('click', function(e){ copyToClipboard(link.url || '', e.currentTarget); });
+      row.querySelector('.link-remove').addEventListener('click', function(){
+        readerLinks = readerLinks.filter(function(l){ return l.id !== link.id; });
+        saveLinks();
+        renderLinks();
+      });
+      wrap.appendChild(row);
+    });
+  }
+
+  document.getElementById('addLinkBtn').onclick = function(){
+    readerLinks.push({id: uid(), label: 'New link', url: ''});
+    saveLinks();
+    renderLinks();
+    var rows = document.querySelectorAll('.link-row .link-label');
+    if(rows.length) rows[rows.length - 1].focus();
+  };
+
+  var POSTCARD_SIZES = {
+    a6_landscape: {w: 559, h: 397, scale: 3},
+    a6_portrait: {w: 397, h: 559, scale: 3},
+    ig_post: {w: 1080, h: 1080, scale: 2}
+  };
+
+  function postcardStampHtml(size){
+    var w = size === 'ig_post' ? 84 : 50;
+    return '<img src="./stamp.jpg" alt="" style="position:absolute;top:12px;right:14px;width:' + w + 'px;height:auto;transform:rotate(4deg);box-shadow:0 1px 4px rgba(59,42,85,0.35);border-radius:2px;">';
+  }
+
+  function postcardWordmark(fontSize){
+    return '<div style="font-family:\'Dancing Script\',cursive;font-weight:700;color:#6B4E93;font-size:' + fontSize + 'px;">Hiraya Manawari</div>';
+  }
+
+  function buildPostcardLandscape(b, reviewText){
+    var coverHtml = b.cover ? '<img src="' + b.cover + '" style="width:100%;height:100%;object-fit:cover;">' : '<span style="font-size:10px;color:#7C6D94;font-family:\'Courier Prime\',monospace;text-align:center;padding:8px;">No cover</span>';
+    var ratingHtml = b.rating ? '<div style="margin-top:8px;font-size:16px;letter-spacing:2px;color:#6B4E93;">' + starsPlain(b.rating) + '</div>' : '';
+    var seriesHtml = b.series ? '<div style="font-size:10.5px;color:#7C6D94;margin-top:3px;">' + escapeHtml(b.series) + (b.seriesNumber ? ' · Book ' + b.seriesNumber : '') + '</div>' : '';
+    var reviewHtml = '<div style="font-style:italic;font-size:11.5px;line-height:1.5;color:#3B2A55;border-top:1px dashed rgba(59,42,85,0.3);padding-top:8px;margin-top:10px;min-height:18px;max-width:320px;">' + (reviewText ? escapeHtml(reviewText) : '<span style="color:#B8ABCB;">— your review —</span>') + '</div>';
+    return '<div style="width:559px;height:397px;display:flex;background:#FBF7FF;border:2px solid #3B2A55;border-radius:8px;overflow:hidden;font-family:\'Courier Prime\',monospace;color:#3B2A55;">' +
+      '<div style="width:180px;flex:none;background:radial-gradient(circle at 30% 20%,#E4D2F2,transparent 65%),radial-gradient(circle at 70% 80%,#F0DCEA,transparent 65%),#F5EEFC;display:flex;align-items:center;justify-content:center;">' +
+      '<div style="width:118px;height:177px;border-radius:5px;overflow:hidden;box-shadow:0 3px 10px rgba(59,42,85,0.25);display:flex;align-items:center;justify-content:center;background:#F5EEFC;">' + coverHtml + '</div>' +
+      '</div>' +
+      '<div style="flex:1;padding:20px;display:flex;flex-direction:column;position:relative;">' +
+      postcardStampHtml('a6_landscape') +
+      '<div style="max-width:320px;">' +
+      '<div style="font-size:19px;font-weight:700;line-height:1.25;">' + escapeHtml(b.title) + '</div>' +
+      (b.author ? '<div style="font-size:12px;font-style:italic;color:#7C6D94;margin-top:3px;">' + escapeHtml(b.author) + '</div>' : '') +
+      seriesHtml + ratingHtml + reviewHtml +
+      '</div>' +
+      '<div style="margin-top:auto;">' + postcardWordmark(15) + '</div>' +
+      '</div>' +
+      '</div>';
+  }
+
+  function buildPostcardPortrait(b, reviewText){
+    var coverHtml = b.cover ? '<img src="' + b.cover + '" style="width:100%;height:100%;object-fit:cover;">' : '<span style="font-size:10px;color:#7C6D94;font-family:\'Courier Prime\',monospace;text-align:center;padding:8px;">No cover</span>';
+    var ratingHtml = b.rating ? '<div style="margin-top:7px;font-size:16px;letter-spacing:2px;color:#6B4E93;">' + starsPlain(b.rating) + '</div>' : '';
+    var seriesHtml = b.series ? '<div style="font-size:10.5px;color:#7C6D94;margin-top:3px;">' + escapeHtml(b.series) + (b.seriesNumber ? ' · Book ' + b.seriesNumber : '') + '</div>' : '';
+    var reviewHtml = '<div style="font-style:italic;font-size:11.5px;line-height:1.5;color:#3B2A55;border-top:1px dashed rgba(59,42,85,0.3);padding-top:8px;margin-top:10px;min-height:18px;">' + (reviewText ? escapeHtml(reviewText) : '<span style="color:#B8ABCB;">— your review —</span>') + '</div>';
+    return '<div style="width:397px;height:559px;display:flex;flex-direction:column;background:#FBF7FF;border:2px solid #3B2A55;border-radius:8px;overflow:hidden;font-family:\'Courier Prime\',monospace;color:#3B2A55;">' +
+      '<div style="height:230px;flex:none;position:relative;background:radial-gradient(circle at 30% 20%,#E4D2F2,transparent 65%),radial-gradient(circle at 70% 80%,#F0DCEA,transparent 65%),#F5EEFC;display:flex;align-items:center;justify-content:center;">' +
+      '<div style="width:130px;height:195px;border-radius:5px;overflow:hidden;box-shadow:0 3px 10px rgba(59,42,85,0.25);display:flex;align-items:center;justify-content:center;background:#F5EEFC;">' + coverHtml + '</div>' +
+      postcardStampHtml('a6_portrait') +
+      '</div>' +
+      '<div style="flex:1;padding:18px 20px;display:flex;flex-direction:column;">' +
+      '<div>' +
+      '<div style="font-size:19px;font-weight:700;line-height:1.25;">' + escapeHtml(b.title) + '</div>' +
+      (b.author ? '<div style="font-size:12px;font-style:italic;color:#7C6D94;margin-top:3px;">' + escapeHtml(b.author) + '</div>' : '') +
+      seriesHtml + ratingHtml + reviewHtml +
+      '</div>' +
+      '<div style="margin-top:auto;">' + postcardWordmark(15) + '</div>' +
+      '</div>' +
+      '</div>';
+  }
+
+  function buildPostcardSquare(b, reviewText){
+    var coverHtml = b.cover ? '<img src="' + b.cover + '" style="width:100%;height:100%;object-fit:cover;">' : '<span style="font-size:13px;color:#7C6D94;font-family:\'Courier Prime\',monospace;">No cover</span>';
+    var ratingHtml = b.rating ? '<div style="margin-top:12px;font-size:24px;letter-spacing:3px;color:#6B4E93;">' + starsPlain(b.rating) + '</div>' : '';
+    var seriesHtml = b.series ? '<div style="font-size:13px;color:#7C6D94;margin-top:5px;">' + escapeHtml(b.series) + (b.seriesNumber ? ' · Book ' + b.seriesNumber : '') + '</div>' : '';
+    return '<div style="width:1080px;height:1080px;position:relative;box-sizing:border-box;padding:56px;display:flex;flex-direction:column;align-items:center;background:#FBF7FF;border:3px solid #3B2A55;font-family:\'Courier Prime\',monospace;color:#3B2A55;text-align:center;">' +
+      postcardStampHtml('ig_post') +
+      postcardWordmark(34) +
+      '<div style="font-size:11px;letter-spacing:0.18em;color:#7C6D94;margin-top:2px;margin-bottom:34px;">ESCAPE THE ORDINARY · INHABIT THE EXTRAORDINARY</div>' +
+      '<div style="width:300px;height:440px;flex:none;border-radius:8px;overflow:hidden;box-shadow:0 6px 18px rgba(59,42,85,0.25);background:radial-gradient(circle at 30% 20%,#E4D2F2,transparent 65%),radial-gradient(circle at 70% 80%,#F0DCEA,transparent 65%),#F5EEFC;display:flex;align-items:center;justify-content:center;">' + coverHtml + '</div>' +
+      '<div style="font-size:30px;font-weight:700;line-height:1.25;margin-top:30px;max-width:760px;">' + escapeHtml(b.title) + '</div>' +
+      (b.author ? '<div style="font-size:16px;font-style:italic;color:#7C6D94;margin-top:6px;">' + escapeHtml(b.author) + '</div>' : '') +
+      seriesHtml + ratingHtml +
+      '<div style="font-style:italic;font-size:16px;line-height:1.6;color:#3B2A55;margin-top:26px;max-width:640px;">' + (reviewText ? '“' + escapeHtml(reviewText) + '”' : '<span style="color:#B8ABCB;">— your review —</span>') + '</div>' +
+      '</div>';
+  }
+
+  function buildPostcardHtml(b, reviewText, sizeKey){
+    if(sizeKey === 'a6_portrait') return buildPostcardPortrait(b, reviewText);
+    if(sizeKey === 'ig_post') return buildPostcardSquare(b, reviewText);
+    return buildPostcardLandscape(b, reviewText);
+  }
+
+  function renderPostcardPreview(){
+    var reviewText = document.getElementById('postcardReview').value;
+    var sizeKey = document.getElementById('postcardSize').value;
+    document.getElementById('postcardPreviewWrap').innerHTML = buildPostcardHtml(currentPostcardBook, reviewText, sizeKey);
+  }
+
+  function openPostcardModal(id){
+    var b = books.find(function(x){ return x.id === id; });
+    if(!b) return;
+    currentPostcardBook = b;
+    document.getElementById('postcardReview').value = b.review || '';
+    document.getElementById('postcardSize').value = 'a6_landscape';
+    renderPostcardPreview();
+    document.getElementById('postcardOverlay').style.display = 'flex';
+  }
+
+  document.getElementById('postcardReview').addEventListener('input', renderPostcardPreview);
+  document.getElementById('postcardSize').addEventListener('change', renderPostcardPreview);
+  document.getElementById('postcardCancelBtn').onclick = function(){
+    document.getElementById('postcardOverlay').style.display = 'none';
+  };
+  document.getElementById('postcardOverlay').addEventListener('click', function(e){
+    if(e.target.id === 'postcardOverlay') document.getElementById('postcardOverlay').style.display = 'none';
+  });
+
+  document.getElementById('postcardDownloadBtn').onclick = function(){
+    if(!currentPostcardBook) return;
+    var reviewText = document.getElementById('postcardReview').value;
+    currentPostcardBook.review = reviewText;
+    books = books.map(function(x){ return x.id === currentPostcardBook.id ? currentPostcardBook : x; });
+    saveBookRemote(currentPostcardBook);
+
+    var sizeKey = document.getElementById('postcardSize').value;
+    var sizeInfo = POSTCARD_SIZES[sizeKey] || POSTCARD_SIZES.a6_landscape;
+    var node = document.getElementById('postcardPreviewWrap').firstChild;
+    function capture(){
+      window.html2canvas(node, {scale: sizeInfo.scale, backgroundColor:null, useCORS:true}).then(function(canvas){
+        var link = document.createElement('a');
+        var safeName = (currentPostcardBook.title || 'book').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        link.download = 'hiraya-manawari-postcard-' + safeName + '-' + sizeKey + '.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        document.getElementById('postcardOverlay').style.display = 'none';
+      }).catch(function(){
+        showBanner("Couldn't generate the postcard. Try again.");
+      });
+    }
+    if(document.fonts && document.fonts.ready){
+      document.fonts.ready.then(capture);
+    } else {
+      setTimeout(capture, 300);
+    }
+  };
+
+  var currentViewBookId = null;
+
+  function buildViewHtml(b){
+    var coverHtml = b.cover ? '<img src="' + b.cover + '" alt="">' : '<span class="ph">No cover</span>';
+    var unit = b.format === 'Audiobook' ? 'Chapters' : 'Pages';
+    var rows = '';
+    rows += '<div class="detail-row"><span class="dl">Status</span><span class="dv">' + escapeHtml(statusLabelFor(b)) + '</span></div>';
+    if(b.format) rows += '<div class="detail-row"><span class="dl">Format</span><span class="dv">' + escapeHtml(b.format) + '</span></div>';
+    if(b.format === 'Paperback' && b.ownership) rows += '<div class="detail-row"><span class="dl">Ownership</span><span class="dv">' + escapeHtml(b.ownership) + '</span></div>';
+    if(b.format === 'Paperback' && b.ownership === 'Borrowed' && b.borrowDueDate) rows += '<div class="detail-row"><span class="dl">Return by</span><span class="dv">' + fmtDate(b.borrowDueDate) + '</span></div>';
+    if(b.genre) rows += '<div class="detail-row"><span class="dl">Genre</span><span class="dv">' + escapeHtml(b.genre) + '</span></div>';
+    if(b.tropes && b.tropes.length) rows += '<div class="detail-row"><span class="dl">Tropes</span><span class="dv">' + escapeHtml(b.tropes.join(', ')) + '</span></div>';
+    if(b.rating) rows += '<div class="detail-row"><span class="dl">Rating</span><span class="dv">' + starsHtml(b.rating, 15) + ' <span class="rating-num">' + b.rating.toFixed(1) + '</span></span></div>';
+    if(b.totalPages) rows += '<div class="detail-row"><span class="dl">' + unit + '</span><span class="dv">' + (b.currentPage||0) + ' / ' + b.totalPages + '</span></div>';
+    if(b.isARC){
+      rows += '<div class="detail-row"><span class="dl">ARC source</span><span class="dv">' + escapeHtml(b.arcSource || '—') + '</span></div>';
+      if(b.dueDate) rows += '<div class="detail-row"><span class="dl">Review due</span><span class="dv">' + fmtDate(b.dueDate) + '</span></div>';
+      if(b.arcFormLink) rows += '<div class="detail-row"><span class="dl">Review form</span><span class="dv"><a href="' + escapeHtml(b.arcFormLink) + '" target="_blank" rel="noopener" style="color:var(--accent-deep);">' + escapeHtml(b.arcFormLink) + '</a></span></div>';
+    }
+    if(b.review) rows += '<div class="detail-row"><span class="dl">Your review</span><span class="dv" style="font-style:italic;">' + escapeHtml(b.review) + '</span></div>';
+
+    var datesParts = [];
+    if(b.dateStarted) datesParts.push('Started ' + fmtDate(b.dateStarted));
+    if(b.dateFinished) datesParts.push('Finished ' + fmtDate(b.dateFinished));
+    var datesLine = datesParts.length ? '<p class="dates" style="margin:3px 0 0;">' + datesParts.join(' · ') + '</p>' : '';
+
+    return '<div class="view-header">' +
+      '<div class="view-cover">' + coverHtml + '</div>' +
+      '<div>' +
+        '<h2 style="margin-bottom:2px;">' + escapeHtml(b.title) + '</h2>' +
+        (b.author ? '<p style="color:var(--muted);font-style:italic;margin:0 0 3px;">' + escapeHtml(b.author) + '</p>' : '') +
+        (b.series ? '<p style="color:var(--muted);font-size:12.5px;margin:0;">' + escapeHtml(b.series) + (b.seriesNumber ? ' · Book ' + b.seriesNumber : '') + '</p>' : '') +
+        datesLine +
+      '</div>' +
+    '</div>' + rows;
+  }
+
+  function openViewModal(id){
+    var b = books.find(function(x){ return x.id === id; });
+    if(!b) return;
+    currentViewBookId = id;
+    document.getElementById('viewContent').innerHTML = buildViewHtml(b);
+    document.getElementById('viewOverlay').style.display = 'flex';
+  }
+
+  document.getElementById('viewCloseBtn').onclick = function(){
+    document.getElementById('viewOverlay').style.display = 'none';
+  };
+  document.getElementById('viewOverlay').addEventListener('click', function(e){
+    if(e.target.id === 'viewOverlay') document.getElementById('viewOverlay').style.display = 'none';
+  });
+  document.getElementById('viewEditBtn').onclick = function(){
+    document.getElementById('viewOverlay').style.display = 'none';
+    if(currentViewBookId) openModal(currentViewBookId);
+  };
+
+  // ===================== Series tracker =====================
+  function renderSeriesView(){
+    var groups = {};
+    books.forEach(function(b){
+      if(!b.series) return;
+      if(!groups[b.series]) groups[b.series] = [];
+      groups[b.series].push(b);
+    });
+    var seriesNames = Object.keys(groups).sort();
+    var wrap = document.getElementById('seriesView');
+    if(!seriesNames.length){
+      wrap.innerHTML = '<div class="cal-empty-note">No series yet — add a series name to a book to see it grouped here.</div>';
+      return;
+    }
+    var cards = seriesNames.map(function(name){
+      var list = groups[name].slice().sort(function(a, b){
+        var na = a.seriesNumber || 999;
+        var nb = b.seriesNumber || 999;
+        return na - nb;
+      });
+
+      var authorCounts = {};
+      list.forEach(function(b){ if(b.author) authorCounts[b.author] = (authorCounts[b.author] || 0) + 1; });
+      var author = Object.keys(authorCounts).sort(function(a, b){ return authorCounts[b] - authorCounts[a]; })[0] || '';
+
+      var nextUpId = null;
+      for(var i = 0; i < list.length; i++){
+        if(list[i].status === 'want'){ nextUpId = list[i].id; break; }
+      }
+      var rows = list.map(function(b){
+        var isNext = b.id === nextUpId;
+        var label = isNext ? 'Next up' : statusLabelFor(b);
+        return '<div class="series-book-row" data-book-id="' + b.id + '">' +
+          '<div class="series-book-num">' + (b.seriesNumber || '–') + '</div>' +
+          '<div class="series-book-title">' + escapeHtml(b.title) + '</div>' +
+          '<div class="series-book-status' + (isNext ? ' next-up' : '') + '">' + escapeHtml(label) + '</div>' +
+          '</div>';
+      }).join('');
+
+      return '<div class="card series-card">' +
+        '<h3>' + escapeHtml(name) + '</h3>' +
+        (author ? '<p class="byline">' + escapeHtml(author) + '</p>' : '') +
+        '<p style="font-size:11.5px;color:var(--muted);margin:2px 0 10px;">' + list.length + ' book' + (list.length === 1 ? '' : 's') + '</p>' +
+        rows +
+        '</div>';
+    }).join('');
+    wrap.innerHTML = '<div class="grid">' + cards + '</div>';
+  }
+
+  document.getElementById('seriesView').addEventListener('click', function(e){
+    var row = e.target.closest('.series-book-row');
+    if(!row) return;
+    var id = row.getAttribute('data-book-id');
+    if(id) openViewModal(id);
+  });
+
+  // ===================== Calendar view =====================
+  var calYear = new Date().getFullYear();
+  var calMonth = new Date().getMonth();
+
+  function pad2(n){ return n < 10 ? '0' + n : '' + n; }
+
+  function renderCalendarView(){
+    var wrap = document.getElementById('calendarView');
+    var firstDay = new Date(calYear, calMonth, 1);
+    var startWeekday = firstDay.getDay();
+    var daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+
+    var itemsByDate = {};
+    books.forEach(function(b){
+      var due = effectiveDueDate(b);
+      if(!due || b.status === 'finished' || b.status === 'dnf' || b.status === 'hold') return;
+      if(!itemsByDate[due]) itemsByDate[due] = [];
+      itemsByDate[due].push(b);
+    });
+
+    var dowHtml = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(function(d){
+      return '<div class="cal-dow">' + d + '</div>';
+    }).join('');
+
+    var cells = '';
+    for(var i = 0; i < startWeekday; i++){ cells += '<div class="cal-cell empty-cell"></div>'; }
+    for(var day = 1; day <= daysInMonth; day++){
+      var dateObj = new Date(calYear, calMonth, day);
+      var dateKey = calYear + '-' + pad2(calMonth + 1) + '-' + pad2(day);
+      var isToday = dateObj.getTime() === today.getTime();
+      var dayItems = itemsByDate[dateKey] || [];
+      var overdue = dateObj < today;
+      var itemsHtml = dayItems.map(function(b){
+        return '<div class="cal-item' + (overdue ? ' overdue' : '') + '" data-book-id="' + b.id + '" title="' + escapeHtml(b.title) + '">' + escapeHtml(b.title) + '</div>';
+      }).join('');
+      cells += '<div class="cal-cell' + (isToday ? ' today' : '') + '"><div class="cal-date-num">' + day + '</div>' + itemsHtml + '</div>';
+    }
+
+    wrap.innerHTML = '<div class="cal-header"><button class="cal-nav-btn" id="calPrevBtn">‹</button><h2>' + monthName(calMonth) + ' ' + calYear + '</h2><button class="cal-nav-btn" id="calNextBtn">›</button></div>' +
+      '<div class="cal-grid">' + dowHtml + cells + '</div>';
+
+    document.getElementById('calPrevBtn').onclick = function(){
+      calMonth--; if(calMonth < 0){ calMonth = 11; calYear--; }
+      renderCalendarView();
+    };
+    document.getElementById('calNextBtn').onclick = function(){
+      calMonth++; if(calMonth > 11){ calMonth = 0; calYear++; }
+      renderCalendarView();
+    };
+  }
+
+  document.getElementById('calendarView').addEventListener('click', function(e){
+    var item = e.target.closest('.cal-item');
+    if(!item) return;
+    var id = item.getAttribute('data-book-id');
+    if(id) openViewModal(id);
+  });
+
+  // ===================== Year/Month wrapped export =====================
+  var WRAPPED_PAGE_W = 559;  // ~A5 width at 96dpi
+  var WRAPPED_PAGE_H = 794;  // ~A5 height at 96dpi
+  var WRAPPED_BOOKS_PER_PAGE = 20; // 5 columns x 4 rows
+
+  function wrappedPageChrome(innerHtml, pageNum, totalPageCount){
+    return '<div style="width:' + WRAPPED_PAGE_W + 'px;height:' + WRAPPED_PAGE_H + 'px;box-sizing:border-box;padding:28px 26px;display:flex;flex-direction:column;background:#FBF7FF;border:3px solid #3B2A55;font-family:\'Courier Prime\',monospace;color:#3B2A55;">' +
+      innerHtml +
+      '<div style="text-align:center;font-size:9px;color:#7C6D94;letter-spacing:0.08em;margin-top:10px;">PAGE ' + pageNum + ' OF ' + totalPageCount + '</div>' +
+      '</div>';
+  }
+
+  function buildWrappedStatsPage(list, periodLabel, pageNum, totalPageCount){
+    var totalBooks = list.length;
+    var totalPages = list.reduce(function(sum, b){ return sum + (b.totalPages || 0); }, 0);
+    var rated = list.filter(function(b){ return b.rating > 0; });
+    var avgRating = rated.length ? (rated.reduce(function(sum, b){ return sum + b.rating; }, 0) / rated.length) : 0;
+    var genreCounts = {};
+    list.forEach(function(b){ if(b.genre) genreCounts[b.genre] = (genreCounts[b.genre] || 0) + 1; });
+    var topGenre = Object.keys(genreCounts).sort(function(a, b){ return genreCounts[b] - genreCounts[a]; })[0] || '—';
+
+    var inner = '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">' +
+      postcardWordmark(30) +
+      '<div style="font-size:11px;letter-spacing:0.18em;color:#7C6D94;margin-top:8px;margin-bottom:4px;">' + escapeHtml(periodLabel.toUpperCase()) + ' IN BOOKS</div>' +
+      '<div style="font-size:9px;letter-spacing:0.12em;color:#B39ED0;margin-bottom:36px;">ESCAPE THE ORDINARY · INHABIT THE EXTRAORDINARY</div>' +
+      '<div style="display:flex;gap:34px;margin-bottom:28px;">' +
+      '<div><div style="font-size:42px;font-weight:700;">' + totalBooks + '</div><div style="font-size:10px;color:#7C6D94;letter-spacing:0.08em;">BOOKS READ</div></div>' +
+      '<div><div style="font-size:42px;font-weight:700;">' + totalPages.toLocaleString() + '</div><div style="font-size:10px;color:#7C6D94;letter-spacing:0.08em;">PAGES TURNED</div></div>' +
+      '</div>' +
+      '<div style="display:flex;gap:34px;">' +
+      '<div><div style="font-size:22px;font-weight:700;">' + (avgRating ? avgRating.toFixed(1) + ' ★' : '—') + '</div><div style="font-size:9px;color:#7C6D94;letter-spacing:0.08em;">AVG RATING</div></div>' +
+      '<div><div style="font-size:22px;font-weight:700;max-width:220px;">' + escapeHtml(topGenre) + '</div><div style="font-size:9px;color:#7C6D94;letter-spacing:0.08em;">TOP GENRE</div></div>' +
+      '</div>' +
+      (totalBooks === 0 ? '<div style="color:#B8ABCB;font-size:12px;margin-top:26px;">No finished books in this period yet.</div>' : '') +
+      '</div>';
+    return wrappedPageChrome(inner, pageNum, totalPageCount);
+  }
+
+  function buildWrappedBookPage(pageBooks, periodLabel, pageNum, totalPageCount){
+    var items = pageBooks.map(function(b){
+      var coverHtml = b.cover
+        ? '<img src="' + b.cover + '" style="width:100%;height:100%;object-fit:cover;">'
+        : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:4px;text-align:center;font-size:8px;color:#7C6D94;">' + escapeHtml(b.title) + '</div>';
+      return '<div style="width:84px;">' +
+        '<div style="width:84px;height:124px;border-radius:5px;overflow:hidden;box-shadow:0 2px 6px rgba(59,42,85,0.2);background:#F5EEFC;">' + coverHtml + '</div>' +
+        '<div style="font-size:8px;font-weight:700;margin-top:4px;max-width:84px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(b.title) + '</div>' +
+        '</div>';
+    }).join('');
+
+    var inner = '<div style="text-align:center;margin-bottom:16px;flex:none;">' +
+      '<div style="font-family:\'Dancing Script\',cursive;font-weight:700;color:#6B4E93;font-size:19px;">Hiraya Manawari</div>' +
+      '<div style="font-size:9px;letter-spacing:0.14em;color:#7C6D94;">' + escapeHtml(periodLabel.toUpperCase()) + ' IN BOOKS</div>' +
+      '</div>' +
+      '<div style="flex:1;display:flex;flex-wrap:wrap;gap:12px 8px;justify-content:center;align-content:flex-start;">' + items + '</div>';
+    return wrappedPageChrome(inner, pageNum, totalPageCount);
+  }
+
+  function getSelectedWrappedStatuses(){
+    return Array.prototype.slice.call(document.querySelectorAll('.wrappedStatusCb:checked')).map(function(cb){ return cb.value; });
+  }
+
+  function getWrappedBooks(year, monthVal, statuses){
+    return books.filter(function(b){
+      if(statuses.indexOf(b.status) === -1) return false;
+      if(!b.dateFinished) return false;
+      var d = new Date(b.dateFinished + 'T00:00:00');
+      if(d.getFullYear() !== year) return false;
+      if(monthVal !== '' && d.getMonth() !== parseInt(monthVal, 10)) return false;
+      return true;
+    });
+  }
+
+  function getWrappedSelection(){
+    var year = parseInt(document.getElementById('wrappedYear').value, 10);
+    var monthVal = document.getElementById('wrappedMonth').value;
+    var statuses = getSelectedWrappedStatuses();
+    var list = getWrappedBooks(year, monthVal, statuses);
+    var label = monthVal === '' ? String(year) : (monthName(parseInt(monthVal, 10)) + ' ' + year);
+    return {list: list, label: label, year: year, monthVal: monthVal, statuses: statuses};
+  }
+
+  function populateWrappedYearOptions(){
+    var years = {};
+    books.forEach(function(b){
+      if(b.dateFinished){ years[new Date(b.dateFinished + 'T00:00:00').getFullYear()] = true; }
+    });
+    var yearList = Object.keys(years).map(Number).sort(function(a, b){ return b - a; });
+    var currentYear = new Date().getFullYear();
+    if(yearList.indexOf(currentYear) === -1) yearList.unshift(currentYear);
+    document.getElementById('wrappedYear').innerHTML = yearList.map(function(y){ return '<option value="' + y + '">' + y + '</option>'; }).join('');
+  }
+
+  function populateWrappedMonthOptions(){
+    var opts = '<option value="">Whole year</option>';
+    for(var m = 0; m < 12; m++){ opts += '<option value="' + m + '">' + monthName(m) + '</option>'; }
+    document.getElementById('wrappedMonth').innerHTML = opts;
+  }
+
+  function renderWrappedSummary(){
+    var sel = getWrappedSelection();
+    var bookPageCount = Math.ceil(sel.list.length / WRAPPED_BOOKS_PER_PAGE) || 0;
+    var totalPageCount = 1 + bookPageCount;
+    if(!sel.statuses.length){
+      document.getElementById('wrappedPreviewWrap').innerHTML =
+        '<div style="text-align:center;padding:24px 10px;background:var(--card);border:1px solid var(--line);border-radius:10px;color:var(--dnf-deep);font-size:13px;">Pick at least one status to include.</div>';
+      return;
+    }
+    document.getElementById('wrappedPreviewWrap').innerHTML =
+      '<div style="text-align:center;padding:24px 10px;background:var(--card);border:1px solid var(--line);border-radius:10px;">' +
+      '<div style="font-size:16px;color:var(--ink);font-weight:600;margin-bottom:6px;">' + sel.list.length + ' book' + (sel.list.length === 1 ? '' : 's') + ' matched for ' + escapeHtml(sel.label) + '</div>' +
+      '<div style="font-size:13px;color:var(--muted);">This will generate a ' + totalPageCount + '-page A5 PDF — a summary page' + (bookPageCount ? ' plus ' + bookPageCount + ' page' + (bookPageCount === 1 ? '' : 's') + ' of covers (up to ' + WRAPPED_BOOKS_PER_PAGE + ' per page)' : '') + '.</div>' +
+      '</div>';
+  }
+
+  document.getElementById('exportWrappedBtn').onclick = function(){
+    document.getElementById('exportMenu').style.display = 'none';
+    populateWrappedYearOptions();
+    populateWrappedMonthOptions();
+    document.getElementById('wrappedMonth').value = '';
+    document.querySelectorAll('.wrappedStatusCb').forEach(function(cb){ cb.checked = cb.value === 'finished'; });
+    renderWrappedSummary();
+    document.getElementById('wrappedOverlay').style.display = 'flex';
+  };
+  document.getElementById('wrappedYear').addEventListener('change', renderWrappedSummary);
+  document.getElementById('wrappedMonth').addEventListener('change', renderWrappedSummary);
+  document.querySelectorAll('.wrappedStatusCb').forEach(function(cb){
+    cb.addEventListener('change', renderWrappedSummary);
+  });
+  document.getElementById('wrappedCancelBtn').onclick = function(){ document.getElementById('wrappedOverlay').style.display = 'none'; };
+  document.getElementById('wrappedOverlay').addEventListener('click', function(e){
+    if(e.target.id === 'wrappedOverlay') document.getElementById('wrappedOverlay').style.display = 'none';
+  });
+
+  document.getElementById('wrappedDownloadBtn').onclick = function(){
+    var sel = getWrappedSelection();
+    if(!sel.statuses.length){
+      showBanner('Pick at least one status to include before downloading.');
+      return;
+    }
+    var bookPages = [];
+    for(var i = 0; i < sel.list.length; i += WRAPPED_BOOKS_PER_PAGE){
+      bookPages.push(sel.list.slice(i, i + WRAPPED_BOOKS_PER_PAGE));
+    }
+    var totalPageCount = 1 + bookPages.length;
+
+    var btn = document.getElementById('wrappedDownloadBtn');
+    var originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Generating PDF...';
+
+    function finish(){ btn.disabled = false; btn.textContent = originalText; }
+
+    function doGenerate(){
+      var host = document.createElement('div');
+      host.style.position = 'fixed';
+      host.style.left = '-9999px';
+      host.style.top = '0';
+      document.body.appendChild(host);
+
+      var pdf = new window.jspdf.jsPDF({unit: 'mm', format: 'a5', orientation: 'portrait'});
+
+      function renderPage(html){
+        host.innerHTML = html;
+        return window.html2canvas(host.firstChild, {scale: 2, backgroundColor: null, useCORS: true});
+      }
+
+      renderPage(buildWrappedStatsPage(sel.list, sel.label, 1, totalPageCount))
+        .then(function(canvas){
+          pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 148, 210);
+          var chain = Promise.resolve();
+          bookPages.forEach(function(pageBooks, idx){
+            chain = chain.then(function(){
+              return renderPage(buildWrappedBookPage(pageBooks, sel.label, idx + 2, totalPageCount)).then(function(canvas2){
+                pdf.addPage('a5', 'portrait');
+                pdf.addImage(canvas2.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 148, 210);
+              });
+            });
+          });
+          return chain;
+        })
+        .then(function(){
+          document.body.removeChild(host);
+          var suffix = sel.monthVal === '' ? sel.year : (monthName(parseInt(sel.monthVal, 10)).toLowerCase() + '-' + sel.year);
+          pdf.save('hiraya-manawari-wrapped-' + suffix + '.pdf');
+          finish();
+          document.getElementById('wrappedOverlay').style.display = 'none';
+        })
+        .catch(function(){
+          if(host.parentNode) document.body.removeChild(host);
+          showBanner("Couldn't generate the PDF. Try again.");
+          finish();
+        });
+    }
+
+    if(document.fonts && document.fonts.ready){
+      document.fonts.ready.then(doGenerate);
+    } else {
+      setTimeout(doGenerate, 300);
+    }
+  };
+
+  // ===================== CSV import (Goodreads / StoryGraph) =====================
+  function parseCsv(text){
+    var rows = [];
+    var i = 0, field = '', row = [], inQuotes = false;
+    while(i < text.length){
+      var c = text[i];
+      if(inQuotes){
+        if(c === '"'){
+          if(text[i + 1] === '"'){ field += '"'; i += 2; continue; }
+          inQuotes = false; i++; continue;
+        }
+        field += c; i++; continue;
+      } else {
+        if(c === '"'){ inQuotes = true; i++; continue; }
+        if(c === ','){ row.push(field); field = ''; i++; continue; }
+        if(c === '\r'){ i++; continue; }
+        if(c === '\n'){ row.push(field); rows.push(row); row = []; field = ''; i++; continue; }
+        field += c; i++; continue;
+      }
+    }
+    if(field.length || row.length){ row.push(field); rows.push(row); }
+    return rows;
+  }
+
+  function findCol(headers, candidates){
+    for(var c = 0; c < candidates.length; c++){
+      var idx = headers.findIndex(function(h){ return h.toLowerCase().trim() === candidates[c]; });
+      if(idx !== -1) return idx;
+    }
+    for(var c2 = 0; c2 < candidates.length; c2++){
+      var idx2 = headers.findIndex(function(h){ return h.toLowerCase().indexOf(candidates[c2]) !== -1; });
+      if(idx2 !== -1) return idx2;
+    }
+    return -1;
+  }
+
+  function mapImportStatus(raw){
+    if(!raw) return 'want';
+    var s = raw.toLowerCase();
+    if(s.indexOf('currently') !== -1) return 'reading';
+    if(s.indexOf('did not finish') !== -1 || s.indexOf('dnf') !== -1) return 'dnf';
+    if(s.indexOf('to-read') !== -1 || s.indexOf('want') !== -1) return 'want';
+    if(s.indexOf('read') !== -1) return 'finished';
+    return 'want';
+  }
+
+  function importCsvText(text){
+    var rows = parseCsv(text);
+    if(!rows.length){ showBanner('That CSV looks empty.'); return; }
+    var headers = rows[0].map(function(h){ return h.trim(); });
+    var idxTitle = findCol(headers, ['title']);
+    var idxAuthor = findCol(headers, ['author', 'authors']);
+    var idxRating = findCol(headers, ['my rating', 'star rating', 'rating']);
+    var idxPages = findCol(headers, ['number of pages', 'pages']);
+    var idxDateRead = findCol(headers, ['date read', 'dates read']);
+    var idxShelf = findCol(headers, ['exclusive shelf', 'read status', 'status']);
+
+    if(idxTitle === -1){
+      showBanner("Couldn't find a Title column in that file — make sure it's a Goodreads or StoryGraph export.");
+      return;
+    }
+
+    var newBooks = [];
+    for(var r = 1; r < rows.length; r++){
+      var row = rows[r];
+      if(!row || !row.length || !row[idxTitle]) continue;
+      var title = row[idxTitle].trim();
+      if(!title) continue;
+      var author = idxAuthor !== -1 ? (row[idxAuthor] || '').trim() : '';
+      var ratingRaw = idxRating !== -1 ? parseFloat(row[idxRating]) : 0;
+      var rating = isNaN(ratingRaw) ? 0 : Math.min(5, Math.max(0, ratingRaw));
+      var pagesRaw = idxPages !== -1 ? parseInt(row[idxPages], 10) : NaN;
+      var totalPages = isNaN(pagesRaw) ? null : pagesRaw;
+      var dateReadRaw = idxDateRead !== -1 ? (row[idxDateRead] || '').trim() : '';
+      var dateFinished = '';
+      var dm = dateReadRaw.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+      if(dm){ dateFinished = dm[1] + '-' + pad2(parseInt(dm[2], 10)) + '-' + pad2(parseInt(dm[3], 10)); }
+      var shelfRaw = idxShelf !== -1 ? (row[idxShelf] || '').trim() : '';
+      var status = mapImportStatus(shelfRaw);
+
+      newBooks.push({
+        id: uid(),
+        title: title,
+        author: author,
+        status: status,
+        series: '',
+        seriesNumber: null,
+        format: '',
+        ownership: '',
+        borrowDueDate: '',
+        isARC: false,
+        arcSource: '',
+        dueDate: '',
+        arcFormLink: '',
+        totalPages: totalPages,
+        currentPage: status === 'finished' ? totalPages : null,
+        dateStarted: '',
+        dateFinished: dateFinished,
+        genre: '',
+        rating: rating,
+        tropes: [],
+        cover: null,
+        createdAt: Date.now()
+      });
+    }
+
+    if(!newBooks.length){
+      showBanner('No rows could be imported from that file.');
+      return;
+    }
+
+    books = books.concat(newBooks);
+    render();
+    showBanner('Importing ' + newBooks.length + ' book' + (newBooks.length === 1 ? '' : 's') + '...');
+    Promise.all(newBooks.map(function(b){ return window.cloudStore.saveBook(b); }))
+      .then(function(){ showBanner('Imported ' + newBooks.length + ' book' + (newBooks.length === 1 ? '' : 's') + ' from your CSV.'); })
+      .catch(function(){ showBanner('Imported locally, but some books failed to sync — check your connection.'); });
+  }
+
+  document.getElementById('importCsvBtn').onclick = function(){
+    document.getElementById('exportMenu').style.display = 'none';
+    document.getElementById('csvInput').click();
+  };
+  document.getElementById('csvInput').addEventListener('change', function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev){ importCsvText(ev.target.result); };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  window.LunariaApp = {
+    init: function(){
+      if(appInitialized) return;
+      appInitialized = true;
+      loadBooks();
+    }
+  };
+})();
+</script>
+
+</body>
+</html>
