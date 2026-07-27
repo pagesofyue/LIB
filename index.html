@@ -142,7 +142,8 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
 
 .genre-tab{display:inline-block;font-family:var(--font-body);font-size:10px;font-weight:600;color:var(--ink);padding:4px 12px;border-radius:6px 6px 0 0;margin:-16px 0 10px 0;letter-spacing:0.02em;}
 .card-top{display:flex;gap:12px;align-items:flex-start;}
-.cover-col{flex:none;display:flex;flex-direction:column;align-items:center;width:70px;}
+.cover-col{flex:none;display:flex;flex-direction:column;align-items:center;width:70px;position:relative;}
+.reading-ribbon{position:absolute;top:-4px;right:11px;width:13px;height:24px;background:var(--reading-deep);clip-path:polygon(0 0,100% 0,100% 100%,50% 75%,0 100%);box-shadow:1px 1px 2px rgba(59,42,85,0.3);z-index:2;}
 .cover-thumb{flex:none;width:70px;height:105px;border-radius:5px;overflow:hidden;background:radial-gradient(circle at 30% 20%, #E4D2F2, transparent 65%), radial-gradient(circle at 70% 80%, #F0DCEA, transparent 65%), var(--card-hover);border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;}
 .cover-thumb img{width:100%;height:100%;object-fit:cover;}
 .cover-thumb .ph{font-size:9px;color:var(--muted);text-align:center;padding:2px;font-family:var(--font-mono);}
@@ -162,11 +163,13 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
 .dnf-stamp{flex:none;font-family:var(--font-stamp);font-size:11px;font-weight:400;letter-spacing:0.08em;text-align:center;border:1.5px dashed var(--dnf-deep);color:var(--dnf-deep);background:radial-gradient(circle at 35% 35%, rgba(138,78,113,0.18), transparent 70%);border-radius:4px;padding:7px 9px;transform:rotate(-4deg);line-height:1.15;}
 .hold-stamp{flex:none;font-family:var(--font-stamp);font-size:10px;font-weight:400;letter-spacing:0.06em;text-align:center;border:1.5px dashed var(--hold-deep);color:var(--hold-deep);background:radial-gradient(circle at 35% 35%, rgba(143,111,60,0.18), transparent 70%);border-radius:4px;padding:7px 8px;transform:rotate(3deg);line-height:1.15;}
 .arc-source{font-size:10.5px;color:var(--muted);margin-top:2px;font-family:var(--font-mono);}
+.dup-badge{display:inline-block;font-size:10px;color:var(--dnf-deep);background:rgba(138,78,113,0.12);border-radius:8px;padding:2px 8px;margin-top:5px;}
 .arc-link{display:inline-block;font-size:10.5px;color:var(--accent-deep);margin-top:3px;text-decoration:underline;font-family:var(--font-body);}
 
 .manage-link{background:none;border:none;color:var(--accent-deep);font-size:11px;font-weight:500;cursor:pointer;padding:0;margin-left:6px;text-decoration:underline;}
 .manage-list{display:flex;flex-direction:column;gap:4px;max-height:150px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--card);margin-bottom:8px;}
-.manage-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:3px 4px;}
+.manage-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:3px 4px;gap:6px;}
+.genre-swatch{flex:none;width:12px;height:12px;border-radius:50%;border:1px solid var(--line-strong);}
 
 .stars{position:relative;display:inline-block;font-size:14px;line-height:1;letter-spacing:2px;height:14px;}
 .stars-bg,.stars-fill{white-space:nowrap;}
@@ -236,8 +239,14 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
 .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;}
 .detail-row{display:flex;gap:12px;font-size:13px;padding:8px 0;border-bottom:1px solid var(--line);}
 .detail-row .dl{width:120px;flex:none;color:var(--muted);font-weight:500;}
-.detail-row .dv{flex:1;}
+.detail-row .dv{flex:1;min-width:0;overflow-wrap:break-word;word-break:break-word;}
 .view-header{display:flex;gap:16px;align-items:flex-start;margin-bottom:6px;}
+.checkout-history{margin-top:16px;}
+.checkout-history h4{font-family:var(--font-display);font-size:12px;margin:0 0 8px;color:var(--muted);letter-spacing:0.05em;text-transform:uppercase;}
+.checkout-entry{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;padding:6px 0;border-bottom:1px solid var(--line);}
+.checkout-empty{font-size:12.5px;color:var(--muted);margin:0 0 10px;}
+.checkout-add-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center;}
+.checkout-add-row input{padding:7px 9px;border:1px solid var(--line-strong);border-radius:7px;background:var(--card);font-family:var(--font-body);font-size:12.5px;color:var(--ink);}
 .view-cover{flex:none;width:100px;height:150px;border-radius:8px;overflow:hidden;background:radial-gradient(circle at 30% 20%, #E4D2F2, transparent 65%), radial-gradient(circle at 70% 80%, #F0DCEA, transparent 65%), var(--card);border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;}
 .view-cover img{width:100%;height:100%;object-fit:cover;}
 .card.clickable{cursor:pointer;}
@@ -318,7 +327,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
   <div class="toolbar">
     <div class="search-wrap">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="searchInput" placeholder="Search title, author, series...">
+      <input type="text" id="searchInput" placeholder="Search title, author, series, tropes, reviews...">
     </div>
     <select id="genreFilter"><option value="">All genres</option></select>
     <select id="sortSelect">
@@ -744,6 +753,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
   var ARC_KEY = 'arcSourceList';
   var LINKS_KEY = 'readerLinks';
   var books = [];
+  var duplicateIds = {};
   var readerLinks = [];
   var currentPostcardBook = null;
   var editingId = null;
@@ -1074,7 +1084,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       if(activeStatus !== 'all' && b.status !== activeStatus) return false;
       if(genre && b.genre !== genre) return false;
       if(search){
-        var hay = [b.title, b.author, b.series].join(' ').toLowerCase();
+        var hay = [b.title, b.author, b.series, b.review, (b.tropes||[]).join(' ')].join(' ').toLowerCase();
         if(hay.indexOf(search) === -1) return false;
       }
       return true;
@@ -1125,10 +1135,30 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     return escapeHtml(statusLabelFor(b));
   }
 
-  var GENRE_COLOR_PALETTE = ['#D9CBEA','#E4D2F2','#CFC2E8','#DCC9E8','#D6C4EC','#E0D0EE','#CBB8E3','#D8C6E9','#E6D5F0','#D2BEE6','#C9B7E0','#DFCBE7'];
+  var GENRE_COLOR_PALETTE = ['#D9CBEA','#B8D4E8','#F0C9DC','#C8E0C8','#F0E3B0','#F0D0B8','#E3B8B8','#BFE0DD','#EAD9B8','#E0C9E8','#F0CBA8','#C4CBDA'];
+
+  var GENRE_COLOR_MAP = {
+    'Romance': '#D9CBEA',
+    'Romantasy': '#B8D4E8',
+    'Fantasy': '#C7C9F0',
+    'Science Fiction': '#BFE0DD',
+    'Mystery / Thriller': '#C4CBDA',
+    'Horror': '#E3B8B8',
+    'Literary Fiction': '#DCD3C6',
+    'Historical Fiction': '#EAD9B8',
+    'Young Adult': '#F0C9DC',
+    'Contemporary Fiction': '#F0D0B8',
+    'Nonfiction': '#C8E0C8',
+    'Biography / Memoir': '#E3DDB0',
+    'Poetry': '#E0C9E8',
+    'Graphic Novel / Manga': '#F0CBA8',
+    'Classics': '#EDE3D0',
+    'Other': '#DDD8E0'
+  };
 
   function genreColorFor(genre){
     if(!genre) return GENRE_COLOR_PALETTE[0];
+    if(GENRE_COLOR_MAP[genre]) return GENRE_COLOR_MAP[genre];
     var hash = 0;
     for(var i = 0; i < genre.length; i++){ hash = (hash * 31 + genre.charCodeAt(i)) & 0xffffffff; }
     var idx = Math.abs(hash) % GENRE_COLOR_PALETTE.length;
@@ -1149,13 +1179,13 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     if(showDueStamp && b.isARC && b.dueDate){
       var d = daysUntil(b.dueDate);
       var overdue = d !== null && d < 0;
-      stampHtml = '<div class="stamp' + (overdue ? ' overdue' : '') + '"><span class="lbl">' + (overdue ? 'overdue' : 'due') + '</span><span>' + fmtShort(b.dueDate) + '</span></div>';
+      stampHtml = '<div class="stamp' + (overdue ? ' overdue' : '') + '"><span class="lbl">' + (overdue ? 'overdue' : 'due back') + '</span><span>' + fmtShort(b.dueDate) + '</span></div>';
     } else if(showDueStamp && b.isARC){
-      stampHtml = '<div class="stamp"><span class="lbl">ARC</span></div>';
+      stampHtml = '<div class="stamp"><span class="lbl">checked out</span></div>';
     } else if(showDueStamp && b.format === 'Paperback' && b.ownership === 'Borrowed' && b.borrowDueDate){
       var bd = daysUntil(b.borrowDueDate);
       var bOverdue = bd !== null && bd < 0;
-      stampHtml = '<div class="stamp' + (bOverdue ? ' overdue' : '') + '"><span class="lbl">' + (bOverdue ? 'overdue' : 'return by') + '</span><span>' + fmtShort(b.borrowDueDate) + '</span></div>';
+      stampHtml = '<div class="stamp' + (bOverdue ? ' overdue' : '') + '"><span class="lbl">' + (bOverdue ? 'overdue' : 'due back') + '</span><span>' + fmtShort(b.borrowDueDate) + '</span></div>';
     }
 
     var readStampHtml = b.status === 'finished' ? '<div class="read-stamp">READ</div>' : '';
@@ -1180,6 +1210,8 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     var coverHtml = b.cover ? '<img src="' + b.cover + '" alt="">' : '<span class="ph">No cover</span>';
     var formatLabelHtml = b.format ? '<div class="format-label">' + escapeHtml(b.format) + '</div>' : '';
     var genreTabHtml = b.genre ? '<div class="genre-tab" style="background:' + genreColorFor(b.genre) + ';">' + escapeHtml(b.genre) + '</div>' : '';
+    var ribbonHtml = b.status === 'reading' ? '<div class="reading-ribbon" title="Currently reading"></div>' : '';
+    var dupBadgeHtml = duplicateIds[b.id] ? '<span class="dup-badge" title="Another entry has the same title and author">⚠ Possible duplicate</span>' : '';
 
     var card = document.createElement('div');
     card.className = 'card clickable';
@@ -1187,10 +1219,10 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       '<div class="status-tab ' + b.status + '"></div>' +
       genreTabHtml +
       '<div class="card-top">' +
-        '<div class="cover-col"><div class="cover-thumb">' + coverHtml + '</div>' + formatLabelHtml + '</div>' +
+        '<div class="cover-col">' + ribbonHtml + '<div class="cover-thumb">' + coverHtml + '</div>' + formatLabelHtml + '</div>' +
         '<div class="card-info"><h3>' + escapeHtml(b.title) + '</h3>' +
         (b.author ? '<p class="byline">' + escapeHtml(b.author) + '</p>' : '') +
-        seriesHtml + arcSourceHtml + arcLinkHtml + '</div>' +
+        seriesHtml + arcSourceHtml + arcLinkHtml + dupBadgeHtml + '</div>' +
         stampColHtml +
       '</div>' +
       ratingHtml + tagsHtml + progressHtml +
@@ -1239,7 +1271,25 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     });
   }
 
+  function computeDuplicateIds(){
+    var groups = {};
+    books.forEach(function(b){
+      var key = (b.title || '').trim().toLowerCase() + '|' + (b.author || '').trim().toLowerCase();
+      if(!key.replace('|', '').trim()) return;
+      if(!groups[key]) groups[key] = [];
+      groups[key].push(b.id);
+    });
+    var dupIds = {};
+    Object.keys(groups).forEach(function(key){
+      if(groups[key].length > 1){
+        groups[key].forEach(function(id){ dupIds[id] = true; });
+      }
+    });
+    duplicateIds = dupIds;
+  }
+
   function render(){
+    computeDuplicateIds();
     renderStats();
     renderMonthStats();
     renderTabs();
@@ -1370,7 +1420,8 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     list.forEach(function(item){
       var row = document.createElement('div');
       row.className = 'manage-row';
-      row.innerHTML = '<input type="text" class="manage-edit-input" value="' + escapeHtml(item) + '" style="flex:1;border:none;background:none;font-size:13px;color:var(--ink);padding:3px 4px;font-family:var(--font-body);">' +
+      var swatchHtml = manageMode === 'genre' ? '<span class="genre-swatch" style="background:' + genreColorFor(item) + ';" title="' + escapeHtml(item) + ' color"></span>' : '';
+      row.innerHTML = swatchHtml + '<input type="text" class="manage-edit-input" value="' + escapeHtml(item) + '" style="flex:1;border:none;background:none;font-size:13px;color:var(--ink);padding:3px 4px;font-family:var(--font-body);">' +
         '<button type="button" class="link-remove" title="Delete">×</button>';
       var input = row.querySelector('.manage-edit-input');
       input.addEventListener('focus', function(){ input.style.background = 'var(--card-hover)'; input.style.borderRadius = '5px'; });
@@ -2058,7 +2109,59 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
         (b.series ? '<p style="color:var(--muted);font-size:12.5px;margin:0;">' + escapeHtml(b.series) + (b.seriesNumber ? ' · Book ' + b.seriesNumber : '') + '</p>' : '') +
         datesLine +
       '</div>' +
-    '</div>' + rows;
+    '</div>' + rows + buildCheckoutHistoryHtml(b);
+  }
+
+  function buildCheckoutHistoryHtml(b){
+    var history = b.checkoutHistory || [];
+    var entriesHtml = history.length ? history.map(function(h, idx){
+      return '<div class="checkout-entry">' +
+        '<span>Checked out ' + fmtDate(h.checkedOut) + (h.returned ? ' · Returned ' + fmtDate(h.returned) : ' · Still out') + '</span>' +
+        '<button type="button" class="link-remove" data-idx="' + idx + '" title="Remove entry">×</button>' +
+        '</div>';
+    }).join('') : '<p class="checkout-empty">No checkouts logged yet — handy for tracking rereads of borrowed or ARC copies.</p>';
+
+    return '<div class="checkout-history">' +
+      '<h4>Checkout history</h4>' +
+      entriesHtml +
+      '<div class="checkout-add-row">' +
+        '<input type="date" id="checkoutNewOut" lang="en-US">' +
+        '<input type="date" id="checkoutNewReturned" lang="en-US">' +
+        '<button type="button" class="small-btn" id="checkoutAddBtn">Log</button>' +
+      '</div>' +
+      '<p class="hint">Leave "returned" blank if it\'s still checked out.</p>' +
+      '</div>';
+  }
+
+  function wireCheckoutHistoryHandlers(){
+    var addBtn = document.getElementById('checkoutAddBtn');
+    if(addBtn) addBtn.onclick = addCheckoutEntry;
+    document.querySelectorAll('#viewContent .checkout-entry .link-remove').forEach(function(btn){
+      btn.onclick = function(){ removeCheckoutEntry(parseInt(btn.getAttribute('data-idx'), 10)); };
+    });
+  }
+
+  function addCheckoutEntry(){
+    var outVal = document.getElementById('checkoutNewOut').value;
+    if(!outVal){ showBanner('Pick a "checked out" date first.'); return; }
+    var retVal = document.getElementById('checkoutNewReturned').value;
+    var b = books.find(function(x){ return x.id === currentViewBookId; });
+    if(!b) return;
+    b.checkoutHistory = (b.checkoutHistory || []).concat([{checkedOut: outVal, returned: retVal || ''}]);
+    books = books.map(function(x){ return x.id === b.id ? b : x; });
+    saveBookRemote(b);
+    document.getElementById('viewContent').innerHTML = buildViewHtml(b);
+    wireCheckoutHistoryHandlers();
+  }
+
+  function removeCheckoutEntry(idx){
+    var b = books.find(function(x){ return x.id === currentViewBookId; });
+    if(!b || !b.checkoutHistory) return;
+    b.checkoutHistory = b.checkoutHistory.filter(function(h, i){ return i !== idx; });
+    books = books.map(function(x){ return x.id === b.id ? b : x; });
+    saveBookRemote(b);
+    document.getElementById('viewContent').innerHTML = buildViewHtml(b);
+    wireCheckoutHistoryHandlers();
   }
 
   function openViewModal(id){
@@ -2066,6 +2169,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     if(!b) return;
     currentViewBookId = id;
     document.getElementById('viewContent').innerHTML = buildViewHtml(b);
+    wireCheckoutHistoryHandlers();
     document.getElementById('viewOverlay').style.display = 'flex';
   }
 
