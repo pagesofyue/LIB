@@ -40,8 +40,96 @@
   --font-script:'Dancing Script', cursive;
   --font-stamp:'Special Elite', monospace;
 }
+body[data-theme="winter"]{
+  --ink:#2F3E52;
+  --paper:#DCE4EE;
+  --card:#F7FAFD;
+  --card-hover:#EDF2F8;
+  --muted:#748AA3;
+  --line:rgba(47,62,82,0.14);
+  --line-strong:rgba(47,62,82,0.28);
+  --accent:#6E93BF;
+  --accent-deep:#4B6D95;
+  --want:#A9BEDD;
+  --want-deep:#6E86AD;
+  --reading:#8FB6D6;
+  --reading-deep:#5A87A6;
+  --finished:#5C7FA3;
+  --finished-deep:#3E5C7C;
+  --dnf:#B0A8C7;
+  --dnf-deep:#786F97;
+  --hold:#D8B989;
+  --hold-deep:#A88752;
+}
+body[data-theme="spring"]{
+  --ink:#3E4A2E;
+  --paper:#E8F0DD;
+  --card:#FAFDF5;
+  --card-hover:#F2F7E9;
+  --muted:#7E9468;
+  --line:rgba(62,74,46,0.14);
+  --line-strong:rgba(62,74,46,0.28);
+  --accent:#8FB56B;
+  --accent-deep:#69914A;
+  --want:#B7D99C;
+  --want-deep:#7DA85E;
+  --reading:#E3A8C0;
+  --reading-deep:#B9749B;
+  --finished:#6E9E5C;
+  --finished-deep:#4A7A3B;
+  --dnf:#D9A0A0;
+  --dnf-deep:#A66B6B;
+  --hold:#EBCB7A;
+  --hold-deep:#B99A48;
+}
+body[data-theme="summer"]{
+  --ink:#33474A;
+  --paper:#DDEEEC;
+  --card:#F7FDFC;
+  --card-hover:#ECF8F6;
+  --muted:#5E8A87;
+  --line:rgba(51,71,74,0.14);
+  --line-strong:rgba(51,71,74,0.28);
+  --accent:#4FB3AC;
+  --accent-deep:#357F79;
+  --want:#8FD9D1;
+  --want-deep:#4FA79E;
+  --reading:#F0A15E;
+  --reading-deep:#C77935;
+  --finished:#3D9E93;
+  --finished-deep:#276F66;
+  --dnf:#E38080;
+  --dnf-deep:#B4504F;
+  --hold:#F0D25E;
+  --hold-deep:#BFA23A;
+}
+body[data-theme="fall"]{
+  --ink:#4A2E22;
+  --paper:#EFDFC9;
+  --card:#FBF3E6;
+  --card-hover:#F5E9D6;
+  --muted:#9A7350;
+  --line:rgba(74,46,34,0.14);
+  --line-strong:rgba(74,46,34,0.28);
+  --accent:#C17A3E;
+  --accent-deep:#93582A;
+  --want:#E0B88A;
+  --want-deep:#B08350;
+  --reading:#C4622F;
+  --reading-deep:#943F17;
+  --finished:#8A5A2E;
+  --finished-deep:#623E1D;
+  --dnf:#A85D5D;
+  --dnf-deep:#7A3E3E;
+  --hold:#D4A23C;
+  --hold-deep:#A67A25;
+}
 *{box-sizing:border-box;}
 body{margin:0;background-color:var(--paper);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.23  0 0 0 0 0.16  0 0 0 0 0.33  0 0 0 0.22 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");background-repeat:repeat;color:var(--ink);font-family:var(--font-body);}
+body[data-theme="winter"]{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cfilter id='nw'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.184  0 0 0 0 0.243  0 0 0 0 0.322  0 0 0 0.22 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23nw)'/%3E%3C/svg%3E");}
+body[data-theme="spring"]{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cfilter id='ns'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.243  0 0 0 0 0.290  0 0 0 0 0.180  0 0 0 0.22 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23ns)'/%3E%3C/svg%3E");}
+body[data-theme="summer"]{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cfilter id='nu'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.200  0 0 0 0 0.278  0 0 0 0 0.290  0 0 0 0.22 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23nu)'/%3E%3C/svg%3E");}
+body[data-theme="fall"]{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cfilter id='nf'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.290  0 0 0 0 0.180  0 0 0 0 0.133  0 0 0 0.22 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23nf)'/%3E%3C/svg%3E");}
 .app{max-width:1080px;margin:0 auto;padding:28px 20px 80px;}
 
 .header{position:relative;display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;gap:16px;flex-wrap:wrap;}
@@ -277,6 +365,14 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
 </style>
 </head>
 <body>
+<script>
+(function(){
+  try{
+    var savedTheme = localStorage.getItem('hiraya_theme');
+    if(savedTheme) document.body.setAttribute('data-theme', savedTheme);
+  }catch(e){}
+})();
+</script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -306,6 +402,13 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     </div>
     <div class="header-right">
       <div class="sync-badge"><span class="sync-dot" id="syncDot"></span><span id="syncText">Synced</span></div>
+      <select id="themeSelect" class="notif-badge" title="Choose a seasonal theme">
+        <option value="">🌙 Signature</option>
+        <option value="winter">❄️ Winter</option>
+        <option value="spring">🌸 Spring</option>
+        <option value="summer">🌞 Summer</option>
+        <option value="fall">🍂 Fall</option>
+      </select>
       <button type="button" class="notif-badge" id="notifBtn">🔔 Enable reminders</button>
       <div class="account-row" id="accountRow"></div>
     </div>
@@ -330,6 +433,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       <input type="text" id="searchInput" placeholder="Search title, author, series, tropes, reviews...">
     </div>
     <select id="genreFilter"><option value="">All genres</option></select>
+    <select id="providerFilter"><option value="">All providers</option></select>
     <select id="sortSelect">
       <option value="due" selected>Due date soonest</option>
       <option value="due_pages">Due soonest, then fewest pages</option>
@@ -337,6 +441,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       <option value="title">Title A–Z</option>
       <option value="rating">Rating highest</option>
       <option value="pages">Pages: fewest first</option>
+      <option value="provider">Provider A–Z</option>
     </select>
     <div class="export-wrap">
       <button class="btn-export" id="exportBtn">
@@ -429,7 +534,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
         </div>
         <div class="field">
           <label>Book # in series</label>
-          <input type="number" id="f_seriesNum" min="1" placeholder="1">
+          <input type="number" id="f_seriesNum" min="0" step="0.5" placeholder="1">
         </div>
       </div>
       <div class="field">
@@ -500,7 +605,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       <div class="field">
         <label>Rating</label>
         <div class="rating-input-row">
-          <input type="number" id="f_rating" min="0" max="5" step="0.5" placeholder="0.0">
+          <input type="number" id="f_rating" min="0" max="5" step="0.25" placeholder="0.0">
           <span class="star-preview" id="starPreview"></span>
         </div>
       </div>
@@ -752,6 +857,16 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
   var GENRE_KEY = 'genreList';
   var ARC_KEY = 'arcSourceList';
   var LINKS_KEY = 'readerLinks';
+
+  var themeSelect = document.getElementById('themeSelect');
+  try{ themeSelect.value = localStorage.getItem('hiraya_theme') || ''; }catch(e){}
+  themeSelect.addEventListener('change', function(){
+    var val = themeSelect.value;
+    if(val){ document.body.setAttribute('data-theme', val); }
+    else { document.body.removeAttribute('data-theme'); }
+    try{ localStorage.setItem('hiraya_theme', val); }catch(e){}
+  });
+
   var books = [];
   var duplicateIds = {};
   var readerLinks = [];
@@ -892,6 +1007,12 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     return Object.keys(set).sort();
   }
 
+  function allProviders(){
+    var set = {};
+    books.forEach(function(b){ if(b.isARC && b.arcSource) set[b.arcSource] = true; });
+    return Object.keys(set).sort();
+  }
+
   function starsHtml(rating, size){
     rating = Math.max(0, Math.min(5, rating || 0));
     var pct = (rating / 5) * 100;
@@ -977,6 +1098,16 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       return '<option value="' + g.replace(/"/g,'&quot;') + '">' + g + '</option>';
     }).join('');
     if(genres.indexOf(current) !== -1) sel.value = current;
+  }
+
+  function renderProviderFilter(){
+    var sel = document.getElementById('providerFilter');
+    var current = sel.value;
+    var providers = allProviders();
+    sel.innerHTML = '<option value="">All providers</option>' + providers.map(function(p){
+      return '<option value="' + p.replace(/"/g,'&quot;') + '">' + p + '</option>';
+    }).join('');
+    if(providers.indexOf(current) !== -1) sel.value = current;
   }
 
   function escapeHtml(s){
@@ -1078,11 +1209,13 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
   function getFilteredSorted(){
     var search = document.getElementById('searchInput').value.trim().toLowerCase();
     var genre = document.getElementById('genreFilter').value;
+    var provider = document.getElementById('providerFilter').value;
     var sort = document.getElementById('sortSelect').value;
 
     var filtered = books.filter(function(b){
       if(activeStatus !== 'all' && b.status !== activeStatus) return false;
       if(genre && b.genre !== genre) return false;
+      if(provider && b.arcSource !== provider) return false;
       if(search){
         var hay = [b.title, b.author, b.series, b.review, (b.tropes||[]).join(' ')].join(' ').toLowerCase();
         if(hay.indexOf(search) === -1) return false;
@@ -1104,6 +1237,15 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       filtered.sort(function(a,b){ return (b.rating||0) - (a.rating||0); });
     } else if(sort === 'pages'){
       filtered.sort(comparePages);
+    } else if(sort === 'provider'){
+      filtered.sort(function(a,b){
+        var sa = a.arcSource || '';
+        var sb = b.arcSource || '';
+        if(!sa && !sb) return 0;
+        if(!sa) return 1;
+        if(!sb) return -1;
+        return sa.localeCompare(sb);
+      });
     } else {
       filtered.sort(function(a,b){ return (b.createdAt||0) - (a.createdAt||0); });
     }
@@ -1201,7 +1343,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       tagsHtml = '<div class="tags">' + b.tropes.map(function(t){ return '<span class="tag">' + escapeHtml(t) + '</span>'; }).join('') + '</div>';
     }
 
-    var seriesHtml = b.series ? '<p class="series series-line">' + escapeHtml(b.series) + (b.seriesNumber ? ' · Book ' + b.seriesNumber : '') + '</p>' : '';
+    var seriesHtml = b.series ? '<p class="series series-line">' + escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '') + '</p>' : '';
 
     var ratingHtml = (b.rating || b.rating === 0) && b.rating > 0 ? '<div class="rating-row">' + starsHtml(b.rating) + '<span class="rating-num">' + b.rating.toFixed(1) + '</span></div>' : '';
 
@@ -1294,6 +1436,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     renderMonthStats();
     renderTabs();
     renderGenreFilter();
+    renderProviderFilter();
 
     var filtered = getFilteredSorted();
 
@@ -1573,7 +1716,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     document.getElementById('f_author').value = b ? b.author || '' : '';
     document.getElementById('f_status').value = b ? b.status || 'want' : 'want';
     document.getElementById('f_series').value = b ? b.series || '' : '';
-    document.getElementById('f_seriesNum').value = b && b.seriesNumber ? b.seriesNumber : '';
+    document.getElementById('f_seriesNum').value = b && (b.seriesNumber || b.seriesNumber === 0) ? b.seriesNumber : '';
     document.getElementById('f_format').value = b ? b.format || '' : '';
     document.getElementById('f_ownership').value = b && b.ownership ? b.ownership : 'Owned';
     document.getElementById('f_borrowDueDate').value = b ? b.borrowDueDate || '' : '';
@@ -1645,7 +1788,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       dateStarted: document.getElementById('f_dateStarted').value,
       dateFinished: document.getElementById('f_dateFinished').value,
       genre: document.getElementById('f_genre').value,
-      rating: document.getElementById('f_rating').value ? Math.round(parseFloat(document.getElementById('f_rating').value) * 2) / 2 : 0,
+      rating: document.getElementById('f_rating').value ? Math.round(parseFloat(document.getElementById('f_rating').value) * 4) / 4 : 0,
       tropes: selectedTropes.slice(),
       cover: pendingCover
     };
@@ -1677,6 +1820,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
 
   document.getElementById('searchInput').addEventListener('input', render);
   document.getElementById('genreFilter').addEventListener('change', render);
+  document.getElementById('providerFilter').addEventListener('change', render);
   document.getElementById('sortSelect').addEventListener('change', render);
 
   document.getElementById('exportBtn').onclick = function(){
@@ -1960,7 +2104,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
   function buildPostcardLandscape(b, reviewText){
     var coverHtml = b.cover ? '<img src="' + b.cover + '" style="width:100%;height:100%;object-fit:cover;">' : '<span style="font-size:10px;color:#7C6D94;font-family:\'Courier Prime\',monospace;text-align:center;padding:8px;">No cover</span>';
     var ratingHtml = b.rating ? '<div style="margin-top:8px;font-size:16px;letter-spacing:2px;color:#6B4E93;">' + starsPlain(b.rating) + '</div>' : '';
-    var seriesHtml = b.series ? '<div style="font-size:10.5px;color:#7C6D94;margin-top:3px;">' + escapeHtml(b.series) + (b.seriesNumber ? ' · Book ' + b.seriesNumber : '') + '</div>' : '';
+    var seriesHtml = b.series ? '<div style="font-size:10.5px;color:#7C6D94;margin-top:3px;">' + escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '') + '</div>' : '';
     var reviewHtml = '<div style="font-style:italic;font-size:11.5px;line-height:1.5;color:#3B2A55;border-top:1px dashed rgba(59,42,85,0.3);padding-top:8px;margin-top:10px;min-height:18px;max-width:320px;">' + (reviewText ? escapeHtml(reviewText) : '<span style="color:#B8ABCB;">— your review —</span>') + '</div>';
     return '<div style="width:559px;height:397px;display:flex;background:#FBF7FF;border:2px solid #3B2A55;border-radius:8px;overflow:hidden;font-family:\'Courier Prime\',monospace;color:#3B2A55;">' +
       '<div style="width:180px;flex:none;background:radial-gradient(circle at 30% 20%,#E4D2F2,transparent 65%),radial-gradient(circle at 70% 80%,#F0DCEA,transparent 65%),#F5EEFC;display:flex;align-items:center;justify-content:center;">' +
@@ -1981,7 +2125,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
   function buildPostcardPortrait(b, reviewText){
     var coverHtml = b.cover ? '<img src="' + b.cover + '" style="width:100%;height:100%;object-fit:cover;">' : '<span style="font-size:10px;color:#7C6D94;font-family:\'Courier Prime\',monospace;text-align:center;padding:8px;">No cover</span>';
     var ratingHtml = b.rating ? '<div style="margin-top:7px;font-size:16px;letter-spacing:2px;color:#6B4E93;">' + starsPlain(b.rating) + '</div>' : '';
-    var seriesHtml = b.series ? '<div style="font-size:10.5px;color:#7C6D94;margin-top:3px;">' + escapeHtml(b.series) + (b.seriesNumber ? ' · Book ' + b.seriesNumber : '') + '</div>' : '';
+    var seriesHtml = b.series ? '<div style="font-size:10.5px;color:#7C6D94;margin-top:3px;">' + escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '') + '</div>' : '';
     var reviewHtml = '<div style="font-style:italic;font-size:11.5px;line-height:1.5;color:#3B2A55;border-top:1px dashed rgba(59,42,85,0.3);padding-top:8px;margin-top:10px;min-height:18px;">' + (reviewText ? escapeHtml(reviewText) : '<span style="color:#B8ABCB;">— your review —</span>') + '</div>';
     return '<div style="width:397px;height:559px;display:flex;flex-direction:column;background:#FBF7FF;border:2px solid #3B2A55;border-radius:8px;overflow:hidden;font-family:\'Courier Prime\',monospace;color:#3B2A55;">' +
       '<div style="height:230px;flex:none;position:relative;background:radial-gradient(circle at 30% 20%,#E4D2F2,transparent 65%),radial-gradient(circle at 70% 80%,#F0DCEA,transparent 65%),#F5EEFC;display:flex;align-items:center;justify-content:center;">' +
@@ -2002,7 +2146,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
   function buildPostcardSquare(b, reviewText){
     var coverHtml = b.cover ? '<img src="' + b.cover + '" style="width:100%;height:100%;object-fit:cover;">' : '<span style="font-size:13px;color:#7C6D94;font-family:\'Courier Prime\',monospace;">No cover</span>';
     var ratingHtml = b.rating ? '<div style="margin-top:12px;font-size:24px;letter-spacing:3px;color:#6B4E93;">' + starsPlain(b.rating) + '</div>' : '';
-    var seriesHtml = b.series ? '<div style="font-size:13px;color:#7C6D94;margin-top:5px;">' + escapeHtml(b.series) + (b.seriesNumber ? ' · Book ' + b.seriesNumber : '') + '</div>' : '';
+    var seriesHtml = b.series ? '<div style="font-size:13px;color:#7C6D94;margin-top:5px;">' + escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '') + '</div>' : '';
     return '<div style="width:1080px;height:1080px;position:relative;box-sizing:border-box;padding:56px;display:flex;flex-direction:column;align-items:center;background:#FBF7FF;border:3px solid #3B2A55;font-family:\'Courier Prime\',monospace;color:#3B2A55;text-align:center;">' +
       postcardStampHtml('ig_post') +
       postcardWordmark(34) +
@@ -2106,7 +2250,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       '<div>' +
         '<h2 style="margin-bottom:2px;">' + escapeHtml(b.title) + '</h2>' +
         (b.author ? '<p style="color:var(--muted);font-style:italic;margin:0 0 3px;">' + escapeHtml(b.author) + '</p>' : '') +
-        (b.series ? '<p style="color:var(--muted);font-size:12.5px;margin:0;">' + escapeHtml(b.series) + (b.seriesNumber ? ' · Book ' + b.seriesNumber : '') + '</p>' : '') +
+        (b.series ? '<p style="color:var(--muted);font-size:12.5px;margin:0;">' + escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '') + '</p>' : '') +
         datesLine +
       '</div>' +
     '</div>' + rows + buildCheckoutHistoryHtml(b);
@@ -2200,8 +2344,8 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     }
     var cards = seriesNames.map(function(name){
       var list = groups[name].slice().sort(function(a, b){
-        var na = a.seriesNumber || 999;
-        var nb = b.seriesNumber || 999;
+        var na = (a.seriesNumber === null || a.seriesNumber === undefined) ? 999 : a.seriesNumber;
+        var nb = (b.seriesNumber === null || b.seriesNumber === undefined) ? 999 : b.seriesNumber;
         return na - nb;
       });
 
@@ -2217,7 +2361,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
         var isNext = b.id === nextUpId;
         var label = isNext ? 'Next up' : statusLabelFor(b);
         return '<div class="series-book-row" data-book-id="' + b.id + '">' +
-          '<div class="series-book-num">' + (b.seriesNumber || '–') + '</div>' +
+          '<div class="series-book-num">' + ((b.seriesNumber || b.seriesNumber === 0) ? b.seriesNumber : '–') + '</div>' +
           '<div class="series-book-title">' + escapeHtml(b.title) + '</div>' +
           '<div class="series-book-status' + (isNext ? ' next-up' : '') + '">' + escapeHtml(label) + '</div>' +
           '</div>';

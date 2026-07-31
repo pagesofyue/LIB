@@ -101,16 +101,9 @@ new version).
 
 ## A couple of notes
 
-- The zip includes `stamp.jpg` (the postcard stamp illustration) alongside
-  the app icons — make sure it's uploaded too, since postcards use it.
-  `logo.png` is no longer used anywhere in the app (removed to cut down on
-  bandwidth/Netlify credit usage), so you don't need to upload it anymore.
-- **Caching:** the app now caches itself in your browser after the first
-  visit, so repeat visits don't re-download everything (this is what keeps
-  Netlify bandwidth/credit usage down). It means that after I ship an
-  update and you redeploy, you'll need **one hard refresh**
-  (Ctrl+Shift+R / Cmd+Shift+R) on each device to see the new version —
-  a normal refresh may still show the cached old version.
+- The zip now includes `logo.png` (your mermaid-on-the-moon artwork) alongside
+  the app icons — make sure it's uploaded too, since the app displays it in
+  a few places (login screen, header, empty state, postcards).
 - Cover images are still stored as compressed images inside each book's
   data — that's fine for normal use, but a single book with a very large
   cover could occasionally fail to save. If that ever happens, the app
