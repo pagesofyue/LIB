@@ -101,9 +101,10 @@ new version).
 
 ## A couple of notes
 
-- The zip now includes `logo.png` (your mermaid-on-the-moon artwork) alongside
-  the app icons — make sure it's uploaded too, since the app displays it in
-  a few places (login screen, header, empty state, postcards).
+- The zip includes `stamp.jpg` (the default postcard stamp) and four seasonal
+  background images (`theme-winter.jpg`, `theme-spring.jpg`, `theme-summer.jpg`,
+  `theme-fall.jpg`) — make sure all of these are uploaded alongside `index.html`,
+  or the seasonal theme picker and postcard stamp will show broken images.
 - Cover images are still stored as compressed images inside each book's
   data — that's fine for normal use, but a single book with a very large
   cover could occasionally fail to save. If that ever happens, the app
