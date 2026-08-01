@@ -644,6 +644,15 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
         <option value="ig_post">Instagram Post (square)</option>
       </select>
     </div>
+    <div class="field">
+      <label>Postage stamp</label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <label class="small-btn" for="postcardStampUpload" style="text-align:center;">Upload your own</label>
+        <input type="file" id="postcardStampUpload" accept="image/*" style="display:none;">
+        <button type="button" class="small-btn" id="postcardStampResetBtn">Use default stamp</button>
+      </div>
+      <p class="hint">Saved for all future postcards until you change it again.</p>
+    </div>
     <div id="postcardPreviewWrap" style="display:flex;justify-content:center;overflow:auto;max-height:60vh;margin-bottom:16px;padding:6px 0;"></div>
     <div class="field">
       <label>Your review (optional)</label>
@@ -769,7 +778,8 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
         tropeList: meta.tropeList || [],
         genreList: meta.genreList || [],
         arcSourceList: meta.arcSourceList || [],
-        readerLinks: meta.readerLinks || []
+        readerLinks: meta.readerLinks || [],
+        customStamp: meta.customStamp || ''
       };
     },
     async saveBook(book){
@@ -870,6 +880,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
   var books = [];
   var duplicateIds = {};
   var readerLinks = [];
+  var customStampDataUrl = '';
   var currentPostcardBook = null;
   var editingId = null;
   var selectedTropes = [];
@@ -926,6 +937,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       if(data.arcSourceList && data.arcSourceList.length){ arcSourceList = data.arcSourceList; }
       else { arcSourceList = defaultArcSources.slice(); saveArcSourceList(); }
       readerLinks = data.readerLinks || [];
+      customStampDataUrl = data.customStamp || '';
       setSync('idle');
     }catch(e){
       books = [];
@@ -2094,7 +2106,8 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
 
   function postcardStampHtml(size){
     var w = size === 'ig_post' ? 84 : 50;
-    return '<img src="./stamp.jpg" alt="" style="position:absolute;top:12px;right:14px;width:' + w + 'px;height:auto;transform:rotate(4deg);box-shadow:0 1px 4px rgba(59,42,85,0.35);border-radius:2px;">';
+    var src = customStampDataUrl || './stamp.jpg';
+    return '<img src="' + src + '" alt="" style="position:absolute;top:12px;right:14px;width:' + w + 'px;height:auto;transform:rotate(4deg);box-shadow:0 1px 4px rgba(59,42,85,0.35);border-radius:2px;">';
   }
 
   function postcardWordmark(fontSize){
@@ -2183,6 +2196,26 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
 
   document.getElementById('postcardReview').addEventListener('input', renderPostcardPreview);
   document.getElementById('postcardSize').addEventListener('change', renderPostcardPreview);
+
+  document.getElementById('postcardStampUpload').addEventListener('change', function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    resizeImage(file, 240, 0.85).then(function(dataUrl){
+      customStampDataUrl = dataUrl;
+      window.cloudStore.saveMeta({customStamp: dataUrl}).catch(function(){
+        showBanner("Saved for this session, but couldn't sync your custom stamp — check your connection.");
+      });
+      renderPostcardPreview();
+    });
+    e.target.value = '';
+  });
+
+  document.getElementById('postcardStampResetBtn').onclick = function(){
+    customStampDataUrl = '';
+    window.cloudStore.saveMeta({customStamp: ''}).catch(function(){});
+    renderPostcardPreview();
+  };
+
   document.getElementById('postcardCancelBtn').onclick = function(){
     document.getElementById('postcardOverlay').style.display = 'none';
   };
