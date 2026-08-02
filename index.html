@@ -1288,16 +1288,20 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       filtered.sort(function(a,b){ return (b.createdAt||0) - (a.createdAt||0); });
     }
 
-    // Finished and DNF books always sink to the bottom, on top of whichever
-    // sort is selected above. Array.sort is stable, so this preserves the
-    // ordering already established within each group.
-    filtered.sort(function(a,b){ return doneWeight(a) - doneWeight(b); });
+    // Cards are always grouped in this fixed order — Want/Reading, then On
+    // Hold, then DNF, then Finished — on top of whichever sort is selected
+    // above. Array.sort is stable, so it preserves the ordering already
+    // established (by the sort above) within each group.
+    filtered.sort(function(a,b){ return statusGroupWeight(a) - statusGroupWeight(b); });
 
     return filtered;
   }
 
-  function doneWeight(b){
-    return (b.status === 'finished' || b.status === 'dnf') ? 1 : 0;
+  function statusGroupWeight(b){
+    if(b.status === 'hold') return 1;
+    if(b.status === 'dnf') return 2;
+    if(b.status === 'finished') return 3;
+    return 0;
   }
 
   function statusLabelFor(b){
