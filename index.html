@@ -157,10 +157,6 @@ body[data-theme="fall"]{background-image:linear-gradient(rgba(239,223,201,0.85),
 .copy-btn svg{width:13px;height:13px;}
 .link-remove{flex:none;background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:2px 4px;}
 .link-remove:hover{color:var(--dnf-deep);}
-.blob{position:absolute;z-index:0;pointer-events:none;filter:blur(16px);opacity:0.55;border-radius:60% 40% 30% 70% / 60% 30% 70% 40%;}
-.blob-lav{background:radial-gradient(circle at 30% 30%, #C9A8E8, transparent 72%);}
-.blob-pink{background:radial-gradient(circle at 65% 65%, #E7B9DA, transparent 72%);}
-.blob-blue{background:radial-gradient(circle at 40% 60%, #ADA4E0, transparent 72%);}
 .sync-badge{position:relative;z-index:1;display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;color:var(--muted);padding:6px 10px;border:1px solid var(--line);border-radius:20px;background:var(--card);white-space:nowrap;}
 .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--finished);flex:none;}
 .sync-dot.syncing{background:var(--accent);animation:pulse 1s infinite ease-in-out;}
@@ -197,6 +193,8 @@ body[data-theme="fall"]{background-image:linear-gradient(rgba(239,223,201,0.85),
 .cal-item.overdue{background:var(--dnf-deep);}
 .cal-empty-note{color:var(--muted);font-size:13px;text-align:center;padding:30px 0;}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;}
+.clickable-stat{cursor:pointer;transition:border-color .15s,transform .1s;}
+.clickable-stat:hover{border-color:var(--accent);transform:translateY(-1px);}
 .stat .num{font-family:var(--font-display);font-size:26px;font-weight:600;line-height:1;}
 .stat .label{font-size:12px;color:var(--muted);margin-top:6px;}
 .stat.alert .num{color:var(--dnf-deep);}
@@ -285,7 +283,6 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
 
 .empty{text-align:center;padding:60px 20px;color:var(--muted);}
 .empty .icon-wrap{position:relative;width:90px;height:90px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;}
-.empty .icon-wrap .blob{width:90px;height:90px;top:0;left:0;opacity:0.6;}
 .empty .icon{position:relative;z-index:1;font-size:36px;}
 .empty h3{font-family:var(--font-display);color:var(--ink);font-size:20px;margin:0 0 6px;}
 
@@ -392,12 +389,10 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
 
 <div class="app" id="appRoot" style="display:none;">
   <div class="header">
-    <div class="blob blob-lav" style="width:150px;height:110px;top:-35px;left:-25px;"></div>
-    <div class="blob blob-pink" style="width:110px;height:95px;top:5px;left:70px;"></div>
     <div class="header-text">
       <div>
         <h1>Hiraya Manawari</h1>
-        <p>Escape the ordinary. Inhabit the extraordinary.</p>
+        <p>Explore Every World, One Page at a Time.</p>
       </div>
     </div>
     <div class="header-right">
@@ -471,7 +466,6 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
   <div class="grid" id="grid"></div>
   <div class="empty" id="emptyState" style="display:none;">
     <div class="icon-wrap">
-      <div class="blob blob-blue"></div>
       <div class="icon">🌙</div>
     </div>
     <h3 id="emptyTitle">Your shelf is empty</h3>
@@ -889,6 +883,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
   var arcSourceList = [];
   var pendingCover = null;
   var activeStatus = 'all';
+  var dueSoonFilterActive = false;
   var confirmingDelete = null;
   var manageMode = null;
 
@@ -901,8 +896,8 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     want: {label:'Want to read'},
     reading: {label:'Reading'},
     hold: {label:'On Hold'},
-    finished: {label:'Finished'},
-    dnf: {label:'Did not finish'}
+    dnf: {label:'Did not finish'},
+    finished: {label:'Finished'}
   };
 
   function uid(){
@@ -1058,10 +1053,35 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
 
     var el = document.getElementById('stats');
     el.innerHTML =
-      '<div class="stat"><div class="num">' + reading + '</div><div class="label">Currently reading</div></div>' +
-      '<div class="stat' + (dueSoon > 0 ? ' alert' : '') + '"><div class="num">' + dueSoon + '</div><div class="label">Due within ' + DUE_SOON_DAYS + ' days</div></div>' +
-      '<div class="stat"><div class="num">' + finishedThisYear + '</div><div class="label">Books read in ' + thisYear + '</div></div>' +
-      '<div class="stat"><div class="num">' + pagesThisYear.toLocaleString() + '</div><div class="label">Pages read in ' + thisYear + '</div></div>';
+      '<div class="stat clickable-stat" id="statReading"><div class="num">' + reading + '</div><div class="label">Currently reading</div></div>' +
+      '<div class="stat clickable-stat' + (dueSoon > 0 ? ' alert' : '') + '" id="statDueSoon"><div class="num">' + dueSoon + '</div><div class="label">Due within ' + DUE_SOON_DAYS + ' days</div></div>' +
+      '<div class="stat clickable-stat" id="statFinishedYear"><div class="num">' + finishedThisYear + '</div><div class="label">Books read in ' + thisYear + '</div></div>' +
+      '<div class="stat clickable-stat" id="statPagesYear"><div class="num">' + pagesThisYear.toLocaleString() + '</div><div class="label">Pages read in ' + thisYear + '</div></div>';
+
+    document.getElementById('statReading').onclick = function(){
+      switchView('navLibrary');
+      activeStatus = 'reading';
+      dueSoonFilterActive = false;
+      render();
+    };
+    document.getElementById('statDueSoon').onclick = function(){
+      switchView('navLibrary');
+      activeStatus = 'all';
+      dueSoonFilterActive = true;
+      render();
+    };
+    document.getElementById('statFinishedYear').onclick = function(){
+      switchView('navLibrary');
+      activeStatus = 'finished';
+      dueSoonFilterActive = false;
+      render();
+    };
+    document.getElementById('statPagesYear').onclick = function(){
+      switchView('navLibrary');
+      activeStatus = 'finished';
+      dueSoonFilterActive = false;
+      render();
+    };
   }
 
   function monthName(monthIndex){
@@ -1097,7 +1117,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       var btn = document.createElement('button');
       btn.className = 'tab' + (activeStatus === key ? ' active' : '');
       btn.textContent = statusMeta[key].label;
-      btn.onclick = function(){ activeStatus = key; render(); };
+      btn.onclick = function(){ activeStatus = key; dueSoonFilterActive = false; render(); };
       el.appendChild(btn);
     });
   }
@@ -1228,6 +1248,12 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       if(activeStatus !== 'all' && b.status !== activeStatus) return false;
       if(genre && b.genre !== genre) return false;
       if(provider && b.arcSource !== provider) return false;
+      if(dueSoonFilterActive){
+        var due = effectiveDueDate(b);
+        if(!due || b.status === 'finished' || b.status === 'dnf' || b.status === 'hold') return false;
+        var d = daysUntil(due);
+        if(d === null || d > DUE_SOON_DAYS) return false;
+      }
       if(search){
         var hay = [b.title, b.author, b.series, b.review, (b.tropes||[]).join(' ')].join(' ').toLowerCase();
         if(hay.indexOf(search) === -1) return false;
@@ -2163,7 +2189,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     return '<div style="width:1080px;height:1080px;position:relative;box-sizing:border-box;padding:56px;display:flex;flex-direction:column;align-items:center;background:#FBF7FF;border:3px solid #3B2A55;font-family:\'Courier Prime\',monospace;color:#3B2A55;text-align:center;">' +
       postcardStampHtml('ig_post') +
       postcardWordmark(34) +
-      '<div style="font-size:11px;letter-spacing:0.18em;color:#7C6D94;margin-top:2px;margin-bottom:34px;">ESCAPE THE ORDINARY · INHABIT THE EXTRAORDINARY</div>' +
+      '<div style="font-size:11px;letter-spacing:0.18em;color:#7C6D94;margin-top:2px;margin-bottom:34px;">EXPLORE EVERY WORLD · ONE PAGE AT A TIME</div>' +
       '<div style="width:300px;height:440px;flex:none;border-radius:8px;overflow:hidden;box-shadow:0 6px 18px rgba(59,42,85,0.25);background:radial-gradient(circle at 30% 20%,#E4D2F2,transparent 65%),radial-gradient(circle at 70% 80%,#F0DCEA,transparent 65%),#F5EEFC;display:flex;align-items:center;justify-content:center;">' + coverHtml + '</div>' +
       '<div style="font-size:30px;font-weight:700;line-height:1.25;margin-top:30px;max-width:760px;">' + escapeHtml(b.title) + '</div>' +
       (b.author ? '<div style="font-size:16px;font-style:italic;color:#7C6D94;margin-top:6px;">' + escapeHtml(b.author) + '</div>' : '') +
@@ -2500,7 +2526,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     var inner = '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">' +
       postcardWordmark(30) +
       '<div style="font-size:11px;letter-spacing:0.18em;color:#7C6D94;margin-top:8px;margin-bottom:4px;">' + escapeHtml(periodLabel.toUpperCase()) + ' IN BOOKS</div>' +
-      '<div style="font-size:9px;letter-spacing:0.12em;color:#B39ED0;margin-bottom:36px;">ESCAPE THE ORDINARY · INHABIT THE EXTRAORDINARY</div>' +
+      '<div style="font-size:9px;letter-spacing:0.12em;color:#B39ED0;margin-bottom:36px;">EXPLORE EVERY WORLD · ONE PAGE AT A TIME</div>' +
       '<div style="display:flex;gap:34px;margin-bottom:28px;">' +
       '<div><div style="font-size:42px;font-weight:700;">' + totalBooks + '</div><div style="font-size:10px;color:#7C6D94;letter-spacing:0.08em;">BOOKS READ</div></div>' +
       '<div><div style="font-size:42px;font-weight:700;">' + totalPages.toLocaleString() + '</div><div style="font-size:10px;color:#7C6D94;letter-spacing:0.08em;">PAGES TURNED</div></div>' +

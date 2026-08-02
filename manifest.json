@@ -1,11 +1,11 @@
 {
   "name": "Hiraya Manawari — Reading Tracker",
   "short_name": "Hiraya Manawari",
-  "description": "Escape the ordinary. Inhabit the extraordinary.",
+  "description": "Explore Every World, One Page at a Time.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#F1E9FB",
+  "background_color": "#E3D6DC",
   "theme_color": "#3B2A55",
   "orientation": "portrait-primary",
   "icons": [
