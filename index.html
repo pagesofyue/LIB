@@ -180,6 +180,21 @@ body[data-theme="fall"]{background-image:linear-gradient(rgba(239,223,201,0.85),
 .series-book-status{flex:none;font-size:11px;padding:3px 9px;border-radius:10px;background:rgba(59,42,85,0.07);color:var(--muted);}
 .series-book-status.next-up{background:var(--accent);color:var(--card);}
 
+.shelf-heading{font-family:var(--font-script);font-size:26px;color:var(--dnf-deep);margin:0 0 26px;text-align:center;}
+.shelf-group{margin-bottom:44px;}
+.shelf-divider-label{display:flex;align-items:baseline;justify-content:center;gap:10px;margin-bottom:16px;}
+.shelf-divider-label span:first-child{font-family:var(--font-display);font-style:italic;color:var(--dnf-deep);font-size:16px;white-space:nowrap;}
+.shelf-divider-label .shelf-count{font-size:12px;color:var(--muted);white-space:nowrap;}
+.shelf-divider-label::before,.shelf-divider-label::after{content:'';flex:1;height:1px;background:var(--line-strong);align-self:center;}
+.shelf-row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;padding:0 6px 16px;justify-content:center;}
+.shelf-book{width:118px;cursor:pointer;text-align:center;}
+.shelf-cover{width:118px;height:177px;border-radius:4px;overflow:hidden;box-shadow:2px 4px 10px rgba(59,42,85,0.3);background:var(--card-hover);display:flex;align-items:center;justify-content:center;}
+.shelf-cover img{width:100%;height:100%;object-fit:cover;}
+.shelf-cover .ph{font-size:9px;color:var(--muted);font-family:var(--font-mono);}
+.shelf-book-title{font-size:11px;color:var(--ink);margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.shelf-cover-rating{font-size:11px;color:var(--accent-deep);margin-top:2px;}
+.shelf-plank{height:18px;background:linear-gradient(180deg,#CBA36B 0%,#A87D45 55%,#8F6636 100%);border-radius:3px;box-shadow:0 5px 10px rgba(59,42,85,0.28);margin-top:-4px;}
+
 .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
 .cal-header h2{font-family:var(--font-display);font-size:20px;margin:0;}
 .cal-nav-btn{background:var(--card);border:1px solid var(--line-strong);border-radius:7px;padding:6px 12px;cursor:pointer;font-size:14px;color:var(--ink);}
@@ -415,6 +430,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     <button class="view-tab active" id="navLibrary">My Library</button>
     <button class="view-tab" id="navSeries">Series</button>
     <button class="view-tab" id="navCalendar">Calendar</button>
+    <button class="view-tab" id="navReviews">Reviews</button>
     <button class="view-tab" id="navReader">Reader Page</button>
   </div>
 
@@ -475,6 +491,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
 
   <div id="seriesView" style="display:none;"></div>
   <div id="calendarView" style="display:none;"></div>
+  <div id="reviewsView" style="display:none;"></div>
 
   <div id="readerView" style="display:none;">
     <div class="reader-intro">
@@ -604,6 +621,11 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
         </div>
       </div>
       <div class="field">
+        <label>Your review (optional)</label>
+        <textarea id="f_review" rows="3" placeholder="A line or two about this one..." style="width:100%;padding:9px 11px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);font-family:var(--font-body);font-size:14px;color:var(--ink);resize:vertical;"></textarea>
+        <p class="hint">Shows up on your Reviews shelf and can be reused on postcards.</p>
+      </div>
+      <div class="field">
         <label>Genre <button type="button" class="manage-link" id="openManageGenreBtn">Manage list</button></label>
         <select id="f_genre">
           <option value="">Select a genre</option>
@@ -651,10 +673,11 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     <div class="field">
       <label>Your review (optional)</label>
       <textarea id="postcardReview" rows="3" placeholder="A line or two about this one..." style="width:100%;padding:10px 11px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);font-family:var(--font-body);font-size:13px;color:var(--ink);resize:vertical;"></textarea>
-      <p class="hint">This is saved to the book, so it'll be here next time too.</p>
+      <p class="hint">Click "Save review" to keep this without downloading anything.</p>
     </div>
     <div class="modal-actions">
       <button type="button" class="btn-secondary" id="postcardCancelBtn">Cancel</button>
+      <button type="button" class="btn-secondary" id="postcardSaveReviewBtn">Save review</button>
       <button type="button" class="btn-primary" id="postcardDownloadBtn">Download postcard</button>
     </div>
   </div>
@@ -1773,6 +1796,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     renderGenreSelect(b ? b.genre || '' : '');
     document.getElementById('f_rating').value = b && b.rating ? b.rating : '';
     document.getElementById('starPreview').textContent = starsPlain(b ? b.rating : 0);
+    document.getElementById('f_review').value = b ? b.review || '' : '';
     pendingCover = b ? (b.cover || null) : null;
     document.getElementById('coverPreview').innerHTML = pendingCover ? '<img src="' + pendingCover + '" alt="">' : '<span class="ph">No cover</span>';
     document.getElementById('f_cover').value = '';
@@ -1831,6 +1855,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       dateFinished: document.getElementById('f_dateFinished').value,
       genre: document.getElementById('f_genre').value,
       rating: document.getElementById('f_rating').value ? Math.round(parseFloat(document.getElementById('f_rating').value) * 4) / 4 : 0,
+      review: document.getElementById('f_review').value.trim(),
       tropes: selectedTropes.slice(),
       cover: pendingCover
     };
@@ -2037,6 +2062,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     navLibrary: 'libraryView',
     navSeries: 'seriesView',
     navCalendar: 'calendarView',
+    navReviews: 'reviewsView',
     navReader: 'readerView'
   };
 
@@ -2048,11 +2074,13 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     });
     if(activeNavId === 'navSeries') renderSeriesView();
     if(activeNavId === 'navCalendar') renderCalendarView();
+    if(activeNavId === 'navReviews') renderReviewsView();
   }
 
   document.getElementById('navLibrary').onclick = function(){ switchView('navLibrary'); };
   document.getElementById('navSeries').onclick = function(){ switchView('navSeries'); };
   document.getElementById('navCalendar').onclick = function(){ switchView('navCalendar'); };
+  document.getElementById('navReviews').onclick = function(){ switchView('navReviews'); };
   document.getElementById('navReader').onclick = function(){ switchView('navReader'); };
 
   async function saveLinks(){
@@ -2253,6 +2281,16 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     if(e.target.id === 'postcardOverlay') document.getElementById('postcardOverlay').style.display = 'none';
   });
 
+  document.getElementById('postcardSaveReviewBtn').onclick = function(){
+    if(!currentPostcardBook) return;
+    var reviewText = document.getElementById('postcardReview').value.trim();
+    currentPostcardBook.review = reviewText;
+    books = books.map(function(x){ return x.id === currentPostcardBook.id ? currentPostcardBook : x; });
+    saveBookRemote(currentPostcardBook);
+    showBanner('Review saved.');
+    document.getElementById('postcardOverlay').style.display = 'none';
+  };
+
   document.getElementById('postcardDownloadBtn').onclick = function(){
     if(!currentPostcardBook) return;
     var reviewText = document.getElementById('postcardReview').value;
@@ -2444,6 +2482,61 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     var row = e.target.closest('.series-book-row');
     if(!row) return;
     var id = row.getAttribute('data-book-id');
+    if(id) openViewModal(id);
+  });
+
+  // ===================== Reviews shelf =====================
+  function renderReviewsView(){
+    var reviewed = books.filter(function(b){ return b.review && b.review.trim(); });
+    var wrap = document.getElementById('reviewsView');
+    if(!reviewed.length){
+      wrap.innerHTML = '<div class="cal-empty-note">No reviews logged yet — add a review from a book\'s postcard or detail view and it\'ll land on the shelf here.</div>';
+      return;
+    }
+
+    var groups = {};
+    var order = [];
+    reviewed.forEach(function(b){
+      var key = b.series ? b.series : '\u0000standalone';
+      if(!groups[key]){ groups[key] = []; order.push(key); }
+      groups[key].push(b);
+    });
+    order.sort(function(a, b){
+      if(a === '\u0000standalone') return 1;
+      if(b === '\u0000standalone') return -1;
+      return a.localeCompare(b);
+    });
+
+    var html = '<h2 class="shelf-heading">Your Shelf</h2>';
+    order.forEach(function(key){
+      var list = groups[key].slice().sort(function(a, b){
+        var na = (a.seriesNumber === null || a.seriesNumber === undefined) ? 999 : a.seriesNumber;
+        var nb = (b.seriesNumber === null || b.seriesNumber === undefined) ? 999 : b.seriesNumber;
+        return na - nb;
+      });
+      var title = key === '\u0000standalone' ? 'Standalone reviews' : key;
+      var covers = list.map(function(b){
+        var coverHtml = b.cover ? '<img src="' + b.cover + '" alt="">' : '<span class="ph">No cover</span>';
+        var ratingHtml = b.rating ? '<div class="shelf-cover-rating">' + starsPlain(b.rating) + '</div>' : '';
+        return '<div class="shelf-book" data-book-id="' + b.id + '" title="' + escapeHtml(b.title) + '">' +
+          '<div class="shelf-cover">' + coverHtml + '</div>' +
+          '<div class="shelf-book-title">' + escapeHtml(b.title) + '</div>' +
+          ratingHtml +
+          '</div>';
+      }).join('');
+      html += '<div class="shelf-group">' +
+        '<div class="shelf-divider-label"><span>' + escapeHtml(title) + '</span><span class="shelf-count">' + list.length + ' book' + (list.length === 1 ? '' : 's') + '</span></div>' +
+        '<div class="shelf-row">' + covers + '</div>' +
+        '<div class="shelf-plank"></div>' +
+        '</div>';
+    });
+    wrap.innerHTML = html;
+  }
+
+  document.getElementById('reviewsView').addEventListener('click', function(e){
+    var item = e.target.closest('.shelf-book');
+    if(!item) return;
+    var id = item.getAttribute('data-book-id');
     if(id) openViewModal(id);
   });
 
