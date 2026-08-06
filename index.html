@@ -124,12 +124,34 @@ body[data-theme="fall"]{
   --hold:#D4A23C;
   --hold-deep:#A67A25;
 }
+body[data-theme="library"]{
+  --ink:#4A3B2E;
+  --paper:#E8DFC8;
+  --card:#FAF5E8;
+  --card-hover:#F3ECDA;
+  --muted:#8A7A5C;
+  --line:rgba(74,59,46,0.14);
+  --line-strong:rgba(74,59,46,0.28);
+  --accent:#A88B5E;
+  --accent-deep:#8A6F45;
+  --want:#D6C79E;
+  --want-deep:#A88B5E;
+  --reading:#C2A876;
+  --reading-deep:#97814F;
+  --finished:#8A7550;
+  --finished-deep:#6B5A3C;
+  --dnf:#B79A7A;
+  --dnf-deep:#8F7455;
+  --hold:#CDB37A;
+  --hold-deep:#A08752;
+}
 *{box-sizing:border-box;}
 body{margin:0;background-color:var(--paper);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.23  0 0 0 0 0.16  0 0 0 0 0.33  0 0 0 0.22 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");background-repeat:repeat;color:var(--ink);font-family:var(--font-body);}
 body[data-theme="winter"]{background-image:linear-gradient(rgba(220,228,238,0.86),rgba(220,228,238,0.86)),url("./theme-winter.jpg");background-size:cover;background-position:center top;background-repeat:no-repeat;}
 body[data-theme="spring"]{background-image:linear-gradient(rgba(245,220,230,0.85),rgba(245,220,230,0.85)),url("./theme-spring.jpg");background-size:cover;background-position:center top;background-repeat:no-repeat;}
 body[data-theme="summer"]{background-image:linear-gradient(rgba(221,238,236,0.85),rgba(221,238,236,0.85)),url("./theme-summer.jpg");background-size:cover;background-position:center top;background-repeat:no-repeat;}
 body[data-theme="fall"]{background-image:linear-gradient(rgba(239,223,201,0.85),rgba(239,223,201,0.85)),url("./theme-fall.jpg");background-size:cover;background-position:center top;background-repeat:no-repeat;}
+body[data-theme="library"]{background-image:none;}
 .app{max-width:1080px;margin:0 auto;padding:28px 20px 80px;}
 
 .header{position:relative;display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;gap:16px;flex-wrap:wrap;}
@@ -418,6 +440,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
         <option value="spring">🌸 Spring</option>
         <option value="summer">🌞 Summer</option>
         <option value="fall">🍂 Fall</option>
+        <option value="library">📚 Library</option>
       </select>
       <button type="button" class="notif-badge" id="notifBtn">🔔 Enable reminders</button>
       <div class="account-row" id="accountRow"></div>
@@ -624,6 +647,10 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
         <label>Your review (optional)</label>
         <textarea id="f_review" rows="3" placeholder="A line or two about this one..." style="width:100%;padding:9px 11px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);font-family:var(--font-body);font-size:14px;color:var(--ink);resize:vertical;"></textarea>
         <p class="hint">Shows up on your Reviews shelf and can be reused on postcards.</p>
+      </div>
+      <div class="field">
+        <label>Now playing (optional)</label>
+        <input type="text" id="f_nowPlaying" placeholder="A song that fits this book's vibe">
       </div>
       <div class="field">
         <label>Genre <button type="button" class="manage-link" id="openManageGenreBtn">Manage list</button></label>
@@ -1797,6 +1824,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     document.getElementById('f_rating').value = b && b.rating ? b.rating : '';
     document.getElementById('starPreview').textContent = starsPlain(b ? b.rating : 0);
     document.getElementById('f_review').value = b ? b.review || '' : '';
+    document.getElementById('f_nowPlaying').value = b ? b.nowPlaying || '' : '';
     pendingCover = b ? (b.cover || null) : null;
     document.getElementById('coverPreview').innerHTML = pendingCover ? '<img src="' + pendingCover + '" alt="">' : '<span class="ph">No cover</span>';
     document.getElementById('f_cover').value = '';
@@ -1856,6 +1884,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       genre: document.getElementById('f_genre').value,
       rating: document.getElementById('f_rating').value ? Math.round(parseFloat(document.getElementById('f_rating').value) * 4) / 4 : 0,
       review: document.getElementById('f_review').value.trim(),
+      nowPlaying: document.getElementById('f_nowPlaying').value.trim(),
       tropes: selectedTropes.slice(),
       cover: pendingCover
     };
@@ -2340,6 +2369,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       if(b.arcFormLink) rows += '<div class="detail-row"><span class="dl">Review form</span><span class="dv"><a href="' + escapeHtml(b.arcFormLink) + '" target="_blank" rel="noopener" style="color:var(--accent-deep);">' + escapeHtml(b.arcFormLink) + '</a></span></div>';
     }
     if(b.review) rows += '<div class="detail-row"><span class="dl">Your review</span><span class="dv" style="font-style:italic;">' + escapeHtml(b.review) + '</span></div>';
+    if(b.nowPlaying) rows += '<div class="detail-row"><span class="dl">Now playing</span><span class="dv">🎵 ' + escapeHtml(b.nowPlaying) + '</span></div>';
 
     var datesParts = [];
     if(b.dateStarted) datesParts.push('Started ' + fmtDate(b.dateStarted));
