@@ -203,17 +203,14 @@ body[data-theme="library"]{background-image:none;}
 .series-book-status.next-up{background:var(--accent);color:var(--card);}
 
 .shelf-heading{font-family:var(--font-script);font-size:26px;color:var(--dnf-deep);margin:0 0 26px;text-align:center;}
-.shelf-group{margin-bottom:44px;}
-.shelf-divider-label{display:flex;align-items:baseline;justify-content:center;gap:10px;margin-bottom:16px;}
-.shelf-divider-label span:first-child{font-family:var(--font-display);font-style:italic;color:var(--dnf-deep);font-size:16px;white-space:nowrap;}
-.shelf-divider-label .shelf-count{font-size:12px;color:var(--muted);white-space:nowrap;}
-.shelf-divider-label::before,.shelf-divider-label::after{content:'';flex:1;height:1px;background:var(--line-strong);align-self:center;}
-.shelf-row{display:flex;gap:3px;flex-wrap:wrap;align-items:flex-end;padding:0 6px 0;justify-content:center;}
-.shelf-row-spines{gap:2px;}
+.shelf-wrap{margin-bottom:44px;}
+.shelf-row{display:flex;gap:2px;flex-wrap:wrap;align-items:flex-end;padding:0 6px 0;justify-content:center;}
+.shelf-cluster{display:flex;gap:2px;align-items:flex-end;margin:0 7px 8px;}
 .shelf-book{cursor:pointer;}
-.shelf-spine{height:180px;border-radius:3px 3px 0 0;display:flex;align-items:center;justify-content:center;box-shadow:1px 0 0 rgba(255,255,255,0.25) inset,2px 3px 6px rgba(59,42,85,0.25);transition:transform .12s;}
+.shelf-spine{height:180px;border-radius:3px 3px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:12px 0 8px;box-shadow:1px 0 0 rgba(255,255,255,0.25) inset,2px 3px 6px rgba(59,42,85,0.25);background-size:cover;background-position:center;transition:transform .12s;}
 .shelf-book:hover .shelf-spine{transform:translateY(-4px);}
-.spine-title{writing-mode:vertical-rl;color:var(--ink);font-family:var(--font-display);font-weight:600;font-size:11px;letter-spacing:0.02em;max-height:165px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.spine-title{writing-mode:vertical-rl;color:var(--ink);font-family:var(--font-display);font-weight:600;font-size:11px;letter-spacing:0.02em;max-height:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,0.3),0 -1px 1px rgba(255,255,255,0.2);}
+.spine-number{color:var(--ink);font-family:var(--font-display);font-weight:700;font-size:11px;text-shadow:0 1px 2px rgba(0,0,0,0.3),0 -1px 1px rgba(255,255,255,0.2);}
 .shelf-plank{height:18px;background:linear-gradient(180deg,#CBA36B 0%,#A87D45 55%,#8F6636 100%);border-radius:3px;box-shadow:0 5px 10px rgba(59,42,85,0.28);}
 
 .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
@@ -358,6 +355,9 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
 .cover-btns{display:flex;flex-direction:column;gap:6px;}
 .small-btn{background:var(--card);border:1px solid var(--line-strong);border-radius:7px;padding:7px 12px;font-size:12px;font-family:var(--font-body);cursor:pointer;color:var(--ink);}
 .small-btn:hover{border-color:var(--accent);}
+.spine-color-row{display:flex;align-items:center;gap:8px;}
+.spine-color-row input[type="color"]{flex:none;width:38px;height:38px;padding:2px;border:1px solid var(--line-strong);border-radius:7px;background:var(--card);cursor:pointer;}
+.spine-color-row input[type="text"]{flex:1;}
 
 .trope-chips{display:flex;flex-wrap:wrap;gap:6px;min-height:26px;margin-bottom:8px;}
 .trope-chip{background:var(--accent);color:var(--card);border-radius:12px;padding:4px 8px 4px 12px;font-size:12px;display:flex;align-items:center;gap:6px;}
@@ -681,6 +681,31 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
         </div>
         <p class="hint">Start typing to see matching tropes you've already used, or type a new one and hit Add.</p>
       </div>
+      <div class="field">
+        <label>Spine color (optional)</label>
+        <div class="spine-color-row">
+          <input type="color" id="f_spineColorPicker" value="#8C6BB5">
+          <input type="text" id="f_spineColor" placeholder="#8C6BB5 — leave blank to auto-color by genre">
+          <button type="button" class="small-btn" id="clearSpineColorBtn">Clear</button>
+        </div>
+        <p class="hint">Pick a hex color for this book's spine on your shelf. Leave blank to auto-color by genre.</p>
+      </div>
+      <div class="field">
+        <label>Spine image (optional)</label>
+        <div class="cover-upload">
+          <div class="cover-preview" id="spineImagePreview" style="width:56px;height:110px;"><span class="ph">None</span></div>
+          <div class="cover-btns">
+            <label class="small-btn" for="f_spineImage" style="text-align:center;">Choose image</label>
+            <input type="file" id="f_spineImage" accept="image/*" style="display:none;">
+            <button type="button" class="small-btn" id="removeSpineImageBtn">Remove</button>
+          </div>
+        </div>
+        <p class="hint">If set, this image is used as the spine background instead of the color above.</p>
+        <div class="checkbox-row" style="margin-top:8px;">
+          <input type="checkbox" id="f_spineHideText">
+          <label for="f_spineHideText">This image already shows the title/number — hide the text overlay</label>
+        </div>
+      </div>
       <div class="modal-actions">
         <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
         <button type="submit" class="btn-primary" id="saveBtn">Save book</button>
@@ -954,6 +979,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
   var genreList = [];
   var arcSourceList = [];
   var pendingCover = null;
+  var pendingSpineImage = null;
   var activeStatus = 'all';
   var dueSoonFilterActive = false;
   var confirmingDelete = null;
@@ -1806,6 +1832,33 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     document.getElementById('f_cover').value = '';
   };
 
+  document.getElementById('f_spineImage').addEventListener('change', function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    resizeImage(file, 200, 0.82).then(function(dataUrl){
+      pendingSpineImage = dataUrl;
+      document.getElementById('spineImagePreview').innerHTML = '<img src="' + dataUrl + '" alt="">';
+    });
+  });
+
+  document.getElementById('removeSpineImageBtn').onclick = function(){
+    pendingSpineImage = null;
+    document.getElementById('spineImagePreview').innerHTML = '<span class="ph">None</span>';
+    document.getElementById('f_spineImage').value = '';
+  };
+
+  document.getElementById('f_spineColorPicker').addEventListener('input', function(e){
+    document.getElementById('f_spineColor').value = e.target.value;
+  });
+  document.getElementById('f_spineColor').addEventListener('input', function(e){
+    var v = e.target.value.trim();
+    if(/^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/.test(v)) document.getElementById('f_spineColorPicker').value = v.length === 4 ? ('#' + v[1]+v[1]+v[2]+v[2]+v[3]+v[3]) : v;
+  });
+  document.getElementById('clearSpineColorBtn').onclick = function(){
+    document.getElementById('f_spineColor').value = '';
+    document.getElementById('f_spineColorPicker').value = '#8C6BB5';
+  };
+
   document.getElementById('f_rating').addEventListener('input', function(e){
     var v = parseFloat(e.target.value) || 0;
     document.getElementById('starPreview').textContent = starsPlain(v);
@@ -1860,6 +1913,12 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     pendingCover = b ? (b.cover || null) : null;
     document.getElementById('coverPreview').innerHTML = pendingCover ? '<img src="' + pendingCover + '" alt="">' : '<span class="ph">No cover</span>';
     document.getElementById('f_cover').value = '';
+    document.getElementById('f_spineColor').value = b && b.spineColor ? b.spineColor : '';
+    document.getElementById('f_spineColorPicker').value = b && b.spineColor ? b.spineColor : '#8C6BB5';
+    pendingSpineImage = b ? (b.spineImage || null) : null;
+    document.getElementById('spineImagePreview').innerHTML = pendingSpineImage ? '<img src="' + pendingSpineImage + '" alt="">' : '<span class="ph">None</span>';
+    document.getElementById('f_spineImage').value = '';
+    document.getElementById('f_spineHideText').checked = b ? !!b.spineHideText : false;
     selectedTropes = b && b.tropes ? b.tropes.slice() : [];
     renderTropeChips();
     renderTropeOptions();
@@ -1918,7 +1977,10 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       review: document.getElementById('f_review').value.trim(),
       nowPlaying: document.getElementById('f_nowPlaying').value.trim(),
       tropes: selectedTropes.slice(),
-      cover: pendingCover
+      cover: pendingCover,
+      spineColor: document.getElementById('f_spineColor').value.trim() || null,
+      spineImage: pendingSpineImage,
+      spineHideText: document.getElementById('f_spineHideText').checked
     };
 
     if(data.arcSource && arcSourceList.indexOf(data.arcSource) === -1){
@@ -2584,43 +2646,55 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       return;
     }
 
+    // Group into series clusters (kept adjacent, in series order) and standalone books,
+    // but everything renders on one unified shelf/plank.
     var groups = {};
     var order = [];
     reviewed.forEach(function(b){
-      var key = b.series ? b.series : '\u0000standalone';
+      var key = b.series ? b.series : '\u0000standalone-' + b.id;
       if(!groups[key]){ groups[key] = []; order.push(key); }
       groups[key].push(b);
     });
     order.sort(function(a, b){
-      if(a === '\u0000standalone') return 1;
-      if(b === '\u0000standalone') return -1;
+      var aStand = a.indexOf('\u0000standalone-') === 0;
+      var bStand = b.indexOf('\u0000standalone-') === 0;
+      if(aStand && bStand) return 0;
+      if(aStand) return 1;
+      if(bStand) return -1;
       return a.localeCompare(b);
     });
 
-    var html = '<h2 class="shelf-heading">Your Shelf</h2>';
-    order.forEach(function(key){
+    function spineBg(b){
+      if(b.spineImage) return 'background-image:linear-gradient(rgba(0,0,0,0.12),rgba(0,0,0,0.12)),url(' + b.spineImage + ');';
+      return 'background:' + (b.spineColor || genreColorFor(b.genre)) + ';';
+    }
+
+    var clusters = order.map(function(key){
       var list = groups[key].slice().sort(function(a, b){
         var na = (a.seriesNumber === null || a.seriesNumber === undefined) ? 999 : a.seriesNumber;
         var nb = (b.seriesNumber === null || b.seriesNumber === undefined) ? 999 : b.seriesNumber;
         return na - nb;
       });
-      var title = key === '\u0000standalone' ? 'Standalone reviews' : key;
       var spines = list.map(function(b){
         var hash = 0;
         for(var i = 0; i < b.id.length; i++){ hash = (hash * 31 + b.id.charCodeAt(i)) & 0xffffffff; }
         var widthVariant = 30 + (Math.abs(hash) % 14);
-        return '<div class="shelf-book" data-book-id="' + b.id + '" title="' + escapeHtml(b.title) + '">' +
-          '<div class="shelf-spine" style="width:' + widthVariant + 'px;background:' + genreColorFor(b.genre) + ';">' +
-          '<span class="spine-title">' + escapeHtml(b.title) + '</span>' +
+        var numHtml = (b.seriesNumber || b.seriesNumber === 0) ? '<span class="spine-number">' + escapeHtml(String(b.seriesNumber)) + '</span>' : '';
+        var textHtml = b.spineHideText ? '' : ('<span class="spine-title">' + escapeHtml(b.title) + '</span>' + numHtml);
+        return '<div class="shelf-book" data-book-id="' + b.id + '" title="' + escapeHtml(b.title) + (b.series ? ' (' + escapeHtml(b.series) + ')' : '') + '">' +
+          '<div class="shelf-spine" style="width:' + widthVariant + 'px;' + spineBg(b) + '">' +
+          textHtml +
           '</div>' +
           '</div>';
       }).join('');
-      html += '<div class="shelf-group">' +
-        '<div class="shelf-divider-label"><span>' + escapeHtml(title) + '</span><span class="shelf-count">' + list.length + ' book' + (list.length === 1 ? '' : 's') + '</span></div>' +
-        '<div class="shelf-row shelf-row-spines">' + spines + '</div>' +
-        '<div class="shelf-plank"></div>' +
-        '</div>';
-    });
+      return '<div class="shelf-cluster">' + spines + '</div>';
+    }).join('');
+
+    var html = '<h2 class="shelf-heading">Your Shelf</h2>' +
+      '<div class="shelf-wrap">' +
+      '<div class="shelf-row">' + clusters + '</div>' +
+      '<div class="shelf-plank"></div>' +
+      '</div>';
     wrap.innerHTML = html;
   }
 
@@ -2993,6 +3067,9 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
         rating: rating,
         tropes: [],
         cover: null,
+        spineColor: null,
+        spineImage: null,
+        spineHideText: false,
         createdAt: Date.now()
       });
     }
