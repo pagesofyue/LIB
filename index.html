@@ -209,7 +209,7 @@ body[data-theme="library"]{background-image:none;}
 .shelf-book{cursor:pointer;}
 .shelf-spine{height:180px;border-radius:3px 3px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:12px 0 8px;box-shadow:1px 0 0 rgba(255,255,255,0.25) inset,2px 3px 6px rgba(59,42,85,0.25);background-size:cover;background-position:center;transition:transform .12s;}
 .shelf-book:hover .shelf-spine{transform:translateY(-4px);}
-.spine-title{writing-mode:vertical-rl;color:var(--ink);font-family:var(--font-display);font-weight:600;font-size:11px;letter-spacing:0.02em;max-height:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,0.3),0 -1px 1px rgba(255,255,255,0.2);}
+.spine-title{writing-mode:vertical-rl;color:var(--ink);font-family:var(--font-display);font-weight:600;letter-spacing:0.02em;max-height:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,0.3),0 -1px 1px rgba(255,255,255,0.2);}
 .spine-number{color:var(--ink);font-family:var(--font-display);font-weight:700;font-size:11px;text-shadow:0 1px 2px rgba(0,0,0,0.3),0 -1px 1px rgba(255,255,255,0.2);}
 .shelf-plank{height:18px;background:linear-gradient(180deg,#CBA36B 0%,#A87D45 55%,#8F6636 100%);border-radius:3px;box-shadow:0 5px 10px rgba(59,42,85,0.28);}
 
@@ -238,6 +238,7 @@ body[data-theme="library"]{background-image:none;}
 .search-wrap input:focus{outline:2px solid var(--accent);outline-offset:1px;}
 .search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--muted);}
 select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--card);font-family:var(--font-body);font-size:13px;color:var(--ink);cursor:pointer;}
+select:disabled{opacity:0.55;cursor:not-allowed;}
 .btn-add,.btn-export{background:var(--ink);color:var(--paper);border:none;border-radius:var(--radius);padding:9px 16px;font-family:var(--font-body);font-weight:500;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:6px;}
 .btn-add:hover,.btn-export:hover{background:var(--accent-deep);}
 .export-wrap{position:relative;}
@@ -1228,6 +1229,10 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       btn.onclick = function(){ activeStatus = key; dueSoonFilterActive = false; render(); };
       el.appendChild(btn);
     });
+    var sortSelect = document.getElementById('sortSelect');
+    var isStatusDateTab = STATUS_DATE_TABS.indexOf(activeStatus) !== -1;
+    sortSelect.disabled = isStatusDateTab;
+    sortSelect.title = isStatusDateTab ? 'This tab is ordered by finished date, then by when the book moved into this status.' : '';
   }
 
   function renderGenreFilter(){
@@ -1346,6 +1351,20 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     return pa - pb;
   }
 
+  var STATUS_DATE_TABS = ['reading', 'hold', 'dnf', 'finished'];
+
+  function statusOrderDate(b){
+    if(b.dateFinished){
+      var d = new Date(b.dateFinished + 'T00:00:00');
+      if(!isNaN(d.getTime())) return d.getTime();
+    }
+    return b.statusChangedAt || b.createdAt || 0;
+  }
+
+  function compareStatusDate(a, b){
+    return statusOrderDate(b) - statusOrderDate(a);
+  }
+
   function getFilteredSorted(){
     var search = document.getElementById('searchInput').value.trim().toLowerCase();
     var genre = document.getElementById('genreFilter').value;
@@ -1369,7 +1388,9 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       return true;
     });
 
-    if(sort === 'title'){
+    if(STATUS_DATE_TABS.indexOf(activeStatus) !== -1){
+      filtered.sort(compareStatusDate);
+    } else if(sort === 'title'){
       filtered.sort(function(a,b){ return (a.title||'').localeCompare(b.title||''); });
     } else if(sort === 'due'){
       filtered.sort(compareDue);
@@ -1994,12 +2015,14 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       data.id = editingId;
       books = books.map(function(b){
         if(b.id !== editingId) return b;
-        finalBook = Object.assign({}, b, data);
+        var statusChangedAt = (b.status !== data.status) ? Date.now() : (b.statusChangedAt || b.createdAt || Date.now());
+        finalBook = Object.assign({}, b, data, { statusChangedAt: statusChangedAt });
         return finalBook;
       });
     } else {
       data.id = uid();
       data.createdAt = Date.now();
+      data.statusChangedAt = Date.now();
       books.push(data);
     }
 
@@ -2669,6 +2692,18 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       return 'background:' + (b.spineColor || genreColorFor(b.genre)) + ';';
     }
 
+    // Fit the title to the available vertical run of the spine: short titles
+    // scale up (capped), long titles scale down (floored) so the text spans
+    // the spine without spilling past its edges.
+    var SPINE_HEIGHT = 180, SPINE_PAD = 20, NUMBER_SPACE = 18;
+    var TITLE_MIN_SIZE = 7, TITLE_MAX_SIZE = 15, CHAR_HEIGHT_FACTOR = 1.15;
+    function spineTitleFontSize(title, hasNumber){
+      var available = SPINE_HEIGHT - SPINE_PAD - (hasNumber ? NUMBER_SPACE : 0);
+      var len = Math.max(1, title.length);
+      var raw = available / (len * CHAR_HEIGHT_FACTOR);
+      return Math.max(TITLE_MIN_SIZE, Math.min(TITLE_MAX_SIZE, Math.round(raw * 10) / 10));
+    }
+
     var clusters = order.map(function(key){
       var list = groups[key].slice().sort(function(a, b){
         var na = (a.seriesNumber === null || a.seriesNumber === undefined) ? 999 : a.seriesNumber;
@@ -2679,8 +2714,10 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
         var hash = 0;
         for(var i = 0; i < b.id.length; i++){ hash = (hash * 31 + b.id.charCodeAt(i)) & 0xffffffff; }
         var widthVariant = 30 + (Math.abs(hash) % 14);
-        var numHtml = (b.seriesNumber || b.seriesNumber === 0) ? '<span class="spine-number">' + escapeHtml(String(b.seriesNumber)) + '</span>' : '';
-        var textHtml = b.spineHideText ? '' : ('<span class="spine-title">' + escapeHtml(b.title) + '</span>' + numHtml);
+        var hasNumber = !!(b.seriesNumber || b.seriesNumber === 0);
+        var numHtml = hasNumber ? '<span class="spine-number">' + escapeHtml(String(b.seriesNumber)) + '</span>' : '';
+        var titleSize = spineTitleFontSize(b.title || '', hasNumber);
+        var textHtml = b.spineHideText ? '' : ('<span class="spine-title" style="font-size:' + titleSize + 'px;">' + escapeHtml(b.title) + '</span>' + numHtml);
         return '<div class="shelf-book" data-book-id="' + b.id + '" title="' + escapeHtml(b.title) + (b.series ? ' (' + escapeHtml(b.series) + ')' : '') + '">' +
           '<div class="shelf-spine" style="width:' + widthVariant + 'px;' + spineBg(b) + '">' +
           textHtml +
@@ -3070,7 +3107,8 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
         spineColor: null,
         spineImage: null,
         spineHideText: false,
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        statusChangedAt: Date.now()
       });
     }
 
