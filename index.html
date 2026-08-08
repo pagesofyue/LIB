@@ -208,14 +208,13 @@ body[data-theme="library"]{background-image:none;}
 .shelf-divider-label span:first-child{font-family:var(--font-display);font-style:italic;color:var(--dnf-deep);font-size:16px;white-space:nowrap;}
 .shelf-divider-label .shelf-count{font-size:12px;color:var(--muted);white-space:nowrap;}
 .shelf-divider-label::before,.shelf-divider-label::after{content:'';flex:1;height:1px;background:var(--line-strong);align-self:center;}
-.shelf-row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;padding:0 6px 16px;justify-content:center;}
-.shelf-book{width:118px;cursor:pointer;text-align:center;}
-.shelf-cover{width:118px;height:177px;border-radius:4px;overflow:hidden;box-shadow:2px 4px 10px rgba(59,42,85,0.3);background:var(--card-hover);display:flex;align-items:center;justify-content:center;}
-.shelf-cover img{width:100%;height:100%;object-fit:cover;}
-.shelf-cover .ph{font-size:9px;color:var(--muted);font-family:var(--font-mono);}
-.shelf-book-title{font-size:11px;color:var(--ink);margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.shelf-cover-rating{font-size:11px;color:var(--accent-deep);margin-top:2px;}
-.shelf-plank{height:18px;background:linear-gradient(180deg,#CBA36B 0%,#A87D45 55%,#8F6636 100%);border-radius:3px;box-shadow:0 5px 10px rgba(59,42,85,0.28);margin-top:-4px;}
+.shelf-row{display:flex;gap:3px;flex-wrap:wrap;align-items:flex-end;padding:0 6px 0;justify-content:center;}
+.shelf-row-spines{gap:2px;}
+.shelf-book{cursor:pointer;}
+.shelf-spine{height:180px;border-radius:3px 3px 0 0;display:flex;align-items:center;justify-content:center;box-shadow:1px 0 0 rgba(255,255,255,0.25) inset,2px 3px 6px rgba(59,42,85,0.25);transition:transform .12s;}
+.shelf-book:hover .shelf-spine{transform:translateY(-4px);}
+.spine-title{writing-mode:vertical-rl;color:var(--ink);font-family:var(--font-display);font-weight:600;font-size:11px;letter-spacing:0.02em;max-height:165px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.shelf-plank{height:18px;background:linear-gradient(180deg,#CBA36B 0%,#A87D45 55%,#8F6636 100%);border-radius:3px;box-shadow:0 5px 10px rgba(59,42,85,0.28);}
 
 .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
 .cal-header h2{font-family:var(--font-display);font-size:20px;margin:0;}
@@ -298,7 +297,21 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
 .stars-bg,.stars-fill{white-space:nowrap;}
 .stars-bg{color:var(--line-strong);}
 .stars-fill{position:absolute;top:0;left:0;overflow:hidden;color:var(--accent-deep);}
+.hearts{position:relative;display:inline-block;line-height:1;letter-spacing:3px;}
+.hearts-bg,.hearts-fill{white-space:nowrap;}
+.hearts-bg{color:var(--line-strong);}
+.hearts-fill{position:absolute;top:0;left:0;overflow:hidden;color:#C2456B;}
 .rating-row{display:flex;align-items:center;gap:6px;margin:8px 0 2px;}
+
+.review-page-modal{max-width:600px;}
+.review-page{overflow:auto;}
+.review-page-stamp{float:left;width:74px;margin:0 16px 12px 0;padding:5px;background:var(--card);border:3px dashed var(--paper);border-radius:2px;box-shadow:1px 2px 5px rgba(59,42,85,0.25);}
+.review-page-stamp img{width:100%;height:auto;display:block;border-radius:1px;}
+.review-page-cover{float:right;width:130px;margin:0 0 14px 16px;border-radius:6px;overflow:hidden;box-shadow:2px 4px 10px rgba(59,42,85,0.3);background:var(--card-hover);}
+.review-page-cover img{width:100%;height:auto;display:block;}
+.review-page-title{font-family:var(--font-display);font-size:22px;margin:0 0 10px;}
+.review-page-rating{margin-bottom:16px;}
+.review-page-text{font-family:var(--font-body);font-size:15px;line-height:1.75;color:var(--ink);white-space:pre-wrap;overflow-wrap:break-word;}
 .rating-num{font-family:var(--font-mono);font-size:11px;color:var(--muted);}
 
 .tags{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0;}
@@ -735,6 +748,15 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
   </div>
 </div>
 
+<div class="overlay" id="reviewPageOverlay" style="display:none;">
+  <div class="modal review-page-modal">
+    <div id="reviewPageContent"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" id="reviewPageCloseBtn">Close</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="wrappedOverlay" style="display:none;">
   <div class="modal" style="max-width:640px;">
     <h2>Year / month in books</h2>
@@ -1077,6 +1099,16 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     return '<span class="stars" style="font-size:' + fontSize + 'px;">' +
       '<span class="stars-bg">★★★★★</span>' +
       '<span class="stars-fill" style="width:' + pct + '%;">★★★★★</span>' +
+      '</span>';
+  }
+
+  function heartsHtml(rating, size){
+    rating = Math.max(0, Math.min(5, rating || 0));
+    var pct = (rating / 5) * 100;
+    var fontSize = size || 20;
+    return '<span class="hearts" style="font-size:' + fontSize + 'px;">' +
+      '<span class="hearts-bg">♥♥♥♥♥</span>' +
+      '<span class="hearts-fill" style="width:' + pct + '%;">♥♥♥♥♥</span>' +
       '</span>';
   }
 
@@ -2368,7 +2400,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
       if(b.dueDate) rows += '<div class="detail-row"><span class="dl">Review due</span><span class="dv">' + fmtDate(b.dueDate) + '</span></div>';
       if(b.arcFormLink) rows += '<div class="detail-row"><span class="dl">Review form</span><span class="dv"><a href="' + escapeHtml(b.arcFormLink) + '" target="_blank" rel="noopener" style="color:var(--accent-deep);">' + escapeHtml(b.arcFormLink) + '</a></span></div>';
     }
-    if(b.review) rows += '<div class="detail-row"><span class="dl">Your review</span><span class="dv" style="font-style:italic;">' + escapeHtml(b.review) + '</span></div>';
+    if(b.review) rows += '<div class="detail-row"><span class="dl">Your review</span><span class="dv" style="font-style:italic;white-space:pre-wrap;">' + escapeHtml(b.review) + '</span></div>';
     if(b.nowPlaying) rows += '<div class="detail-row"><span class="dl">Now playing</span><span class="dv">🎵 ' + escapeHtml(b.nowPlaying) + '</span></div>';
 
     var datesParts = [];
@@ -2459,6 +2491,34 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     if(currentViewBookId) openModal(currentViewBookId);
   };
 
+  function buildReviewPageHtml(b){
+    var coverHtml = b.cover ? '<img src="' + b.cover + '" alt="">' : '<span class="ph">No cover</span>';
+    var stampSrc = customStampDataUrl || './stamp.jpg';
+    var ratingHtml = b.rating ? '<div class="review-page-rating">' + heartsHtml(b.rating, 22) + '</div>' : '';
+    var reviewHtml = b.review ? escapeHtml(b.review) : '<span style="color:var(--muted);">No review written yet.</span>';
+    return '<div class="review-page">' +
+      '<div class="review-page-stamp"><img src="' + stampSrc + '" alt=""></div>' +
+      '<div class="review-page-cover">' + coverHtml + '</div>' +
+      '<h2 class="review-page-title">' + escapeHtml(b.title) + '</h2>' +
+      ratingHtml +
+      '<div class="review-page-text">' + reviewHtml + '</div>' +
+      '</div>';
+  }
+
+  function openReviewPage(id){
+    var b = books.find(function(x){ return x.id === id; });
+    if(!b) return;
+    document.getElementById('reviewPageContent').innerHTML = buildReviewPageHtml(b);
+    document.getElementById('reviewPageOverlay').style.display = 'flex';
+  }
+
+  document.getElementById('reviewPageCloseBtn').onclick = function(){
+    document.getElementById('reviewPageOverlay').style.display = 'none';
+  };
+  document.getElementById('reviewPageOverlay').addEventListener('click', function(e){
+    if(e.target.id === 'reviewPageOverlay') document.getElementById('reviewPageOverlay').style.display = 'none';
+  });
+
   // ===================== Series tracker =====================
   function renderSeriesView(){
     var groups = {};
@@ -2545,18 +2605,19 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
         return na - nb;
       });
       var title = key === '\u0000standalone' ? 'Standalone reviews' : key;
-      var covers = list.map(function(b){
-        var coverHtml = b.cover ? '<img src="' + b.cover + '" alt="">' : '<span class="ph">No cover</span>';
-        var ratingHtml = b.rating ? '<div class="shelf-cover-rating">' + starsPlain(b.rating) + '</div>' : '';
+      var spines = list.map(function(b){
+        var hash = 0;
+        for(var i = 0; i < b.id.length; i++){ hash = (hash * 31 + b.id.charCodeAt(i)) & 0xffffffff; }
+        var widthVariant = 30 + (Math.abs(hash) % 14);
         return '<div class="shelf-book" data-book-id="' + b.id + '" title="' + escapeHtml(b.title) + '">' +
-          '<div class="shelf-cover">' + coverHtml + '</div>' +
-          '<div class="shelf-book-title">' + escapeHtml(b.title) + '</div>' +
-          ratingHtml +
+          '<div class="shelf-spine" style="width:' + widthVariant + 'px;background:' + genreColorFor(b.genre) + ';">' +
+          '<span class="spine-title">' + escapeHtml(b.title) + '</span>' +
+          '</div>' +
           '</div>';
       }).join('');
       html += '<div class="shelf-group">' +
         '<div class="shelf-divider-label"><span>' + escapeHtml(title) + '</span><span class="shelf-count">' + list.length + ' book' + (list.length === 1 ? '' : 's') + '</span></div>' +
-        '<div class="shelf-row">' + covers + '</div>' +
+        '<div class="shelf-row shelf-row-spines">' + spines + '</div>' +
         '<div class="shelf-plank"></div>' +
         '</div>';
     });
@@ -2567,7 +2628,7 @@ select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radi
     var item = e.target.closest('.shelf-book');
     if(!item) return;
     var id = item.getAttribute('data-book-id');
-    if(id) openViewModal(id);
+    if(id) openReviewPage(id);
   });
 
   // ===================== Calendar view =====================
