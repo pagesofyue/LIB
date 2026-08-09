@@ -42,9 +42,10 @@
 }
 body[data-theme="winter"]{
   --ink:#2F3E52;
-  --paper:#DCE4EE;
-  --card:#F7FAFD;
-  --card-hover:#EDF2F8;
+ /* Turned these into transparent overlays so the image shines through */
+  --paper: rgba(220, 228, 238, 0.25);      /* 25% tint for the page background */
+  --card: rgba(247, 250, 253, 0.65);       /* 65% tinted white frost for your cards */
+  --card-hover: rgba(237, 242, 248, 0.85); /* Slightly less transparent when hovering */
   --muted:#748AA3;
   --line:rgba(47,62,82,0.14);
   --line-strong:rgba(47,62,82,0.28);
@@ -208,7 +209,11 @@ body[data-theme="fall"]{background-image:linear-gradient(rgba(239,223,201,0),rgb
 body[data-theme="lunaria"]{background-image:linear-gradient(rgba(239,223,201,0),rgba(239,223,201,0)),url("./theme-fall.jpg");background-size:cover;background-position:center top;background-repeat:no-repeat;}
 body[data-theme="under-the-sea"]{background-image:linear-gradient(rgba(215,238,240,0),rgba(215,238,240,0)),url("./theme-under-the-sea.jpg");background-size:cover;background-position:center top;background-repeat:no-repeat;}
 body[data-theme="velaris"]{background-image:linear-gradient(rgba(46,35,80,0),rgba(46,35,80,0.0)),url("./theme-velaris.jpg");background-size:cover;background-position:center top;background-repeat:no-repeat;}
-.app{max-width:1080px;margin:0 auto;padding:28px 20px 80px;}
+.app{max-width:1080px;margin:0 auto;padding:28px 20px 80px;
+      background-color: rgba(255, 255, 255, 0.15); 
+  backdrop-filter: blur(8px); 
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 16px;}
 
 .header{position:relative;display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;gap:16px;flex-wrap:wrap;}
 .header-text{position:relative;z-index:1;display:flex;align-items:center;gap:12px;}
