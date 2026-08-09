@@ -186,7 +186,13 @@ body[data-theme="velaris"]{
   --dnf-deep:#7A3F66;
   --hold:#6FA0E0;
   --hold-deep:#4B78B8;
+
+  background-size: cover; 
+  background-attachment: fixed; 
+  background-position: center center; /* Perfect center placement for your mermaid art */
+  background-repeat: no-repeat;
 }
+  
 *{box-sizing:border-box;}
 body{margin:0;background-color:var(--paper);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.23  0 0 0 0 0.16  0 0 0 0 0.33  0 0 0 0.22 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");background-repeat:repeat;color:var(--ink);font-family:var(--font-body);}
 body[data-theme="winter"]{background-image:linear-gradient(rgba(220,228,238,0.40),rgba(220,228,238,0.4)),url("./theme-winter.jpg");background-size:cover;background-position:center top;background-repeat:no-repeat;}
