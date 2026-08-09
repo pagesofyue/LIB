@@ -3127,22 +3127,30 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     }).filter(Boolean).join('');
 
     if(pileBooks.length){
+      var PILE_MAX_PER_STACK = 5;
       var pileSorted = pileBooks.slice().sort(function(a, b){ return (a.title || '').localeCompare(b.title || ''); });
-      var pileItems = pileSorted.map(function(b){
-        var hash = 0;
-        for(var i = 0; i < b.id.length; i++){ hash = (hash * 31 + b.id.charCodeAt(i)) & 0xffffffff; }
-        var pileHeight = 26 + (Math.abs(hash) % 10);
-        var pileWidth = 190;
-        var style = spineStyleFor(b);
-        var colorCss = style.textColor ? 'color:' + style.textColor + ';' : '';
-        var label = b.title + (b.seriesNumber || b.seriesNumber === 0 ? ' · ' + String(b.seriesNumber) : '');
-        var titleAttr = escapeHtml(b.title) + (b.series ? ' (' + escapeHtml(b.series) + ')' : '');
-        var size = hTitleFontSize(label, pileWidth);
-        return '<div class="shelf-book tbr-pile-item" data-book-id="' + b.id + '" title="' + titleAttr + '" style="height:' + pileHeight + 'px;' + style.bg + '">' +
-          '<span class="spine-title-h" style="font-size:' + size + 'px;' + colorCss + '">' + escapeHtml(label) + '</span>' +
-          '</div>';
+      var pileChunks = [];
+      for(var pc = 0; pc < pileSorted.length; pc += PILE_MAX_PER_STACK){
+        pileChunks.push(pileSorted.slice(pc, pc + PILE_MAX_PER_STACK));
+      }
+      var pileStacksHtml = pileChunks.map(function(chunk){
+        var pileItems = chunk.map(function(b){
+          var hash = 0;
+          for(var i = 0; i < b.id.length; i++){ hash = (hash * 31 + b.id.charCodeAt(i)) & 0xffffffff; }
+          var pileHeight = 26 + (Math.abs(hash) % 10);
+          var pileWidth = 190;
+          var style = spineStyleFor(b);
+          var colorCss = style.textColor ? 'color:' + style.textColor + ';' : '';
+          var label = b.title + (b.seriesNumber || b.seriesNumber === 0 ? ' · ' + String(b.seriesNumber) : '');
+          var titleAttr = escapeHtml(b.title) + (b.series ? ' (' + escapeHtml(b.series) + ')' : '');
+          var size = hTitleFontSize(label, pileWidth);
+          return '<div class="shelf-book tbr-pile-item" data-book-id="' + b.id + '" title="' + titleAttr + '" style="height:' + pileHeight + 'px;' + style.bg + '">' +
+            '<span class="spine-title-h" style="font-size:' + size + 'px;' + colorCss + '">' + escapeHtml(label) + '</span>' +
+            '</div>';
+        }).join('');
+        return '<div class="shelf-cluster tbr-pile-cluster"><div class="tbr-pile-stack" style="width:190px;">' + pileItems + '</div></div>';
       }).join('');
-      clusters += '<div class="shelf-cluster tbr-pile-cluster"><div class="tbr-pile-stack" style="width:190px;">' + pileItems + '</div></div>';
+      clusters += pileStacksHtml;
     }
 
     // Lay everything out on one long measuring row first (at the container's
