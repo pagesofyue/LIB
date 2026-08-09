@@ -43,8 +43,8 @@
 body[data-theme="winter"]{
   --ink:#2F3E52;
  /* Turned these into transparent overlays so the image shines through */
-  --paper: rgba(220, 228, 238, 0.25);      /* 25% tint for the page background */
-  --card: rgba(247, 250, 253, 0.65);       /* 65% tinted white frost for your cards */
+  --paper: rgba(220, 228, 238, 0.55);      /* frosted tint for the page background — bumped from 0.25 so text stays readable over it */
+  --card: rgba(247, 250, 253, 0.94);       /* frosted white for your cards — bumped from 0.65 so modals (like the review editor) stay legible */
   --card-hover: rgba(237, 242, 248, 0.85); /* Slightly less transparent when hovering */
   --muted:#748AA3;
   --line:rgba(47,62,82,0.14);
@@ -244,7 +244,7 @@ body[data-theme="velaris"] .reader-intro p{color:#D2C6F1;text-shadow:0 1px 6px r
 
 .banner{background:var(--card);border:1px solid var(--dnf-deep);color:var(--dnf-deep);border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:16px;display:none;}
 
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px;max-width:640px;}
+.stats{display:flex;flex-wrap:wrap;justify-content:center;align-items:stretch;gap:12px;margin-bottom:22px;max-width:100%;}
 
 .series-group{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:14px;}
 .series-group h3{font-family:var(--font-display);font-size:17px;margin:0 0 10px;}
@@ -286,7 +286,7 @@ body[data-theme="velaris"] .reader-intro p{color:#D2C6F1;text-shadow:0 1px 6px r
 .cal-item{background:var(--accent);color:var(--card);border-radius:5px;padding:2px 5px;margin-top:2px;font-size:10px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;}
 .cal-item.overdue{background:var(--dnf-deep);}
 .cal-empty-note{color:var(--muted);font-size:13px;text-align:center;padding:30px 0;}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;flex:0 1 175px;min-width:150px;}
 .clickable-stat{cursor:pointer;transition:border-color .15s,transform .1s;}
 .clickable-stat:hover{border-color:var(--accent);transform:translateY(-1px);}
 .stat .num{font-family:var(--font-display);font-size:26px;font-weight:600;line-height:1;}
@@ -296,6 +296,11 @@ body[data-theme="velaris"] .reader-intro p{color:#D2C6F1;text-shadow:0 1px 6px r
 .stat-scope-toggle{display:flex;font-family:var(--font-mono);font-size:10px;border:1px solid var(--line-strong);border-radius:20px;overflow:hidden;flex:none;}
 .stat-scope-toggle button{border:none;background:none;padding:3px 8px;cursor:pointer;color:var(--muted);font-family:var(--font-mono);font-size:10px;}
 .stat-scope-toggle button.active{background:var(--accent);color:var(--card);}
+.pagination{display:flex;align-items:center;justify-content:center;gap:14px;margin:20px 0 4px;}
+.pagination button{background:var(--card);border:1px solid var(--line-strong);border-radius:8px;padding:7px 14px;font-family:var(--font-body);font-size:13px;color:var(--ink);cursor:pointer;}
+.pagination button:hover:not(:disabled){border-color:var(--accent);}
+.pagination button:disabled{opacity:0.4;cursor:not-allowed;}
+.pagination .page-info{font-size:12.5px;color:var(--muted);white-space:nowrap;}
 
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px;}
 .search-wrap{position:relative;flex:0 1 260px;min-width:160px;}
@@ -413,7 +418,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .empty h3{font-family:var(--font-display);color:var(--ink);font-size:20px;margin:0 0 6px;}
 
 .overlay{position:fixed;inset:0;background:rgba(59,42,85,0.45);display:flex;align-items:flex-start;justify-content:center;padding:5vh 16px;overflow-y:auto;z-index:50;}
-.modal{background:var(--paper);border-radius:14px;max-width:560px;width:100%;padding:26px;border:1px solid var(--line-strong);margin-bottom:5vh;}
+.modal{background:var(--card);border-radius:14px;max-width:560px;width:100%;padding:26px;border:1px solid var(--line-strong);margin-bottom:5vh;}
 .modal h2{font-family:var(--font-display);font-size:22px;margin:0 0 18px;}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
 .field{margin-bottom:12px;}
@@ -434,9 +439,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .cover-btns{display:flex;flex-direction:column;gap:6px;}
 .small-btn{background:var(--card);border:1px solid var(--line-strong);border-radius:7px;padding:7px 12px;font-size:12px;font-family:var(--font-body);cursor:pointer;color:var(--ink);}
 .small-btn:hover{border-color:var(--accent);}
-.spine-color-row{display:flex;align-items:center;gap:8px;}
-.spine-color-row input[type="color"]{flex:none;width:38px;height:38px;padding:2px;border:1px solid var(--line-strong);border-radius:7px;background:var(--card);cursor:pointer;}
-.spine-color-row input[type="text"]{flex:1;}
+
 
 .trope-chips{display:flex;flex-wrap:wrap;gap:6px;min-height:26px;margin-bottom:8px;}
 .trope-chip{background:var(--accent);color:var(--card);border-radius:12px;padding:4px 8px 4px 12px;font-size:12px;display:flex;align-items:center;gap:6px;}
@@ -599,6 +602,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   <div class="tabs" id="statusTabs"></div>
 
   <div class="grid" id="grid"></div>
+  <div class="pagination" id="pagination" style="display:none;"></div>
   <div class="empty" id="emptyState" style="display:none;">
     <div class="icon-wrap">
       <div class="icon">🌙</div>
@@ -775,31 +779,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         <p class="hint">Start typing to see matching tropes you've already used, or type a new one and hit Add.</p>
       </div>
       </div>
-      <div class="field" id="field-spine-color">
-        <label>Spine color (optional)</label>
-        <div class="spine-color-row">
-          <input type="color" id="f_spineColorPicker" value="#8C6BB5">
-          <input type="text" id="f_spineColor" placeholder="#8C6BB5 — leave blank to auto-color by genre">
-          <button type="button" class="small-btn" id="clearSpineColorBtn">Clear</button>
-        </div>
-        <p class="hint">Pick a hex color for this book's spine on your shelf. Leave blank to auto-color by genre.</p>
-      </div>
-      <div class="field" id="field-spine-image">
-        <label>Spine image (optional)</label>
-        <div class="cover-upload">
-          <div class="cover-preview" id="spineImagePreview" style="width:56px;height:110px;"><span class="ph">None</span></div>
-          <div class="cover-btns">
-            <label class="small-btn" for="f_spineImage" style="text-align:center;">Choose image</label>
-            <input type="file" id="f_spineImage" accept="image/*" style="display:none;">
-            <button type="button" class="small-btn" id="removeSpineImageBtn">Remove</button>
-          </div>
-        </div>
-        <p class="hint">If set, this image is used as the spine background instead of the color above.</p>
-        <div class="checkbox-row" style="margin-top:8px;">
-          <input type="checkbox" id="f_spineHideText">
-          <label for="f_spineHideText">This image already shows the title/number — hide the text overlay</label>
-        </div>
-      </div>
       <div class="modal-actions">
         <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
         <button type="submit" class="btn-primary" id="saveBtn">Save book</button>
@@ -871,7 +850,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   <div class="modal review-page-modal">
     <div id="reviewPageContent"></div>
     <div class="modal-actions">
-      <button type="button" class="btn-secondary" id="reviewPageEditBtn">Edit review &amp; spine</button>
+      <button type="button" class="btn-secondary" id="reviewPageEditBtn">Edit review</button>
       <button type="button" class="btn-secondary" id="reviewPageCloseBtn">Close</button>
     </div>
   </div>
@@ -1265,7 +1244,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   var genreList = [];
   var arcSourceList = [];
   var pendingCover = null;
-  var pendingSpineImage = null;
   var activeStatus = 'all';
   var dueSoonFilterActive = false;
   var confirmingDelete = null;
@@ -1435,24 +1413,32 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
 
   var booksReadScope = 'year'; // 'year' | 'month' — which timeframe the "Books read" card shows
+  var pagesReadScope = 'year'; // 'year' | 'month' — which timeframe the "Pages read" card shows
 
   function renderStats(){
     var reading = books.filter(function(b){ return b.status === 'reading'; }).length;
     var dueSoon = getDueSoonBooks(DUE_SOON_DAYS).length;
+    var needsReview = books.filter(function(b){ return b.status === 'finished' && !(b.review && b.review.trim()); }).length;
     var now = new Date();
     var thisYear = now.getFullYear();
 
-    var finishedThisYear = books.filter(function(b){
+    var finishedThisYearList = books.filter(function(b){
       return b.status === 'finished' && b.dateFinished && new Date(b.dateFinished + 'T00:00:00').getFullYear() === thisYear;
-    }).length;
-    var finishedThisMonth = getFinishedInMonth(thisYear, now.getMonth()).length;
-    var finishedCount = booksReadScope === 'month' ? finishedThisMonth : finishedThisYear;
+    });
+    var finishedThisMonthList = getFinishedInMonth(thisYear, now.getMonth());
+    var finishedCount = booksReadScope === 'month' ? finishedThisMonthList.length : finishedThisYearList.length;
     var finishedLabel = booksReadScope === 'month' ? ('Books read in ' + monthName(now.getMonth())) : ('Books read in ' + thisYear);
+
+    var pagesThisYear = finishedThisYearList.reduce(function(sum, b){ return sum + (b.totalPages || 0); }, 0);
+    var pagesThisMonth = finishedThisMonthList.reduce(function(sum, b){ return sum + (b.totalPages || 0); }, 0);
+    var pagesCount = pagesReadScope === 'month' ? pagesThisMonth : pagesThisYear;
+    var pagesLabel = pagesReadScope === 'month' ? ('Pages read in ' + monthName(now.getMonth())) : ('Pages read in ' + thisYear);
 
     var el = document.getElementById('stats');
     el.innerHTML =
       '<div class="stat clickable-stat" id="statReading"><div class="num">' + reading + '</div><div class="label">Currently reading</div></div>' +
       '<div class="stat clickable-stat' + (dueSoon > 0 ? ' alert' : '') + '" id="statDueSoon"><div class="num">' + dueSoon + '</div><div class="label">Due within ' + DUE_SOON_DAYS + ' days</div></div>' +
+      '<div class="stat clickable-stat' + (needsReview > 0 ? ' alert' : '') + '" id="statNeedsReview"><div class="num">' + needsReview + '</div><div class="label">For review</div></div>' +
       '<div class="stat clickable-stat" id="statFinished">' +
         '<div class="num">' + finishedCount + '</div>' +
         '<div class="stat-label-row">' +
@@ -1460,6 +1446,16 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
           '<div class="stat-scope-toggle" id="statScopeToggle">' +
             '<button type="button" data-scope="year" class="' + (booksReadScope === 'year' ? 'active' : '') + '">Year</button>' +
             '<button type="button" data-scope="month" class="' + (booksReadScope === 'month' ? 'active' : '') + '">Month</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="stat" id="statPages">' +
+        '<div class="num">' + pagesCount.toLocaleString() + '</div>' +
+        '<div class="stat-label-row">' +
+          '<div class="label">' + pagesLabel + '</div>' +
+          '<div class="stat-scope-toggle" id="pagesScopeToggle">' +
+            '<button type="button" data-scope="year" class="' + (pagesReadScope === 'year' ? 'active' : '') + '">Year</button>' +
+            '<button type="button" data-scope="month" class="' + (pagesReadScope === 'month' ? 'active' : '') + '">Month</button>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -1476,6 +1472,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       dueSoonFilterActive = true;
       render();
     };
+    document.getElementById('statNeedsReview').onclick = function(){
+      switchView('navReviews');
+    };
     document.getElementById('statFinished').onclick = function(e){
       if(e.target.closest('.stat-scope-toggle')) return;
       switchView('navLibrary');
@@ -1488,6 +1487,13 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       if(!btn) return;
       e.stopPropagation();
       booksReadScope = btn.getAttribute('data-scope');
+      renderStats();
+    });
+    document.getElementById('pagesScopeToggle').addEventListener('click', function(e){
+      var btn = e.target.closest('button[data-scope]');
+      if(!btn) return;
+      e.stopPropagation();
+      pagesReadScope = btn.getAttribute('data-scope');
       renderStats();
     });
   }
@@ -1833,6 +1839,10 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     duplicateIds = dupIds;
   }
 
+  var PAGE_SIZE = 50;
+  var currentPageNum = 1;
+  var lastFilterSignature = '';
+
   function render(){
     computeDuplicateIds();
     renderStats();
@@ -1842,13 +1852,28 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
     var filtered = getFilteredSorted();
 
+    var filterSignature = JSON.stringify([
+      activeStatus,
+      document.getElementById('searchInput').value,
+      document.getElementById('genreFilter').value,
+      document.getElementById('providerFilter').value,
+      activeSortCriteria,
+      dueSoonFilterActive
+    ]);
+    if(filterSignature !== lastFilterSignature){
+      currentPageNum = 1;
+      lastFilterSignature = filterSignature;
+    }
+
     var grid = document.getElementById('grid');
     var empty = document.getElementById('emptyState');
+    var pagination = document.getElementById('pagination');
     grid.innerHTML = '';
 
     if(filtered.length === 0){
       grid.style.display = 'none';
       empty.style.display = 'block';
+      pagination.style.display = 'none';
       if(books.length === 0){
         document.getElementById('emptyTitle').textContent = 'Your shelf is empty';
         document.getElementById('emptySub').textContent = "Add the first book you're reading, waiting on, or reviewing.";
@@ -1859,8 +1884,37 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     } else {
       grid.style.display = 'grid';
       empty.style.display = 'none';
-      filtered.forEach(function(b){ grid.appendChild(bookCard(b)); });
+
+      var totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+      if(currentPageNum > totalPages) currentPageNum = totalPages;
+      if(currentPageNum < 1) currentPageNum = 1;
+      var pageStart = (currentPageNum - 1) * PAGE_SIZE;
+      var pageItems = filtered.slice(pageStart, pageStart + PAGE_SIZE);
+
+      pageItems.forEach(function(b){ grid.appendChild(bookCard(b)); });
       shrinkSeriesLines();
+
+      if(totalPages > 1){
+        pagination.style.display = 'flex';
+        var rangeStart = pageStart + 1;
+        var rangeEnd = Math.min(filtered.length, pageStart + PAGE_SIZE);
+        pagination.innerHTML =
+          '<button type="button" id="pagePrevBtn"' + (currentPageNum === 1 ? ' disabled' : '') + '>← Prev</button>' +
+          '<span class="page-info">Showing ' + rangeStart + '–' + rangeEnd + ' of ' + filtered.length + ' · Page ' + currentPageNum + ' of ' + totalPages + '</span>' +
+          '<button type="button" id="pageNextBtn"' + (currentPageNum === totalPages ? ' disabled' : '') + '>Next →</button>';
+        document.getElementById('pagePrevBtn').onclick = function(){
+          currentPageNum--;
+          render();
+          window.scrollTo({top: 0, behavior: 'smooth'});
+        };
+        document.getElementById('pageNextBtn').onclick = function(){
+          currentPageNum++;
+          render();
+          window.scrollTo({top: 0, behavior: 'smooth'});
+        };
+      } else {
+        pagination.style.display = 'none';
+      }
     }
   }
 
@@ -2084,33 +2138,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     document.getElementById('f_cover').value = '';
   };
 
-  document.getElementById('f_spineImage').addEventListener('change', function(e){
-    var file = e.target.files[0];
-    if(!file) return;
-    resizeImage(file, 200, 0.82).then(function(dataUrl){
-      pendingSpineImage = dataUrl;
-      document.getElementById('spineImagePreview').innerHTML = '<img src="' + dataUrl + '" alt="">';
-    });
-  });
-
-  document.getElementById('removeSpineImageBtn').onclick = function(){
-    pendingSpineImage = null;
-    document.getElementById('spineImagePreview').innerHTML = '<span class="ph">None</span>';
-    document.getElementById('f_spineImage').value = '';
-  };
-
-  document.getElementById('f_spineColorPicker').addEventListener('input', function(e){
-    document.getElementById('f_spineColor').value = e.target.value;
-  });
-  document.getElementById('f_spineColor').addEventListener('input', function(e){
-    var v = e.target.value.trim();
-    if(/^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/.test(v)) document.getElementById('f_spineColorPicker').value = v.length === 4 ? ('#' + v[1]+v[1]+v[2]+v[2]+v[3]+v[3]) : v;
-  });
-  document.getElementById('clearSpineColorBtn').onclick = function(){
-    document.getElementById('f_spineColor').value = '';
-    document.getElementById('f_spineColorPicker').value = '#8C6BB5';
-  };
-
   document.getElementById('f_rating').addEventListener('input', function(e){
     var v = parseFloat(e.target.value) || 0;
     document.getElementById('starPreview').textContent = starsPlain(v);
@@ -2144,13 +2171,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     modalMode = mode || 'full';
     var b = id ? books.find(function(x){ return x.id === id; }) : null;
     var isReviewOnly = modalMode === 'reviewOnly';
-    document.getElementById('modalTitle').textContent = isReviewOnly ? 'Edit review & spine' : (b ? 'Edit book' : 'Add a book');
+    document.getElementById('modalTitle').textContent = isReviewOnly ? 'Edit review' : (b ? 'Edit book' : 'Add a book');
     document.getElementById('coreFields1').style.display = isReviewOnly ? 'none' : '';
     document.getElementById('coreFields2').style.display = isReviewOnly ? 'none' : '';
     document.getElementById('field-review').style.display = isReviewOnly ? '' : 'none';
     document.getElementById('field-nowplaying').style.display = isReviewOnly ? '' : 'none';
-    document.getElementById('field-spine-color').style.display = isReviewOnly ? '' : 'none';
-    document.getElementById('field-spine-image').style.display = isReviewOnly ? '' : 'none';
     document.getElementById('f_title').value = b ? b.title || '' : '';
     document.getElementById('f_author').value = b ? b.author || '' : '';
     document.getElementById('f_status').value = b ? b.status || 'want' : 'want';
@@ -2177,12 +2202,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     pendingCover = b ? (b.cover || null) : null;
     document.getElementById('coverPreview').innerHTML = pendingCover ? '<img src="' + pendingCover + '" alt="">' : '<span class="ph">No cover</span>';
     document.getElementById('f_cover').value = '';
-    document.getElementById('f_spineColor').value = b && b.spineColor ? b.spineColor : '';
-    document.getElementById('f_spineColorPicker').value = b && b.spineColor ? b.spineColor : '#8C6BB5';
-    pendingSpineImage = b ? (b.spineImage || null) : null;
-    document.getElementById('spineImagePreview').innerHTML = pendingSpineImage ? '<img src="' + pendingSpineImage + '" alt="">' : '<span class="ph">None</span>';
-    document.getElementById('f_spineImage').value = '';
-    document.getElementById('f_spineHideText').checked = b ? !!b.spineHideText : false;
     selectedTropes = b && b.tropes ? b.tropes.slice() : [];
     renderTropeChips();
     renderTropeOptions();
@@ -2247,10 +2266,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       review: document.getElementById('f_review').value.trim(),
       nowPlaying: document.getElementById('f_nowPlaying').value.trim(),
       tropes: selectedTropes.slice(),
-      cover: pendingCover,
-      spineColor: document.getElementById('f_spineColor').value.trim() || null,
-      spineImage: pendingSpineImage,
-      spineHideText: document.getElementById('f_spineHideText').checked
+      cover: pendingCover
     };
 
     if(data.arcSource && arcSourceList.indexOf(data.arcSource) === -1){
@@ -3013,9 +3029,16 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       return a.localeCompare(b);
     });
 
-    function spineBg(b){
-      if(b.spineImage) return 'background-image:linear-gradient(rgba(0,0,0,0.12),rgba(0,0,0,0.12)),url(' + b.spineImage + ');';
-      return 'background:' + (b.spineColor || genreColorFor(b.genre)) + ';';
+    // Spine color is purely genre-based — except Formula 1 books get a
+    // fixed racing red with white text, since that reads better than any
+    // genre's pastel against that trope.
+    var FORMULA_1_BG = '#932322', FORMULA_1_TEXT = '#FFFFFF';
+    function spineStyleFor(b){
+      var isF1 = (b.tropes || []).indexOf('Formula 1') !== -1;
+      return {
+        bg: 'background:' + (isF1 ? FORMULA_1_BG : genreColorFor(b.genre)) + ';',
+        textColor: isF1 ? FORMULA_1_TEXT : null
+      };
     }
 
     // Status decides how a book sits on the shelf: currently-relevant books
@@ -3068,15 +3091,17 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         for(var i = 0; i < b.id.length; i++){ hash = (hash * 31 + b.id.charCodeAt(i)) & 0xffffffff; }
         var orientation = soloIncompleteSeries ? 'horizontal' : spineOrientation(b.status);
         var titleAttr = escapeHtml(b.title) + (b.series ? ' (' + escapeHtml(b.series) + ')' : '');
+        var style = spineStyleFor(b);
+        var colorCss = style.textColor ? 'color:' + style.textColor + ';' : '';
 
         if(orientation === 'horizontal'){
           var hWidth = 120 + (Math.abs(hash) % 40);
           var hHeight = 24 + (Math.abs(hash) % 9);
           var hLabel = b.title + (b.seriesNumber || b.seriesNumber === 0 ? ' · ' + String(b.seriesNumber) : '');
           var hSize = hTitleFontSize(hLabel, hWidth);
-          var hTitleHtml = b.spineHideText ? '' : '<span class="spine-title-h" style="font-size:' + hSize + 'px;">' + escapeHtml(hLabel) + '</span>';
+          var hTitleHtml = '<span class="spine-title-h" style="font-size:' + hSize + 'px;' + colorCss + '">' + escapeHtml(hLabel) + '</span>';
           return '<div class="shelf-book orient-horizontal" data-book-id="' + b.id + '" title="' + titleAttr + '">' +
-            '<div class="shelf-spine-h" style="width:' + hWidth + 'px;height:' + hHeight + 'px;' + spineBg(b) + '">' +
+            '<div class="shelf-spine-h" style="width:' + hWidth + 'px;height:' + hHeight + 'px;' + style.bg + '">' +
             hTitleHtml +
             '</div>' +
             '</div>';
@@ -3084,11 +3109,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
         var widthVariant = 40 + (Math.abs(hash) % 17);
         var hasNumber = !!(b.seriesNumber || b.seriesNumber === 0);
-        var numHtml = hasNumber ? '<span class="spine-number">' + escapeHtml(String(b.seriesNumber)) + '</span>' : '';
+        var numHtml = hasNumber ? '<span class="spine-number" style="' + colorCss + '">' + escapeHtml(String(b.seriesNumber)) + '</span>' : '';
         var titleSize = spineTitleFontSize(b.title || '', hasNumber);
-        var textHtml = b.spineHideText ? '' : ('<span class="spine-title" style="font-size:' + titleSize + 'px;">' + escapeHtml(b.title) + '</span>' + numHtml);
+        var textHtml = '<span class="spine-title" style="font-size:' + titleSize + 'px;' + colorCss + '">' + escapeHtml(b.title) + '</span>' + numHtml;
         return '<div class="shelf-book orient-' + orientation + '" data-book-id="' + b.id + '" title="' + titleAttr + '">' +
-          '<div class="shelf-spine" style="width:' + widthVariant + 'px;' + spineBg(b) + '">' +
+          '<div class="shelf-spine" style="width:' + widthVariant + 'px;' + style.bg + '">' +
           textHtml +
           '</div>' +
           '</div>';
@@ -3503,9 +3528,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         rating: rating,
         tropes: [],
         cover: null,
-        spineColor: null,
-        spineImage: null,
-        spineHideText: false,
         dnfReason: '',
         createdAt: Date.now(),
         statusChangedAt: Date.now()
