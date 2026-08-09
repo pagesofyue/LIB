@@ -125,27 +125,6 @@ body[data-theme="fall"]{
   --hold:#D4A23C;
   --hold-deep:#A67A25;
 }
-body[data-theme="lunaria"]{
-  --ink:#4A3B2E;
-  --paper:#E8DFC8;
-  --card:#FAF5E8;
-  --card-hover:#F3ECDA;
-  --muted:#8A7A5C;
-  --line:rgba(74,59,46,0.14);
-  --line-strong:rgba(74,59,46,0.28);
-  --accent:#A88B5E;
-  --accent-deep:#8A6F45;
-  --want:#D6C79E;
-  --want-deep:#A88B5E;
-  --reading:#C2A876;
-  --reading-deep:#97814F;
-  --finished:#8A7550;
-  --finished-deep:#6B5A3C;
-  --dnf:#B79A7A;
-  --dnf-deep:#8F7455;
-  --hold:#CDB37A;
-  --hold-deep:#A08752;
-}
 body[data-theme="under-the-sea"]{
   --ink:#1B3A45;
   --paper:#D7EEF0;
@@ -198,7 +177,11 @@ body[data-theme="velaris"]{
 body {
   margin: 0;
   background-color: var(--paper);
-  background-image: none; /* Removes the grainy texture completely */
+  background-image: linear-gradient(rgba(227,214,220,0),rgba(227,214,220,0)), url("./theme-lunaria.jpg");
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   color: var(--ink);
   font-family: var(--font-body);
 }
@@ -206,9 +189,21 @@ body[data-theme="winter"]{background-image:linear-gradient(rgba(220,228,238,0),r
 body[data-theme="spring"]{background-image:linear-gradient(rgba(245,220,230,0),rgba(245,220,230,0)),url("./theme-spring.jpg");background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:fixed;}
 body[data-theme="summer"]{background-image:linear-gradient(rgba(221,238,236,0),rgba(221,238,236,0)),url("./theme-summer.jpg");background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:fixed;}
 body[data-theme="fall"]{background-image:linear-gradient(rgba(239,223,201,0),rgba(239,223,201,0)),url("./theme-fall.jpg");background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:fixed;}
-body[data-theme="lunaria"]{background-image:linear-gradient(rgba(239,223,201,0),rgba(239,223,201,0)),url("./theme-fall.jpg");background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:fixed;}
 body[data-theme="under-the-sea"]{background-image:linear-gradient(rgba(215,238,240,0),rgba(215,238,240,0)),url("./theme-under-the-sea.jpg");background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:fixed;}
 body[data-theme="velaris"]{background-image:linear-gradient(rgba(46,35,80,0),rgba(46,35,80,0.0)),url("./theme-velaris.jpg");background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:fixed;}
+/* Velaris' art is a dark night sky, so text colors tuned for light "paper"
+   backgrounds go unreadable wherever they sit directly on the image instead
+   of on a solid card. Brighten just those spots and darken the app's overlay
+   a bit more so there's real contrast to read against. */
+body[data-theme="velaris"] .app{background-color:rgba(18,12,40,0.42);}
+body[data-theme="velaris"] .header h1{color:#EFE7FF;text-shadow:0 2px 10px rgba(8,4,26,0.65);}
+body[data-theme="velaris"] .header p{color:#D2C6F1;text-shadow:0 1px 6px rgba(8,4,26,0.6);}
+body[data-theme="velaris"] .tab{color:#E1D8F7;border-color:rgba(239,231,255,0.4);background:rgba(18,12,40,0.32);}
+body[data-theme="velaris"] .tab:hover{border-color:rgba(239,231,255,0.7);}
+body[data-theme="velaris"] .reader-intro h2,
+body[data-theme="velaris"] .cal-header h2,
+body[data-theme="velaris"] .shelf-heading{color:#EFE7FF;text-shadow:0 2px 8px rgba(8,4,26,0.6);}
+body[data-theme="velaris"] .reader-intro p{color:#D2C6F1;text-shadow:0 1px 6px rgba(8,4,26,0.55);}
 .app{max-width:1080px;margin:0 auto;padding:28px 20px 80px;
       background-color: rgba(255, 255, 255, 0.15); 
   backdrop-filter: blur(8px); 
@@ -249,16 +244,7 @@ body[data-theme="velaris"]{background-image:linear-gradient(rgba(46,35,80,0),rgb
 
 .banner{background:var(--card);border:1px solid var(--dnf-deep);color:var(--dnf-deep);border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:16px;display:none;}
 
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px;}
-.month-stats{grid-template-columns:repeat(auto-fit,minmax(130px,1fr));margin-bottom:26px;opacity:0.92;}
-.month-stats .stat{padding:10px 14px;}
-.month-stats .stat .num{font-size:20px;}
-.month-stats .stat .label{font-size:11px;}
-.total-pages-stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 16px;margin-bottom:22px;}
-.total-pages-label{font-family:var(--font-display);font-weight:600;font-size:11px;color:var(--muted);letter-spacing:0.02em;text-transform:uppercase;margin-bottom:3px;}
-.total-pages-line{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;font-size:14px;color:var(--ink);font-family:var(--font-display);font-weight:600;}
-.total-pages-line em{font-style:normal;color:var(--muted);font-weight:400;font-family:var(--font-body);font-size:12px;margin-left:3px;}
-.total-pages-line .sep{color:var(--line-strong);font-weight:400;}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px;max-width:640px;}
 
 .series-group{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:14px;}
 .series-group h3{font-family:var(--font-display);font-size:17px;margin:0 0 10px;}
@@ -271,6 +257,8 @@ body[data-theme="velaris"]{background-image:linear-gradient(rgba(46,35,80,0),rgb
 
 .shelf-heading{font-family:var(--font-script);font-size:26px;color:var(--dnf-deep);margin:0 0 26px;text-align:center;}
 .shelf-wrap{margin-bottom:44px;}
+.shelf-tier{margin-bottom:30px;}
+.shelf-tier:last-child{margin-bottom:0;}
 .shelf-row{display:flex;gap:2px;flex-wrap:wrap;align-items:flex-end;padding:0 6px 0;justify-content:center;}
 .shelf-cluster{display:flex;gap:2px;align-items:flex-end;margin:0 7px 8px;}
 .shelf-book{cursor:pointer;}
@@ -284,7 +272,7 @@ body[data-theme="velaris"]{background-image:linear-gradient(rgba(46,35,80,0),rgb
 .shelf-book.orient-horizontal{align-self:flex-end;}
 .shelf-spine-h{border-radius:3px;display:flex;align-items:center;justify-content:center;box-shadow:1px 0 0 rgba(255,255,255,0.25) inset,2px 3px 6px rgba(59,42,85,0.25);background-size:cover;background-position:center;transition:transform .12s;padding:0 6px;}
 .shelf-book.orient-horizontal:hover .shelf-spine-h{transform:translateY(-4px);}
-.spine-title-h{color:var(--ink);font-family:var(--font-display);font-weight:600;font-size:10px;letter-spacing:0.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;text-shadow:0 1px 2px rgba(0,0,0,0.3),0 -1px 1px rgba(255,255,255,0.2);}
+.spine-title-h{color:var(--ink);font-family:var(--font-display);font-weight:600;letter-spacing:0.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;text-shadow:0 1px 2px rgba(0,0,0,0.3),0 -1px 1px rgba(255,255,255,0.2);}
 
 .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
 .cal-header h2{font-family:var(--font-display);font-size:20px;margin:0;}
@@ -304,6 +292,10 @@ body[data-theme="velaris"]{background-image:linear-gradient(rgba(46,35,80,0),rgb
 .stat .num{font-family:var(--font-display);font-size:26px;font-weight:600;line-height:1;}
 .stat .label{font-size:12px;color:var(--muted);margin-top:6px;}
 .stat.alert .num{color:var(--dnf-deep);}
+.stat-label-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;}
+.stat-scope-toggle{display:flex;font-family:var(--font-mono);font-size:10px;border:1px solid var(--line-strong);border-radius:20px;overflow:hidden;flex:none;}
+.stat-scope-toggle button{border:none;background:none;padding:3px 8px;cursor:pointer;color:var(--muted);font-family:var(--font-mono);font-size:10px;}
+.stat-scope-toggle button.active{background:var(--accent);color:var(--card);}
 
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px;}
 .search-wrap{position:relative;flex:0 1 260px;min-width:160px;}
@@ -559,8 +551,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   <div id="libraryView">
   <div class="stats" id="stats"></div>
-  <div class="stats month-stats" id="monthStats"></div>
-  <div class="total-pages-stat" id="totalPagesStat"></div>
 
   <div class="toolbar">
     <div class="search-wrap">
@@ -763,11 +753,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         <textarea id="f_review" rows="3" placeholder="A line or two about this one..." style="width:100%;padding:9px 11px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);font-family:var(--font-body);font-size:14px;color:var(--ink);resize:vertical;"></textarea>
         <p class="hint">Shows up on your Reviews shelf and can be reused on postcards.</p>
       </div>
-      <div class="core-fields" id="coreFields2">
-      <div class="field">
+      <div class="field" id="field-nowplaying">
         <label>Now playing (optional)</label>
         <input type="text" id="f_nowPlaying" placeholder="A song that fits this book's vibe">
       </div>
+      <div class="core-fields" id="coreFields2">
       <div class="field">
         <label>Genre <button type="button" class="manage-link" id="openManageGenreBtn">Manage list</button></label>
         <select id="f_genre">
@@ -1444,22 +1434,35 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     return s;
   }
 
+  var booksReadScope = 'year'; // 'year' | 'month' — which timeframe the "Books read" card shows
+
   function renderStats(){
     var reading = books.filter(function(b){ return b.status === 'reading'; }).length;
     var dueSoon = getDueSoonBooks(DUE_SOON_DAYS).length;
-    var thisYear = new Date().getFullYear();
-    var finishedThisYearBooks = books.filter(function(b){
+    var now = new Date();
+    var thisYear = now.getFullYear();
+
+    var finishedThisYear = books.filter(function(b){
       return b.status === 'finished' && b.dateFinished && new Date(b.dateFinished + 'T00:00:00').getFullYear() === thisYear;
-    });
-    var finishedThisYear = finishedThisYearBooks.length;
-    var pagesThisYear = finishedThisYearBooks.reduce(function(sum, b){ return sum + (b.totalPages || 0); }, 0);
+    }).length;
+    var finishedThisMonth = getFinishedInMonth(thisYear, now.getMonth()).length;
+    var finishedCount = booksReadScope === 'month' ? finishedThisMonth : finishedThisYear;
+    var finishedLabel = booksReadScope === 'month' ? ('Books read in ' + monthName(now.getMonth())) : ('Books read in ' + thisYear);
 
     var el = document.getElementById('stats');
     el.innerHTML =
       '<div class="stat clickable-stat" id="statReading"><div class="num">' + reading + '</div><div class="label">Currently reading</div></div>' +
       '<div class="stat clickable-stat' + (dueSoon > 0 ? ' alert' : '') + '" id="statDueSoon"><div class="num">' + dueSoon + '</div><div class="label">Due within ' + DUE_SOON_DAYS + ' days</div></div>' +
-      '<div class="stat clickable-stat" id="statFinishedYear"><div class="num">' + finishedThisYear + '</div><div class="label">Books read in ' + thisYear + '</div></div>' +
-      '<div class="stat clickable-stat" id="statPagesYear"><div class="num">' + pagesThisYear.toLocaleString() + '</div><div class="label">Pages read in ' + thisYear + '</div></div>';
+      '<div class="stat clickable-stat" id="statFinished">' +
+        '<div class="num">' + finishedCount + '</div>' +
+        '<div class="stat-label-row">' +
+          '<div class="label">' + finishedLabel + '</div>' +
+          '<div class="stat-scope-toggle" id="statScopeToggle">' +
+            '<button type="button" data-scope="year" class="' + (booksReadScope === 'year' ? 'active' : '') + '">Year</button>' +
+            '<button type="button" data-scope="month" class="' + (booksReadScope === 'month' ? 'active' : '') + '">Month</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
 
     document.getElementById('statReading').onclick = function(){
       switchView('navLibrary');
@@ -1473,18 +1476,20 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       dueSoonFilterActive = true;
       render();
     };
-    document.getElementById('statFinishedYear').onclick = function(){
+    document.getElementById('statFinished').onclick = function(e){
+      if(e.target.closest('.stat-scope-toggle')) return;
       switchView('navLibrary');
       activeStatus = 'finished';
       dueSoonFilterActive = false;
       render();
     };
-    document.getElementById('statPagesYear').onclick = function(){
-      switchView('navLibrary');
-      activeStatus = 'finished';
-      dueSoonFilterActive = false;
-      render();
-    };
+    document.getElementById('statScopeToggle').addEventListener('click', function(e){
+      var btn = e.target.closest('button[data-scope]');
+      if(!btn) return;
+      e.stopPropagation();
+      booksReadScope = btn.getAttribute('data-scope');
+      renderStats();
+    });
   }
 
   function monthName(monthIndex){
@@ -1497,52 +1502,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       var d = new Date(b.dateFinished + 'T00:00:00');
       return d.getFullYear() === year && d.getMonth() === monthIndex;
     });
-  }
-
-  function renderMonthStats(){
-    var now = new Date();
-    var finishedThisMonth = getFinishedInMonth(now.getFullYear(), now.getMonth());
-    var pages = finishedThisMonth.reduce(function(sum, b){ return sum + (b.totalPages || 0); }, 0);
-    var ratedBooks = finishedThisMonth.filter(function(b){ return b.rating > 0; });
-    var avgRating = ratedBooks.length ? (ratedBooks.reduce(function(sum, b){ return sum + b.rating; }, 0) / ratedBooks.length) : 0;
-
-    var el = document.getElementById('monthStats');
-    el.innerHTML =
-      '<div class="stat"><div class="num">' + finishedThisMonth.length + '</div><div class="label">Books read in ' + monthName(now.getMonth()) + '</div></div>' +
-      '<div class="stat"><div class="num">' + pages.toLocaleString() + '</div><div class="label">Pages read in ' + monthName(now.getMonth()) + '</div></div>' +
-      '<div class="stat"><div class="num">' + (avgRating ? avgRating.toFixed(1) : '—') + '</div><div class="label">Avg rating this month</div></div>';
-  }
-
-  function startOfWeek(d){
-    var date = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    date.setDate(date.getDate() - date.getDay());
-    return date;
-  }
-
-  function renderTotalPagesStat(){
-    var now = new Date();
-    var thisYear = now.getFullYear();
-    var thisMonth = now.getMonth();
-    var weekStart = startOfWeek(now);
-    var pagesYear = 0, pagesMonth = 0, pagesWeek = 0;
-    books.forEach(function(b){
-      if(b.status !== 'finished' || !b.dateFinished) return;
-      var d = new Date(b.dateFinished + 'T00:00:00');
-      var pages = b.totalPages || 0;
-      if(d.getFullYear() === thisYear) pagesYear += pages;
-      if(d.getFullYear() === thisYear && d.getMonth() === thisMonth) pagesMonth += pages;
-      if(d >= weekStart) pagesWeek += pages;
-    });
-    var el = document.getElementById('totalPagesStat');
-    if(!el) return;
-    el.innerHTML = '<div class="total-pages-label">Total Pages Read</div>' +
-      '<div class="total-pages-line">' +
-        '<span>' + pagesYear.toLocaleString() + '<em>this year</em></span>' +
-        '<span class="sep">|</span>' +
-        '<span>' + pagesMonth.toLocaleString() + '<em>this month</em></span>' +
-        '<span class="sep">|</span>' +
-        '<span>' + pagesWeek.toLocaleString() + '<em>this week</em></span>' +
-      '</div>';
   }
 
   function renderTabs(){
@@ -1877,8 +1836,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   function render(){
     computeDuplicateIds();
     renderStats();
-    renderMonthStats();
-    renderTotalPagesStat();
     renderTabs();
     renderGenreFilter();
     renderProviderFilter();
@@ -2190,6 +2147,10 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     document.getElementById('modalTitle').textContent = isReviewOnly ? 'Edit review & spine' : (b ? 'Edit book' : 'Add a book');
     document.getElementById('coreFields1').style.display = isReviewOnly ? 'none' : '';
     document.getElementById('coreFields2').style.display = isReviewOnly ? 'none' : '';
+    document.getElementById('field-review').style.display = isReviewOnly ? '' : 'none';
+    document.getElementById('field-nowplaying').style.display = isReviewOnly ? '' : 'none';
+    document.getElementById('field-spine-color').style.display = isReviewOnly ? '' : 'none';
+    document.getElementById('field-spine-image').style.display = isReviewOnly ? '' : 'none';
     document.getElementById('f_title').value = b ? b.title || '' : '';
     document.getElementById('f_author').value = b ? b.author || '' : '';
     document.getElementById('f_status').value = b ? b.status || 'want' : 'want';
@@ -3080,22 +3041,40 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       return Math.max(TITLE_MIN_SIZE, Math.min(TITLE_MAX_SIZE, Math.round(raw * 10) / 10));
     }
 
+    // Same idea, but for books lying flat: fit the title along the spine's
+    // horizontal run instead of its vertical one.
+    var H_TITLE_MIN_SIZE = 7, H_TITLE_MAX_SIZE = 11, CHAR_WIDTH_FACTOR = 0.62, H_PAD = 16;
+    function hTitleFontSize(text, width){
+      var available = width - H_PAD;
+      var len = Math.max(1, text.length);
+      var raw = available / (len * CHAR_WIDTH_FACTOR);
+      return Math.max(H_TITLE_MIN_SIZE, Math.min(H_TITLE_MAX_SIZE, Math.round(raw * 10) / 10));
+    }
+
     var clusters = order.map(function(key){
       var list = groups[key].slice().sort(function(a, b){
         var na = (a.seriesNumber === null || a.seriesNumber === undefined) ? 999 : a.seriesNumber;
         var nb = (b.seriesNumber === null || b.seriesNumber === undefined) ? 999 : b.seriesNumber;
         return na - nb;
       });
+      // A series you've only added one unfinished book of reads as "still
+      // waiting on the rest" — show it lying flat like a want-to-read pile
+      // rather than standing tall, regardless of its actual status.
+      var isStandalone = key.indexOf('\u0000standalone-') === 0;
+      var soloIncompleteSeries = !isStandalone && list.length === 1 && list[0].status !== 'finished';
+
       var spines = list.map(function(b){
         var hash = 0;
         for(var i = 0; i < b.id.length; i++){ hash = (hash * 31 + b.id.charCodeAt(i)) & 0xffffffff; }
-        var orientation = spineOrientation(b.status);
+        var orientation = soloIncompleteSeries ? 'horizontal' : spineOrientation(b.status);
         var titleAttr = escapeHtml(b.title) + (b.series ? ' (' + escapeHtml(b.series) + ')' : '');
 
         if(orientation === 'horizontal'){
           var hWidth = 120 + (Math.abs(hash) % 40);
           var hHeight = 24 + (Math.abs(hash) % 9);
-          var hTitleHtml = b.spineHideText ? '' : '<span class="spine-title-h">' + escapeHtml(b.title) + (b.seriesNumber || b.seriesNumber === 0 ? ' · ' + escapeHtml(String(b.seriesNumber)) : '') + '</span>';
+          var hLabel = b.title + (b.seriesNumber || b.seriesNumber === 0 ? ' · ' + String(b.seriesNumber) : '');
+          var hSize = hTitleFontSize(hLabel, hWidth);
+          var hTitleHtml = b.spineHideText ? '' : '<span class="spine-title-h" style="font-size:' + hSize + 'px;">' + escapeHtml(hLabel) + '</span>';
           return '<div class="shelf-book orient-horizontal" data-book-id="' + b.id + '" title="' + titleAttr + '">' +
             '<div class="shelf-spine-h" style="width:' + hWidth + 'px;height:' + hHeight + 'px;' + spineBg(b) + '">' +
             hTitleHtml +
@@ -3117,13 +3096,43 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       return '<div class="shelf-cluster">' + spines + '</div>';
     }).join('');
 
-    var html = '<h2 class="shelf-heading">Your Shelf</h2>' +
-      '<div class="shelf-wrap">' +
-      '<div class="shelf-row">' + clusters + '</div>' +
-      '<div class="shelf-plank"></div>' +
-      '</div>';
-    wrap.innerHTML = html;
+    // Lay everything out on one long measuring row first (at the container's
+    // real current width), then split it into separate shelf "tiers" — a row
+    // of books plus its own plank — wherever the flex-wrap actually breaks a
+    // line. That gives a real multi-shelf bookcase instead of one giant plank
+    // sitting under a wall of wrapped books.
+    wrap.innerHTML = '<h2 class="shelf-heading">Your Shelf</h2>' +
+      '<div class="shelf-wrap"><div class="shelf-row" id="shelfMeasureRow">' + clusters + '</div></div>';
+
+    var measureRow = document.getElementById('shelfMeasureRow');
+    var clusterEls = Array.prototype.slice.call(measureRow.children);
+    var rows = [];
+    clusterEls.forEach(function(el){
+      var bottom = Math.round(el.offsetTop + el.offsetHeight);
+      var row = rows.length ? rows[rows.length - 1] : null;
+      if(!row || Math.abs(row.bottom - bottom) > 3){
+        row = { bottom: bottom, els: [] };
+        rows.push(row);
+      }
+      row.els.push(el);
+    });
+
+    var tiersHtml = rows.map(function(row){
+      var rowHtml = row.els.map(function(el){ return el.outerHTML; }).join('');
+      return '<div class="shelf-tier"><div class="shelf-row">' + rowHtml + '</div><div class="shelf-plank"></div></div>';
+    }).join('');
+
+    wrap.innerHTML = '<h2 class="shelf-heading">Your Shelf</h2>' + '<div class="shelf-wrap">' + tiersHtml + '</div>';
   }
+
+  // Re-tier the shelf if the window is resized while the Reviews tab is open,
+  // since a new width can change where each row naturally wraps.
+  var reviewsResizeTimer = null;
+  window.addEventListener('resize', function(){
+    if(typeof currentActiveNav !== 'undefined' && currentActiveNav !== 'navReviews') return;
+    clearTimeout(reviewsResizeTimer);
+    reviewsResizeTimer = setTimeout(renderReviewsView, 150);
+  });
 
   document.getElementById('reviewsView').addEventListener('click', function(e){
     var item = e.target.closest('.shelf-book');
