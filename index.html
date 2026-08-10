@@ -831,13 +831,13 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     </div>
     <div id="postcardPreviewWrap" style="display:flex;justify-content:center;overflow:auto;max-height:60vh;margin-bottom:16px;padding:6px 0;"></div>
     <div class="field">
-      <label>Your review (optional)</label>
+      <label>Postcard text (optional)</label>
       <textarea id="postcardReview" rows="3" placeholder="A line or two about this one..." style="width:100%;padding:10px 11px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);font-family:var(--font-body);font-size:13px;color:var(--ink);resize:vertical;"></textarea>
-      <p class="hint">Click "Save review" to keep this without downloading anything.</p>
+      <p class="hint">This is separate from your review on the Reviews tab — it only appears on this postcard. Click "Save text" to keep it without downloading.</p>
     </div>
     <div class="modal-actions">
       <button type="button" class="btn-secondary" id="postcardCancelBtn">Cancel</button>
-      <button type="button" class="btn-secondary" id="postcardSaveReviewBtn">Save review</button>
+      <button type="button" class="btn-secondary" id="postcardSaveReviewBtn">Save text</button>
       <button type="button" class="btn-primary" id="postcardDownloadBtn">Download postcard</button>
     </div>
   </div>
@@ -2727,7 +2727,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var b = books.find(function(x){ return x.id === id; });
     if(!b) return;
     currentPostcardBook = b;
-    document.getElementById('postcardReview').value = b.review || '';
+    document.getElementById('postcardReview').value = b.postcardNote || '';
     document.getElementById('postcardSize').value = 'a6_landscape';
     renderPostcardPreview();
     document.getElementById('postcardOverlay').style.display = 'flex';
@@ -2765,17 +2765,17 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   document.getElementById('postcardSaveReviewBtn').onclick = function(){
     if(!currentPostcardBook) return;
     var reviewText = document.getElementById('postcardReview').value.trim();
-    currentPostcardBook.review = reviewText;
+    currentPostcardBook.postcardNote = reviewText;
     books = books.map(function(x){ return x.id === currentPostcardBook.id ? currentPostcardBook : x; });
     saveBookRemote(currentPostcardBook);
-    showBanner('Review saved.');
+    showBanner('Postcard text saved.');
     document.getElementById('postcardOverlay').style.display = 'none';
   };
 
   document.getElementById('postcardDownloadBtn').onclick = function(){
     if(!currentPostcardBook) return;
     var reviewText = document.getElementById('postcardReview').value;
-    currentPostcardBook.review = reviewText;
+    currentPostcardBook.postcardNote = reviewText;
     books = books.map(function(x){ return x.id === currentPostcardBook.id ? currentPostcardBook : x; });
     saveBookRemote(currentPostcardBook);
 
