@@ -2700,31 +2700,63 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       '</div>';
   }
 
+  function postcardReviewFontSize(text, boxHeightPx, boxWidthPx, minSize, maxSize){
+    var len = Math.max(1, (text || '').length);
+    var raw = Math.sqrt((boxHeightPx * boxWidthPx) / (len * 2.2));
+    return Math.max(minSize, Math.min(maxSize, Math.round(raw)));
+  }
+
+  function postcardSocialsFooterHtml(fontSize){
+    return '<div style="text-align:center;font-size:' + fontSize + 'px;letter-spacing:0.03em;color:#6B4E93;">' +
+      '@pagesofyue &nbsp;·&nbsp; pagesofyue.com &nbsp;·&nbsp; arc.pagesofyue.com' +
+      '</div>';
+  }
+
   function buildPostcardSquare(b, reviewText){
-    var coverHtml = b.cover ? '<img src="' + b.cover + '" style="width:100%;height:100%;object-fit:cover;">' : '<span style="font-size:13px;color:#7C6D94;font-family:\'Courier Prime\',monospace;">No cover</span>';
-    var ratingHtml = b.rating ? '<div style="margin-top:12px;font-size:24px;letter-spacing:3px;color:#6B4E93;">' + starsPlain(b.rating) + '</div>' : '';
-    var seriesHtml = b.series ? '<div style="font-size:13px;color:#7C6D94;margin-top:5px;">' + escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '') + '</div>' : '';
-    return '<div style="width:1080px;height:1080px;position:relative;box-sizing:border-box;padding:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#FBF7FF;border:3px solid #3B2A55;font-family:\'Courier Prime\',monospace;color:#3B2A55;text-align:center;">' +
+    var coverHtml = b.cover ? '<img src="' + b.cover + '" style="width:100%;height:100%;object-fit:cover;">' : '<span style="font-size:11px;color:#7C6D94;font-family:\'Courier Prime\',monospace;">No cover</span>';
+    var ratingHtml = b.rating ? '<div style="margin-top:8px;font-size:17px;letter-spacing:2px;color:#6B4E93;">' + starsPlain(b.rating) + '</div>' : '';
+    var seriesHtml = b.series ? '<div style="font-size:12px;color:#7C6D94;margin-top:4px;">' + escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '') + '</div>' : '';
+    var authorHtml = b.author ? '<div style="font-size:13px;font-style:italic;color:#7C6D94;margin-top:4px;">' + escapeHtml(b.author) + '</div>' : '';
+    var reviewSize = postcardReviewFontSize(reviewText, 560, 720, 20, 46);
+    var reviewHtml = reviewText ? '“' + escapeHtml(reviewText) + '”' : '<span style="color:#B8ABCB;">— your review —</span>';
+    return '<div style="width:1080px;height:1080px;position:relative;box-sizing:border-box;padding:56px 64px;display:flex;flex-direction:column;background:#FBF7FF;border:3px solid #3B2A55;font-family:\'Courier Prime\',monospace;color:#3B2A55;">' +
       postcardStampHtml('ig_post') +
-      '<div style="width:300px;height:440px;flex:none;border-radius:8px;overflow:hidden;box-shadow:0 6px 18px rgba(59,42,85,0.25);background:radial-gradient(circle at 30% 20%,#E4D2F2,transparent 65%),radial-gradient(circle at 70% 80%,#F0DCEA,transparent 65%),#F5EEFC;display:flex;align-items:center;justify-content:center;">' + coverHtml + '</div>' +
-      '<div style="font-size:30px;font-weight:700;line-height:1.25;margin-top:30px;max-width:760px;">' + escapeHtml(b.title) + '</div>' +
-      (b.author ? '<div style="font-size:16px;font-style:italic;color:#7C6D94;margin-top:6px;">' + escapeHtml(b.author) + '</div>' : '') +
-      seriesHtml + ratingHtml +
-      '<div style="font-style:italic;font-size:16px;line-height:1.6;color:#3B2A55;margin-top:26px;max-width:640px;">' + (reviewText ? '“' + escapeHtml(reviewText) + '”' : '<span style="color:#B8ABCB;">— your review —</span>') + '</div>' +
+      '<div style="display:flex;align-items:flex-start;gap:22px;padding-right:110px;">' +
+        '<div style="width:130px;height:195px;flex:none;border-radius:6px;overflow:hidden;box-shadow:0 4px 14px rgba(59,42,85,0.25);background:radial-gradient(circle at 30% 20%,#E4D2F2,transparent 65%),radial-gradient(circle at 70% 80%,#F0DCEA,transparent 65%),#F5EEFC;display:flex;align-items:center;justify-content:center;">' + coverHtml + '</div>' +
+        '<div style="flex:1;padding-top:6px;text-align:left;">' +
+          '<div style="font-size:26px;font-weight:700;line-height:1.25;">' + escapeHtml(b.title) + '</div>' +
+          seriesHtml + authorHtml + ratingHtml +
+        '</div>' +
+      '</div>' +
+      '<div style="height:1px;background:rgba(59,42,85,0.28);margin:28px 0;"></div>' +
+      '<div style="flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 12px;overflow:hidden;">' +
+        '<div style="font-style:italic;line-height:1.5;font-size:' + reviewSize + 'px;">' + reviewHtml + '</div>' +
+      '</div>' +
+      '<div style="padding-top:20px;">' + postcardSocialsFooterHtml(16) + '</div>' +
       '</div>';
   }
 
   function buildPostcardStory(b, reviewText){
-    var coverHtml = b.cover ? '<img src="' + b.cover + '" style="width:100%;height:100%;object-fit:cover;">' : '<span style="font-size:14px;color:#7C6D94;font-family:\'Courier Prime\',monospace;">No cover</span>';
-    var ratingHtml = b.rating ? '<div style="margin-top:14px;font-size:26px;letter-spacing:3px;color:#6B4E93;">' + starsPlain(b.rating) + '</div>' : '';
-    var seriesHtml = b.series ? '<div style="font-size:14px;color:#7C6D94;margin-top:6px;">' + escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '') + '</div>' : '';
-    return '<div style="width:1080px;height:1920px;position:relative;box-sizing:border-box;padding:70px 60px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#FBF7FF;border:3px solid #3B2A55;font-family:\'Courier Prime\',monospace;color:#3B2A55;text-align:center;">' +
+    var coverHtml = b.cover ? '<img src="' + b.cover + '" style="width:100%;height:100%;object-fit:cover;">' : '<span style="font-size:12px;color:#7C6D94;font-family:\'Courier Prime\',monospace;">No cover</span>';
+    var ratingHtml = b.rating ? '<div style="margin-top:9px;font-size:19px;letter-spacing:2px;color:#6B4E93;">' + starsPlain(b.rating) + '</div>' : '';
+    var seriesHtml = b.series ? '<div style="font-size:13px;color:#7C6D94;margin-top:5px;">' + escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '') + '</div>' : '';
+    var authorHtml = b.author ? '<div style="font-size:14px;font-style:italic;color:#7C6D94;margin-top:5px;">' + escapeHtml(b.author) + '</div>' : '';
+    var reviewSize = postcardReviewFontSize(reviewText, 1150, 780, 22, 54);
+    var reviewHtml = reviewText ? '“' + escapeHtml(reviewText) + '”' : '<span style="color:#B8ABCB;">— your review —</span>';
+    return '<div style="width:1080px;height:1920px;position:relative;box-sizing:border-box;padding:80px 70px;display:flex;flex-direction:column;background:#FBF7FF;border:3px solid #3B2A55;font-family:\'Courier Prime\',monospace;color:#3B2A55;">' +
       postcardStampHtml('ig_story') +
-      '<div style="width:340px;height:500px;flex:none;border-radius:8px;overflow:hidden;box-shadow:0 6px 18px rgba(59,42,85,0.25);background:radial-gradient(circle at 30% 20%,#E4D2F2,transparent 65%),radial-gradient(circle at 70% 80%,#F0DCEA,transparent 65%),#F5EEFC;display:flex;align-items:center;justify-content:center;">' + coverHtml + '</div>' +
-      '<div style="font-size:34px;font-weight:700;line-height:1.25;margin-top:36px;max-width:820px;">' + escapeHtml(b.title) + '</div>' +
-      (b.author ? '<div style="font-size:18px;font-style:italic;color:#7C6D94;margin-top:8px;">' + escapeHtml(b.author) + '</div>' : '') +
-      seriesHtml + ratingHtml +
-      '<div style="font-style:italic;font-size:18px;line-height:1.6;color:#3B2A55;margin-top:30px;max-width:760px;">' + (reviewText ? '“' + escapeHtml(reviewText) + '”' : '<span style="color:#B8ABCB;">— your review —</span>') + '</div>' +
+      '<div style="display:flex;align-items:flex-start;gap:26px;padding-right:120px;">' +
+        '<div style="width:150px;height:225px;flex:none;border-radius:6px;overflow:hidden;box-shadow:0 4px 14px rgba(59,42,85,0.25);background:radial-gradient(circle at 30% 20%,#E4D2F2,transparent 65%),radial-gradient(circle at 70% 80%,#F0DCEA,transparent 65%),#F5EEFC;display:flex;align-items:center;justify-content:center;">' + coverHtml + '</div>' +
+        '<div style="flex:1;padding-top:8px;text-align:left;">' +
+          '<div style="font-size:30px;font-weight:700;line-height:1.25;">' + escapeHtml(b.title) + '</div>' +
+          seriesHtml + authorHtml + ratingHtml +
+        '</div>' +
+      '</div>' +
+      '<div style="height:1px;background:rgba(59,42,85,0.28);margin:36px 0;"></div>' +
+      '<div style="flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 16px;overflow:hidden;">' +
+        '<div style="font-style:italic;line-height:1.5;font-size:' + reviewSize + 'px;">' + reviewHtml + '</div>' +
+      '</div>' +
+      '<div style="padding-top:26px;">' + postcardSocialsFooterHtml(19) + '</div>' +
       '</div>';
   }
 
