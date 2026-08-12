@@ -2707,8 +2707,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
 
   function postcardSocialsFooterHtml(fontSize){
-    return '<div style="text-align:center;font-size:' + fontSize + 'px;letter-spacing:0.03em;color:#6B4E93;">' +
-      '@pagesofyue &nbsp;·&nbsp; pagesofyue.com &nbsp;·&nbsp; arc.pagesofyue.com' +
+    return '<div style="text-align:center;color:#6B4E93;">' +
+      '<div style="font-size:' + fontSize + 'px;letter-spacing:0.02em;">Reviews : pagesofyue.com &nbsp;|&nbsp; ARC Catalog : arc.pagesofyue.com</div>' +
+      '<div style="font-size:' + fontSize + 'px;letter-spacing:0.02em;margin-top:4px;">IG / Threads / TikTok : @pagesofyue</div>' +
       '</div>';
   }
 
@@ -2732,7 +2733,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       '<div style="flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 12px;overflow:hidden;">' +
         '<div style="font-style:italic;line-height:1.5;font-size:' + reviewSize + 'px;">' + reviewHtml + '</div>' +
       '</div>' +
-      '<div style="padding-top:20px;">' + postcardSocialsFooterHtml(16) + '</div>' +
+      '<div style="padding-top:18px;">' + postcardSocialsFooterHtml(14) + '</div>' +
       '</div>';
   }
 
@@ -2756,7 +2757,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       '<div style="flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 16px;overflow:hidden;">' +
         '<div style="font-style:italic;line-height:1.5;font-size:' + reviewSize + 'px;">' + reviewHtml + '</div>' +
       '</div>' +
-      '<div style="padding-top:26px;">' + postcardSocialsFooterHtml(19) + '</div>' +
+      '<div style="padding-top:22px;">' + postcardSocialsFooterHtml(17) + '</div>' +
       '</div>';
   }
 
@@ -3092,6 +3093,16 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       };
     }
 
+    // Books waiting in the TBR pile haven't been read yet, so their spine
+    // stays uncolored — a plain white/outlined look, like an unfilled page
+    // in a coloring book — rather than jumping ahead with a genre color.
+    // Formula 1 still gets its fixed red, same as everywhere else.
+    function pileSpineStyleFor(b){
+      var isF1 = (b.tropes || []).indexOf('Formula 1') !== -1;
+      if(isF1) return {bg: 'background:' + FORMULA_1_BG + ';', textColor: FORMULA_1_TEXT};
+      return {bg: 'background:#FFFFFF;border:1.5px solid var(--ink);', textColor: 'var(--ink)'};
+    }
+
     // Status decides how a book sits on the shelf: currently-relevant books
     // (Reading/Finished) stand up normally, Want-to-Read books lie flat like
     // a stack you haven't gotten to yet, and On Hold/DNF books lean at
@@ -3104,10 +3115,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     }
 
     // Fit the title to the available vertical run of the spine: short titles
-    // scale up (capped), long titles scale down (floored) so the text spans
-    // the spine without spilling past its edges.
+    // scale up (capped), long titles scale down — but only down to a size
+    // that's still comfortably readable. Titles too long to fit even at the
+    // minimum size truncate with an ellipsis (via the CSS max-height rule on
+    // .spine-title) rather than shrinking further.
     var SPINE_HEIGHT = 180, SPINE_PAD = 20, NUMBER_SPACE = 18;
-    var TITLE_MIN_SIZE = 7, TITLE_MAX_SIZE = 15, CHAR_HEIGHT_FACTOR = 1.15;
+    var TITLE_MIN_SIZE = 10, TITLE_MAX_SIZE = 16, CHAR_HEIGHT_FACTOR = 1.1;
     function spineTitleFontSize(title, hasNumber){
       var available = SPINE_HEIGHT - SPINE_PAD - (hasNumber ? NUMBER_SPACE : 0);
       var len = Math.max(1, title.length);
@@ -3117,7 +3130,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
     // Same idea, but for books lying flat: fit the title along the spine's
     // horizontal run instead of its vertical one.
-    var H_TITLE_MIN_SIZE = 7, H_TITLE_MAX_SIZE = 11, CHAR_WIDTH_FACTOR = 0.62, H_PAD = 16;
+    var H_TITLE_MIN_SIZE = 9, H_TITLE_MAX_SIZE = 13, CHAR_WIDTH_FACTOR = 0.58, H_PAD = 16;
     function hTitleFontSize(text, width){
       var available = width - H_PAD;
       var len = Math.max(1, text.length);
@@ -3186,8 +3199,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
           for(var i = 0; i < b.id.length; i++){ hash = (hash * 31 + b.id.charCodeAt(i)) & 0xffffffff; }
           var pileHeight = 26 + (Math.abs(hash) % 10);
           var pileWidth = 190;
-          var style = spineStyleFor(b);
-          var colorCss = style.textColor ? 'color:' + style.textColor + ';' : '';
+          var style = pileSpineStyleFor(b);
+          var colorCss = 'color:' + style.textColor + ';';
           var label = b.title + (b.seriesNumber || b.seriesNumber === 0 ? ' · ' + String(b.seriesNumber) : '');
           var titleAttr = escapeHtml(b.title) + (b.series ? ' (' + escapeHtml(b.series) + ')' : '');
           var size = hTitleFontSize(label, pileWidth);
