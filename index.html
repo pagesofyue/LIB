@@ -172,6 +172,27 @@ body[data-theme="velaris"]{
   background-position: center center; /* Perfect center placement for your mermaid art */
   background-repeat: no-repeat;
 }
+body[data-theme="wisteria"]{
+  --ink:#4A3563;
+  --paper:#E9DFF7;
+  --card:#F8F3FC;
+  --card-hover:#F0E7FA;
+  --muted:#8874A8;
+  --line:rgba(74,53,99,0.14);
+  --line-strong:rgba(74,53,99,0.28);
+  --accent:#9B7FC7;
+  --accent-deep:#7A5CA8;
+  --want:#D9C6F0;
+  --want-deep:#B092D9;
+  --reading:#A78BD4;
+  --reading-deep:#7E5FB3;
+  --finished:#6B4E93;
+  --finished-deep:#4F3A70;
+  --dnf:#C48FB0;
+  --dnf-deep:#9C6689;
+  --hold:#B8A0DC;
+  --hold-deep:#8F71B8;
+}
   
 *{box-sizing:border-box;}
 body {
@@ -191,6 +212,7 @@ body[data-theme="summer"]{background-image:linear-gradient(rgba(221,238,236,0),r
 body[data-theme="fall"]{background-image:linear-gradient(rgba(239,223,201,0),rgba(239,223,201,0)),url("./theme-fall.jpg");background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:fixed;}
 body[data-theme="under-the-sea"]{background-image:linear-gradient(rgba(215,238,240,0),rgba(215,238,240,0)),url("./theme-under-the-sea.jpg");background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:fixed;}
 body[data-theme="velaris"]{background-image:linear-gradient(rgba(46,35,80,0),rgba(46,35,80,0.0)),url("./theme-velaris.jpg");background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:fixed;}
+body[data-theme="wisteria"]{background-image:linear-gradient(rgba(233,223,247,0),rgba(233,223,247,0)),url("./theme-wisteria.jpg");background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:fixed;}
 /* Velaris' art is a dark night sky, so text colors tuned for light "paper"
    backgrounds go unreadable wherever they sit directly on the image instead
    of on a solid card. Brighten just those spots and darken the app's overlay
@@ -533,13 +555,14 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     <div class="header-right">
       <div class="sync-badge"><span class="sync-dot" id="syncDot"></span><span id="syncText">Synced</span></div>
       <select id="themeSelect" class="notif-badge" title="Choose a seasonal theme">
-        <option value=""> Lunaria</option>
-        <option value="winter">❄️</option>
-        <option value="spring">🌸</option>
-        <option value="summer">🌞</option>
-        <option value="fall">🍂</option>
-        <option value="under-the-sea">🐚</option>
-        <option value="velaris">🌌</option>
+        <option value="">Lunaria</option>
+        <option value="winter">Winter</option>
+        <option value="spring">Spring</option>
+        <option value="summer">Summer</option>
+        <option value="fall">Fall</option>
+        <option value="under-the-sea">Under the Sea</option>
+        <option value="velaris">Velaris</option>
+        <option value="wisteria">Wisteria</option>
       </select>
       <button type="button" class="notif-badge" id="gcalSyncBtn">📅 Sync Google Calendar</button>
       <div class="account-row" id="accountRow"></div>
@@ -609,7 +632,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   <div class="pagination" id="pagination" style="display:none;"></div>
   <div class="empty" id="emptyState" style="display:none;">
     <div class="icon-wrap">
-      <div class="icon">🌙</div>
+      <div class="icon" id="emptyIcon">🌙</div>
     </div>
     <h3 id="emptyTitle">Your shelf is empty</h3>
     <p id="emptySub">Add the first book you're reading, waiting on, or reviewing.</p>
@@ -1880,9 +1903,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       empty.style.display = 'block';
       pagination.style.display = 'none';
       if(books.length === 0){
+        document.getElementById('emptyIcon').textContent = '🌙';
         document.getElementById('emptyTitle').textContent = 'Your shelf is empty';
         document.getElementById('emptySub').textContent = "Add the first book you're reading, waiting on, or reviewing.";
       } else {
+        document.getElementById('emptyIcon').textContent = '🫧';
         document.getElementById('emptyTitle').textContent = 'No books match';
         document.getElementById('emptySub').textContent = 'Try a different search or filter.';
       }
@@ -3173,9 +3198,10 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         var hasNumber = !!(b.seriesNumber || b.seriesNumber === 0);
         var numHtml = hasNumber ? '<span class="spine-number" style="' + colorCss + '">' + escapeHtml(String(b.seriesNumber)) + '</span>' : '';
         var titleSize = spineTitleFontSize(b.title || '', hasNumber);
+        var targetHeight = SPINE_HEIGHT - SPINE_PAD - (hasNumber ? NUMBER_SPACE : 0);
         var needsReview = b.status === 'finished' && !(b.review && b.review.trim());
         var badgeHtml = needsReview ? '<span class="spine-review-badge" title="No review yet">?</span>' : '';
-        var textHtml = '<span class="spine-title" style="font-size:' + titleSize + 'px;' + colorCss + '">' + escapeHtml(b.title) + '</span>' + numHtml;
+        var textHtml = '<span class="spine-title" data-target-h="' + targetHeight + '" style="font-size:' + titleSize + 'px;' + colorCss + '">' + escapeHtml(b.title) + '</span>' + numHtml;
         return '<div class="shelf-book orient-' + orientation + '" data-book-id="' + b.id + '" title="' + titleAttr + '">' +
           '<div class="shelf-spine" style="width:' + widthVariant + 'px;' + style.bg + '">' +
           badgeHtml +
@@ -3222,6 +3248,24 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       '<div class="shelf-wrap"><div class="shelf-row" id="shelfMeasureRow">' + clusters + '</div></div>';
 
     var measureRow = document.getElementById('shelfMeasureRow');
+
+    // The font-size above is a starting guess based on character count, which
+    // is only ever approximate — actual rendered text height depends on the
+    // real font metrics. Now that the titles are live in the DOM, measure how
+    // tall each one actually rendered and scale it by the ratio needed to
+    // exactly fill its spine's available space, so there's no leftover gap
+    // (or overflow) between the title and the number below it.
+    Array.prototype.slice.call(measureRow.querySelectorAll('.spine-title')).forEach(function(el){
+      var target = parseFloat(el.getAttribute('data-target-h'));
+      if(!target) return;
+      var measured = el.scrollHeight;
+      if(!measured) return;
+      var currentSize = parseFloat(el.style.fontSize) || TITLE_MIN_SIZE;
+      var scale = target / measured;
+      var corrected = Math.max(TITLE_MIN_SIZE, Math.min(TITLE_MAX_SIZE, Math.round(currentSize * scale * 10) / 10));
+      el.style.fontSize = corrected + 'px';
+    });
+
     var clusterEls = Array.prototype.slice.call(measureRow.children);
     var rows = [];
     clusterEls.forEach(function(el){
