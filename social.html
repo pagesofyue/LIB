@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Social Post Generator — Hiraya Manawari</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+:root{
+  --ink:#3B2A55;
+  --paper:#E3D6DC;
+  --card:#FBF7FF;
+  --card-hover:#F3ECFA;
+  --muted:#8A7A9C;
+  --line:rgba(59,42,85,0.14);
+  --line-strong:rgba(59,42,85,0.28);
+  --accent:#8C6BB5;
+  --accent-deep:#6B4E93;
+  --font-display:'Courier Prime', monospace;
+  --font-body:'Courier Prime', monospace;
+  --font-script:'Dancing Script', cursive;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-body);min-height:100vh;}
+.app{max-width:640px;margin:0 auto;padding:32px 20px 80px;}
+.header{text-align:center;margin-bottom:28px;}
+.header h1{font-family:var(--font-script);font-size:34px;color:var(--accent-deep);margin:0 0 4px;}
+.header p{color:var(--muted);font-size:13px;margin:0;}
+.back-link{display:inline-block;margin-bottom:18px;font-size:13px;color:var(--accent-deep);text-decoration:underline;}
+.login-screen{background:var(--card);border:1px solid var(--line-strong);border-radius:14px;padding:40px 28px;text-align:center;}
+.login-screen p{color:var(--muted);font-size:13px;margin:0 0 20px;}
+.google-btn{display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line-strong);border-radius:8px;padding:10px 20px;font-family:var(--font-body);font-size:14px;color:var(--ink);cursor:pointer;}
+.google-btn:hover{border-color:var(--accent);}
+.login-error{color:#A85D5D;font-size:12.5px;margin-top:14px;display:none;}
+#appArea{display:none;}
+.field{margin-bottom:20px;}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;}
+.field select,.field input{width:100%;padding:10px 12px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);font-family:var(--font-body);font-size:14px;color:var(--ink);}
+.field select:focus,.field input:focus{outline:2px solid var(--accent);outline-offset:1px;}
+.emoji-row{display:flex;align-items:center;gap:10px;}
+.emoji-row input{width:70px;text-align:center;font-size:18px;flex:none;}
+.emoji-row span{font-size:12px;color:var(--muted);}
+.output-wrap{position:relative;margin-top:26px;}
+.output-box{width:100%;min-height:220px;padding:18px 20px;border:1px solid var(--line-strong);border-radius:10px;background:var(--card);font-family:var(--font-body);font-size:14px;line-height:1.6;color:var(--ink);white-space:pre-wrap;resize:vertical;}
+.output-box:empty::before{content:'Pick a book above to generate your post text here.';color:var(--muted);}
+.copy-btn{margin-top:12px;background:var(--ink);color:var(--paper);border:none;border-radius:8px;padding:10px 20px;font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;}
+.copy-btn:hover{opacity:0.9;}
+.copy-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.copied-note{font-size:12.5px;color:var(--accent-deep);margin-left:10px;display:none;}
+.empty-note{color:var(--muted);font-size:13px;text-align:center;padding:30px 0;}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <h1>Social Post Generator</h1>
+    <p>Pull a book's details straight into copy-paste-ready text.</p>
+  </div>
+  <a class="back-link" href="./index.html">&larr; Back to Hiraya Manawari</a>
+
+  <div class="login-screen" id="loginScreen">
+    <p>Sign in with the same Google account you use for your library.</p>
+    <button class="google-btn" id="signInBtn">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.5 5.1 29.5 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.4-.1-2.8-.4-4.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 16 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34.5 5.1 29.5 3 24 3 16.3 3 9.6 7.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 45c5.2 0 9.9-2 13.5-5.2l-6.2-5.2C29.3 36.6 26.8 37.5 24 37.5c-5.3 0-9.7-3.4-11.3-8.1l-6.5 5C9.4 40.6 16.1 45 24 45z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.6l6.2 5.2C40.9 36.3 45 30.8 45 24c0-1.4-.1-2.8-.4-4.5z"/></svg>
+      Sign in with Google
+    </button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+
+  <div id="appArea">
+    <div class="field">
+      <label>Book</label>
+      <select id="bookSelect"><option value="">Choose a book...</option></select>
+    </div>
+    <div class="field">
+      <label>Bullet emoji</label>
+      <div class="emoji-row">
+        <input type="text" id="emojiInput" value="📌" maxlength="4">
+        <span>Used before each trope — change it to whatever you like.</span>
+      </div>
+    </div>
+    <div class="output-wrap">
+      <label style="display:block;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;">Generated text</label>
+      <div class="output-box" id="outputBox" contenteditable="true"></div>
+      <button class="copy-btn" id="copyBtn" disabled>Copy to clipboard</button>
+      <span class="copied-note" id="copiedNote">Copied!</span>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import {
+    getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+  import {
+    getFirestore, collection, getDocs
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+  // Same Firebase project as index.html — this page reads the same book
+  // data via Firestore without touching the main app file at all.
+  const firebaseConfig = {
+    apiKey: "AIzaSyCFhXW0y0lEpgpE1bPzM1D7-X5-e3VTEzU",
+    authDomain: "lunaria-app-21a35.firebaseapp.com",
+    projectId: "lunaria-app-21a35",
+    storageBucket: "lunaria-app-21a35.firebasestorage.app",
+    messagingSenderId: "29627980624",
+    appId: "1:29627980624:web:f41033674613f5c3c46a55",
+    measurementId: "G-L1682GCGL4"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const provider = new GoogleAuthProvider();
+  let currentUser = null;
+  let books = [];
+
+  function escapeHtml(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  document.getElementById('signInBtn').addEventListener('click', async function(){
+    document.getElementById('loginError').style.display = 'none';
+    try{
+      await signInWithPopup(auth, provider);
+    }catch(e){
+      document.getElementById('loginError').textContent = "Couldn't sign in — try again.";
+      document.getElementById('loginError').style.display = 'block';
+    }
+  });
+
+  async function loadBooks(){
+    const snap = await getDocs(collection(db, 'users', currentUser.uid, 'books'));
+    books = snap.docs.map(function(d){ return Object.assign({id: d.id}, d.data()); });
+    books.sort(function(a, b){ return (a.title || '').localeCompare(b.title || ''); });
+    var select = document.getElementById('bookSelect');
+    select.innerHTML = '<option value="">Choose a book...</option>' +
+      books.map(function(b){ return '<option value="' + b.id + '">' + escapeHtml(b.title) + (b.author ? ' — ' + escapeHtml(b.author) : '') + '</option>'; }).join('');
+  }
+
+  function generateText(){
+    var id = document.getElementById('bookSelect').value;
+    var box = document.getElementById('outputBox');
+    var copyBtn = document.getElementById('copyBtn');
+    if(!id){
+      box.textContent = '';
+      copyBtn.disabled = true;
+      return;
+    }
+    var b = books.find(function(x){ return x.id === id; });
+    if(!b){ box.textContent = ''; copyBtn.disabled = true; return; }
+    var emoji = document.getElementById('emojiInput').value.trim() || '📌';
+    var lines = [];
+    lines.push(b.title || '');
+    if(b.author) lines.push('by ' + b.author);
+    lines.push('');
+    lines.push('ARC Source: ' + (b.arcSource || '—'));
+    lines.push('');
+    if(b.tropes && b.tropes.length){
+      lines.push('Tropes:');
+      b.tropes.forEach(function(t){ lines.push(emoji + ' ' + t); });
+    } else {
+      lines.push('Tropes: —');
+    }
+    box.textContent = lines.join('\n');
+    copyBtn.disabled = false;
+  }
+
+  document.getElementById('bookSelect').addEventListener('change', generateText);
+  document.getElementById('emojiInput').addEventListener('input', generateText);
+
+  document.getElementById('copyBtn').addEventListener('click', function(){
+    var text = document.getElementById('outputBox').textContent;
+    navigator.clipboard.writeText(text).then(function(){
+      var note = document.getElementById('copiedNote');
+      note.style.display = 'inline';
+      setTimeout(function(){ note.style.display = 'none'; }, 1800);
+    });
+  });
+
+  onAuthStateChanged(auth, function(user){
+    currentUser = user;
+    if(user){
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appArea').style.display = 'block';
+      loadBooks();
+    } else {
+      document.getElementById('loginScreen').style.display = 'block';
+      document.getElementById('appArea').style.display = 'none';
+    }
+  });
+</script>
+
+</body>
+</html>
