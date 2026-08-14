@@ -2897,7 +2897,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       if(b.dueDate) rows += '<div class="detail-row"><span class="dl">Review due</span><span class="dv">' + fmtDate(b.dueDate) + '</span></div>';
       if(b.arcFormLink) rows += '<div class="detail-row"><span class="dl">Review form</span><span class="dv"><a href="' + escapeHtml(b.arcFormLink) + '" target="_blank" rel="noopener" style="color:var(--accent-deep);">' + escapeHtml(b.arcFormLink) + '</a></span></div>';
     }
-    if(b.review) rows += '<div class="detail-row"><span class="dl">Your review</span><span class="dv" style="font-style:italic;white-space:pre-wrap;">' + escapeHtml(b.review) + '</span></div>';
     if(b.nowPlaying) rows += '<div class="detail-row"><span class="dl">Now playing</span><span class="dv">🎵 ' + escapeHtml(b.nowPlaying) + '</span></div>';
 
     var datesParts = [];
