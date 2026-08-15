@@ -290,7 +290,6 @@ body[data-theme="velaris"] .reader-intro p{color:#D2C6F1;text-shadow:0 1px 6px r
 .spine-number{color:var(--ink);font-family:var(--font-display);font-weight:700;font-size:11px;text-shadow:0 1px 2px rgba(0,0,0,0.3),0 -1px 1px rgba(255,255,255,0.2);}
 .shelf-plank{height:18px;background:linear-gradient(180deg,#CBA36B 0%,#A87D45 55%,#8F6636 100%);border-radius:3px;box-shadow:0 5px 10px rgba(59,42,85,0.28);}
 .shelf-book.orient-diagonal-right{transform:rotate(11deg);transform-origin:bottom left;margin:0 12px 0 6px;}
-.shelf-book.orient-diagonal-left{transform:rotate(-11deg);transform-origin:bottom right;margin:0 6px 0 12px;}
 .tbr-pile-cluster{display:flex;align-items:flex-end;}
 .tbr-pile-stack{display:flex;flex-direction:column;box-shadow:2px 3px 8px rgba(59,42,85,0.28);border-radius:3px;overflow:hidden;}
 .tbr-pile-item{display:flex;align-items:center;justify-content:center;padding:0 8px;border-top:1px solid rgba(255,255,255,0.35);box-shadow:0 -1px 2px rgba(59,42,85,0.12) inset;cursor:pointer;transition:transform .12s;background-size:cover;background-position:center;position:relative;}
@@ -299,6 +298,7 @@ body[data-theme="velaris"] .reader-intro p{color:#D2C6F1;text-shadow:0 1px 6px r
 .spine-title-h{color:var(--ink);font-family:var(--font-display);font-weight:600;letter-spacing:0.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;text-shadow:0 1px 2px rgba(0,0,0,0.3),0 -1px 1px rgba(255,255,255,0.2);}
 .spine-review-badge{position:absolute;top:5px;right:5px;width:15px;height:15px;border-radius:50%;background:#FDF6E3;color:#8A6D1D;font-size:10px;font-weight:800;line-height:15px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.35);z-index:1;}
 .tbr-pile-item .spine-review-badge{top:50%;transform:translateY(-50%);right:6px;}
+.pile-text-badge{width:auto;height:auto;border-radius:9px;padding:1px 6px;line-height:1.5;background:#3B2A55;color:#F3ECFA;font-size:9px;letter-spacing:0.03em;}
 
 .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
 .cal-header h2{font-family:var(--font-display);font-size:20px;margin:0;}
@@ -3128,14 +3128,58 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       return {bg: 'background:#FFFFFF;border:1.5px solid var(--ink);', textColor: 'var(--ink)'};
     }
 
+    // DNF books get one fixed muted, faded color regardless of genre — a
+    // deliberate "this one didn't work out" visual, distinct from the
+    // vibrant genre colors used on active/finished books. Formula 1 still
+    // takes priority over even this, same override order as everywhere else.
+    var DNF_MUTED_BG = '#A79999', DNF_MUTED_TEXT = 'var(--ink)';
+    function dnfPileSpineStyleFor(b){
+      var isF1 = (b.tropes || []).indexOf('Formula 1') !== -1;
+      if(isF1) return {bg: 'background:' + FORMULA_1_BG + ';', textColor: FORMULA_1_TEXT};
+      return {bg: 'background:' + DNF_MUTED_BG + ';', textColor: DNF_MUTED_TEXT};
+    }
+
+    // Renders one or more pile stacks (capped at 5 books per stack) from a
+    // list of books, sharing the same stacking mechanic for both the TBR
+    // pile and the DNF pile — just with a different style function and an
+    // optional badge per item.
+    function buildPileStacksHtml(pileList, styleFn, extraClass, badgeText){
+      if(!pileList.length) return '';
+      var PILE_MAX_PER_STACK = 5;
+      var sorted = pileList.slice().sort(function(a, b){ return (a.title || '').localeCompare(b.title || ''); });
+      var chunks = [];
+      for(var pc = 0; pc < sorted.length; pc += PILE_MAX_PER_STACK){
+        chunks.push(sorted.slice(pc, pc + PILE_MAX_PER_STACK));
+      }
+      return chunks.map(function(chunk){
+        var items = chunk.map(function(b){
+          var hash = 0;
+          for(var i = 0; i < b.id.length; i++){ hash = (hash * 31 + b.id.charCodeAt(i)) & 0xffffffff; }
+          var pileHeight = 26 + (Math.abs(hash) % 10);
+          var pileWidth = 190;
+          var style = styleFn(b);
+          var colorCss = 'color:' + style.textColor + ';';
+          var label = b.title + (b.seriesNumber || b.seriesNumber === 0 ? ' · ' + String(b.seriesNumber) : '');
+          var titleAttr = escapeHtml(b.title) + (b.series ? ' (' + escapeHtml(b.series) + ')' : '');
+          var size = hTitleFontSize(label, pileWidth);
+          var badgeHtml = badgeText ? '<span class="spine-review-badge pile-text-badge">' + badgeText + '</span>' : '';
+          return '<div class="shelf-book tbr-pile-item' + (extraClass ? ' ' + extraClass : '') + '" data-book-id="' + b.id + '" title="' + titleAttr + '" style="height:' + pileHeight + 'px;' + style.bg + '">' +
+            badgeHtml +
+            '<span class="spine-title-h" style="font-size:' + size + 'px;' + colorCss + '">' + escapeHtml(label) + '</span>' +
+            '</div>';
+        }).join('');
+        return '<div class="shelf-cluster tbr-pile-cluster"><div class="tbr-pile-stack" style="width:190px;">' + items + '</div></div>';
+      }).join('');
+    }
+
     // Status decides how a book sits on the shelf: currently-relevant books
     // (Reading/Finished) stand up normally, Want-to-Read books lie flat like
-    // a stack you haven't gotten to yet, and On Hold/DNF books lean at
-    // opposite angles so they read as "paused" vs. "given up on" at a glance.
+    // a stack you haven't gotten to yet, On Hold leans right ("paused"), and
+    // DNF books join their own separate pile (see dnfPileBooks below).
     function spineOrientation(status){
       if(status === 'want') return 'horizontal';
       if(status === 'hold') return 'diagonal-right';
-      if(status === 'dnf') return 'diagonal-left';
+      if(status === 'dnf') return 'dnf-pile';
       return 'vertical';
     }
 
@@ -3164,6 +3208,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     }
 
     var pileBooks = [];
+    var dnfPileBooks = [];
 
     var clusters = order.map(function(key){
       var list = groups[key].slice().sort(function(a, b){
@@ -3173,12 +3218,18 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       });
       // A series you've only added one unfinished book of reads as "still
       // waiting on the rest" — treat it as a TBR book too, so it joins the
-      // shared pile rather than standing alone.
+      // shared pile rather than standing alone. (DNF books always go to
+      // their own pile regardless of this, handled separately below.)
       var isStandalone = key.indexOf('\u0000standalone-') === 0;
       var soloIncompleteSeries = !isStandalone && list.length === 1 && list[0].status !== 'finished';
 
       var spines = list.map(function(b){
-        var orientation = soloIncompleteSeries ? 'horizontal' : spineOrientation(b.status);
+        var orientation = b.status === 'dnf' ? 'dnf-pile' : (soloIncompleteSeries ? 'horizontal' : spineOrientation(b.status));
+
+        if(orientation === 'dnf-pile'){
+          dnfPileBooks.push(b);
+          return '';
+        }
 
         // Every book that would lie flat joins one shared "to be read" pile
         // instead of rendering in its own cluster — collected here, rendered
@@ -3212,32 +3263,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       return spines ? ('<div class="shelf-cluster">' + spines + '</div>') : '';
     }).filter(Boolean).join('');
 
-    if(pileBooks.length){
-      var PILE_MAX_PER_STACK = 5;
-      var pileSorted = pileBooks.slice().sort(function(a, b){ return (a.title || '').localeCompare(b.title || ''); });
-      var pileChunks = [];
-      for(var pc = 0; pc < pileSorted.length; pc += PILE_MAX_PER_STACK){
-        pileChunks.push(pileSorted.slice(pc, pc + PILE_MAX_PER_STACK));
-      }
-      var pileStacksHtml = pileChunks.map(function(chunk){
-        var pileItems = chunk.map(function(b){
-          var hash = 0;
-          for(var i = 0; i < b.id.length; i++){ hash = (hash * 31 + b.id.charCodeAt(i)) & 0xffffffff; }
-          var pileHeight = 26 + (Math.abs(hash) % 10);
-          var pileWidth = 190;
-          var style = pileSpineStyleFor(b);
-          var colorCss = 'color:' + style.textColor + ';';
-          var label = b.title + (b.seriesNumber || b.seriesNumber === 0 ? ' · ' + String(b.seriesNumber) : '');
-          var titleAttr = escapeHtml(b.title) + (b.series ? ' (' + escapeHtml(b.series) + ')' : '');
-          var size = hTitleFontSize(label, pileWidth);
-          return '<div class="shelf-book tbr-pile-item" data-book-id="' + b.id + '" title="' + titleAttr + '" style="height:' + pileHeight + 'px;' + style.bg + '">' +
-            '<span class="spine-title-h" style="font-size:' + size + 'px;' + colorCss + '">' + escapeHtml(label) + '</span>' +
-            '</div>';
-        }).join('');
-        return '<div class="shelf-cluster tbr-pile-cluster"><div class="tbr-pile-stack" style="width:190px;">' + pileItems + '</div></div>';
-      }).join('');
-      clusters += pileStacksHtml;
-    }
+    clusters += buildPileStacksHtml(pileBooks, pileSpineStyleFor, '', null);
+    clusters += buildPileStacksHtml(dnfPileBooks, dnfPileSpineStyleFor, 'dnf-pile-item', 'DNF');
 
     // Lay everything out on one long measuring row first (at the container's
     // real current width), then split it into separate shelf "tiers" — a row
