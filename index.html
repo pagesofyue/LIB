@@ -3271,8 +3271,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     // of books plus its own plank — wherever the flex-wrap actually breaks a
     // line. That gives a real multi-shelf bookcase instead of one giant plank
     // sitting under a wall of wrapped books.
-    wrap.innerHTML = '<h2 class="shelf-heading">Your Shelf</h2>' +
-      '<div class="shelf-wrap"><div class="shelf-row" id="shelfMeasureRow">' + clusters + '</div></div>';
+    wrap.innerHTML = '<div class="shelf-wrap"><div class="shelf-row" id="shelfMeasureRow">' + clusters + '</div></div>';
 
     var measureRow = document.getElementById('shelfMeasureRow');
 
@@ -3310,7 +3309,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       return '<div class="shelf-tier"><div class="shelf-row">' + rowHtml + '</div><div class="shelf-plank"></div></div>';
     }).join('');
 
-    wrap.innerHTML = '<h2 class="shelf-heading">Your Shelf</h2>' + '<div class="shelf-wrap">' + tiersHtml + '</div>';
+    wrap.innerHTML = '<div class="shelf-wrap">' + tiersHtml + '</div>';
   }
 
   // Re-tier the shelf if the window is resized while the Reviews tab is open,
