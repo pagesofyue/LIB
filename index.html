@@ -431,7 +431,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
 .dates{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:4px;}
 
-.card-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:12px;border-top:1px solid var(--line);padding-top:10px;}
+.card-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px;margin-top:12px;border-top:1px solid var(--line);padding-top:10px;}
 .icon-btn{background:none;border:1px solid var(--line);border-radius:7px;padding:5px 9px;cursor:pointer;color:var(--muted);font-size:11px;font-family:var(--font-body);display:flex;align-items:center;gap:4px;}
 .icon-btn:hover{border-color:var(--line-strong);color:var(--ink);}
 .icon-btn.danger{color:var(--dnf-deep);}
@@ -481,6 +481,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
 .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;}
 .detail-row{display:flex;gap:12px;font-size:13px;padding:8px 0;border-bottom:1px solid var(--line);}
+.detail-blurb{font-size:13.5px;line-height:1.65;color:var(--ink);background:var(--card-hover);border:1px solid var(--line);border-radius:8px;padding:13px 15px;margin:16px 0;white-space:pre-wrap;}
 .detail-row .dl{width:120px;flex:none;color:var(--muted);font-weight:500;}
 .detail-row .dv{flex:1;min-width:0;overflow-wrap:break-word;word-break:break-word;}
 .view-header{display:flex;gap:16px;align-items:flex-start;margin-bottom:6px;}
@@ -790,6 +791,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         <input type="text" id="f_nowPlaying" placeholder="A song that fits this book's vibe">
       </div>
       <div class="core-fields" id="coreFields2">
+      <div class="field" id="field-blurb">
+        <label>Blurb (optional)</label>
+        <a href="#" id="addBlurbLink" class="manage-link" style="display:inline-block;">+ Add blurb</a>
+        <textarea id="f_blurb" rows="4" placeholder="Paste the publisher's synopsis here..." style="display:none;width:100%;padding:9px 11px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);font-family:var(--font-body);font-size:14px;color:var(--ink);resize:vertical;"></textarea>
+      </div>
       <div class="field">
         <label>Genre <button type="button" class="manage-link" id="openManageGenreBtn">Manage list</button></label>
         <select id="f_genre">
@@ -1807,6 +1813,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       '<div class="card-actions">' +
         '<button class="icon-btn postcard-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="m2 8 10 6 10-6"/></svg>Postcard</button>' +
         '<button class="icon-btn edit-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>Edit</button>' +
+        '<button class="icon-btn duplicate-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Duplicate</button>' +
         '<button class="icon-btn danger del-btn' + (isConfirming ? ' confirming' : '') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>' + (isConfirming ? 'Confirm?' : 'Delete') + '</button>' +
       '</div>';
 
@@ -1818,6 +1825,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     card.querySelector('.postcard-btn').onclick = function(){ openPostcardModal(b.id); };
 
     card.querySelector('.edit-btn').onclick = function(){ openModal(b.id); };
+    card.querySelector('.duplicate-btn').onclick = function(){ duplicateBook(b.id); };
     card.querySelector('.del-btn').onclick = function(){
       if(confirmingDelete === b.id){
         var deletedId = b.id;
@@ -2197,6 +2205,53 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   var modalMode = 'full';
 
+  // "Smart" duplicate: carries over the fields that are genuinely shared
+  // across a series (author, series, genre, tropes, format, ownership, ARC
+  // source), resets everything specific to an individual copy (title,
+  // status, rating, review, dates, pages, cover), and bumps the series
+  // number by one if the original had one — then opens it straight into
+  // edit mode so the only thing left to do is type the new title.
+  function duplicateBook(id){
+    var b = books.find(function(x){ return x.id === id; });
+    if(!b) return;
+    var newSeriesNumber = (b.seriesNumber || b.seriesNumber === 0) ? b.seriesNumber + 1 : null;
+    var dup = {
+      id: uid(),
+      title: '',
+      author: b.author || '',
+      status: 'want',
+      series: b.series || '',
+      seriesNumber: newSeriesNumber,
+      format: b.format || '',
+      ownership: b.ownership || 'Owned',
+      borrowDueDate: '',
+      isARC: !!b.isARC,
+      arcSource: b.isARC ? (b.arcSource || '') : '',
+      dueDate: '',
+      arcFormLink: '',
+      totalPages: null,
+      currentPage: null,
+      dateStarted: '',
+      dateFinished: '',
+      genre: b.genre || '',
+      rating: 0,
+      tropes: (b.tropes || []).slice(),
+      cover: null,
+      dnfReason: '',
+      nowPlaying: '',
+      review: '',
+      postcardCaption: '',
+      blurb: '',
+      createdAt: Date.now(),
+      statusChangedAt: Date.now()
+    };
+    books.push(dup);
+    saveBookRemote(dup);
+    render();
+    openModal(dup.id);
+    showBanner('Duplicated — fill in the title and anything else that\'s different.');
+  }
+
   function openModal(id, mode){
     editingId = id || null;
     modalMode = mode || 'full';
@@ -2230,6 +2285,10 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     document.getElementById('starPreview').textContent = starsPlain(b ? b.rating : 0);
     document.getElementById('f_review').value = b ? b.review || '' : '';
     document.getElementById('f_nowPlaying').value = b ? b.nowPlaying || '' : '';
+    var blurbVal = b ? (b.blurb || '') : '';
+    document.getElementById('f_blurb').value = blurbVal;
+    document.getElementById('f_blurb').style.display = blurbVal ? 'block' : 'none';
+    document.getElementById('addBlurbLink').style.display = blurbVal ? 'none' : 'inline-block';
     pendingCover = b ? (b.cover || null) : null;
     document.getElementById('coverPreview').innerHTML = pendingCover ? '<img src="' + pendingCover + '" alt="">' : '<span class="ph">No cover</span>';
     document.getElementById('f_cover').value = '';
@@ -2261,6 +2320,14 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   document.getElementById('f_status').addEventListener('change', function(e){
     document.getElementById('field-dnf-reason').style.display = e.target.value === 'dnf' ? 'block' : 'none';
+  });
+
+  document.getElementById('addBlurbLink').addEventListener('click', function(e){
+    e.preventDefault();
+    this.style.display = 'none';
+    var ta = document.getElementById('f_blurb');
+    ta.style.display = 'block';
+    ta.focus();
   });
 
   document.getElementById('f_format').addEventListener('change', applyFormatUI);
@@ -2296,6 +2363,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       rating: document.getElementById('f_rating').value ? Math.round(parseFloat(document.getElementById('f_rating').value) * 4) / 4 : 0,
       review: document.getElementById('f_review').value.trim(),
       nowPlaying: document.getElementById('f_nowPlaying').value.trim(),
+      blurb: document.getElementById('f_blurb').value.trim(),
       tropes: selectedTropes.slice(),
       cover: pendingCover
     };
@@ -2913,7 +2981,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         (b.series ? '<p style="color:var(--muted);font-size:12.5px;margin:0;">' + escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '') + '</p>' : '') +
         datesLine +
       '</div>' +
-    '</div>' + rows + buildCheckoutHistoryHtml(b);
+    '</div>' +
+    (b.blurb ? '<div class="detail-blurb">' + escapeHtml(b.blurb) + '</div>' : '') +
+    rows + buildCheckoutHistoryHtml(b);
   }
 
   function buildCheckoutHistoryHtml(b){
@@ -3761,6 +3831,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         nowPlaying: nowPlaying,
         review: '',
         postcardCaption: '',
+        blurb: '',
         createdAt: Date.now(),
         statusChangedAt: Date.now()
       });
