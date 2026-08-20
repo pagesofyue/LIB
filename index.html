@@ -33,6 +33,8 @@
   --dnf-deep:#8A4E71;
   --hold:#CBA35C;
   --hold-deep:#8F6F3C;
+  --requested:#8FA6C9;
+  --requested-deep:#5C7396;
   --radius:10px;
   --font-display:'Courier Prime', monospace;
   --font-body:'Courier Prime', monospace;
@@ -61,6 +63,8 @@ body[data-theme="winter"]{
   --dnf-deep:#786F97;
   --hold:#D8B989;
   --hold-deep:#A88752;
+  --requested:#9DB3D9;
+  --requested-deep:#6A83AD;
 }
 body[data-theme="spring"]{
   --ink:#4A2F42;
@@ -82,6 +86,8 @@ body[data-theme="spring"]{
   --dnf-deep:#96636A;
   --hold:#E8C79A;
   --hold-deep:#B99A48;
+  --requested:#C9A8D6;
+  --requested-deep:#9A73AB;
 }
 body[data-theme="summer"]{
   --ink:#33474A;
@@ -103,6 +109,8 @@ body[data-theme="summer"]{
   --dnf-deep:#B4504F;
   --hold:#F0D25E;
   --hold-deep:#BFA23A;
+  --requested:#5EA9C9;
+  --requested-deep:#3B7C99;
 }
 body[data-theme="fall"]{
   --ink:#4A2E22;
@@ -124,6 +132,8 @@ body[data-theme="fall"]{
   --dnf-deep:#7A3E3E;
   --hold:#D4A23C;
   --hold-deep:#A67A25;
+  --requested:#8A9FC4;
+  --requested-deep:#5D7299;
 }
 body[data-theme="under-the-sea"]{
   --ink:#1B3A45;
@@ -145,6 +155,8 @@ body[data-theme="under-the-sea"]{
   --dnf-deep:#9A5555;
   --hold:#E8B84B;
   --hold-deep:#B98E2E;
+  --requested:#4FC7C0;
+  --requested-deep:#309691;
 }
 body[data-theme="velaris"]{
   --ink:#2E2350;
@@ -166,6 +178,8 @@ body[data-theme="velaris"]{
   --dnf-deep:#7A3F66;
   --hold:#6FA0E0;
   --hold-deep:#4B78B8;
+  --requested:#D4A5E8;
+  --requested-deep:#A671BF;
 
   background-size: cover; 
   background-attachment: fixed; 
@@ -192,6 +206,8 @@ body[data-theme="wisteria"]{
   --dnf-deep:#9C6689;
   --hold:#B8A0DC;
   --hold-deep:#8F71B8;
+  --requested:#7FA8C9;
+  --requested-deep:#557E9E;
 }
   
 *{box-sizing:border-box;}
@@ -368,6 +384,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .status-tab.finished{background:var(--finished);}
 .status-tab.dnf{background:var(--dnf);}
 .status-tab.hold{background:var(--hold);}
+.status-tab.requested{background:var(--requested);}
 
 .genre-tab{display:inline-block;font-family:var(--font-body);font-size:10px;font-weight:600;color:var(--ink);padding:4px 12px;border-radius:6px 6px 0 0;margin:-16px 0 10px 0;letter-spacing:0.02em;}
 .card-top{display:flex;gap:12px;align-items:flex-start;}
@@ -391,6 +408,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .read-stamp{flex:none;font-family:var(--font-stamp);font-size:11px;font-weight:400;letter-spacing:0.1em;text-align:center;border:1.5px dashed var(--finished-deep);color:var(--finished-deep);background:radial-gradient(circle at 35% 35%, rgba(122,90,158,0.18), transparent 70%);border-radius:4px;padding:7px 9px;transform:rotate(5deg);line-height:1.15;}
 .dnf-stamp{flex:none;font-family:var(--font-stamp);font-size:11px;font-weight:400;letter-spacing:0.08em;text-align:center;border:1.5px dashed var(--dnf-deep);color:var(--dnf-deep);background:radial-gradient(circle at 35% 35%, rgba(138,78,113,0.18), transparent 70%);border-radius:4px;padding:7px 9px;transform:rotate(-4deg);line-height:1.15;}
 .hold-stamp{flex:none;font-family:var(--font-stamp);font-size:10px;font-weight:400;letter-spacing:0.06em;text-align:center;border:1.5px dashed var(--hold-deep);color:var(--hold-deep);background:radial-gradient(circle at 35% 35%, rgba(143,111,60,0.18), transparent 70%);border-radius:4px;padding:7px 8px;transform:rotate(3deg);line-height:1.15;}
+.requested-stamp{flex:none;font-family:var(--font-stamp);font-size:10px;font-weight:400;letter-spacing:0.06em;text-align:center;border:1.5px dashed var(--requested-deep);color:var(--requested-deep);background:radial-gradient(circle at 35% 35%, rgba(92,115,150,0.18), transparent 70%);border-radius:4px;padding:7px 8px;transform:rotate(-3deg);line-height:1.15;}
 .arc-source{font-size:10.5px;color:var(--muted);margin-top:2px;font-family:var(--font-mono);}
 .dup-badge{display:inline-block;font-size:10px;color:var(--dnf-deep);background:rgba(138,78,113,0.12);border-radius:8px;padding:2px 8px;margin-top:5px;}
 .arc-link{display:inline-block;font-size:10.5px;color:var(--accent-deep);margin-top:3px;text-decoration:underline;font-family:var(--font-body);}
@@ -482,6 +500,33 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;}
 .detail-row{display:flex;gap:12px;font-size:13px;padding:8px 0;border-bottom:1px solid var(--line);}
 .detail-blurb{font-size:13.5px;line-height:1.65;color:var(--ink);background:var(--card-hover);border:1px solid var(--line);border-radius:8px;padding:13px 15px;margin:16px 0;white-space:pre-wrap;}
+.blurb-toggle{margin:16px 0;}
+.blurb-toggle summary{cursor:pointer;color:var(--accent-deep);font-size:12.5px;font-weight:600;list-style:none;display:inline-flex;align-items:center;gap:5px;user-select:none;}
+.blurb-toggle summary::-webkit-details-marker{display:none;}
+.blurb-toggle summary::before{content:'▸';font-size:10px;transition:transform 0.15s;}
+.blurb-toggle[open] summary::before{transform:rotate(90deg);}
+.blurb-toggle[open] summary{margin-bottom:8px;}
+.blurb-toggle .detail-blurb{margin:0;}
+.book-links{margin-top:16px;}
+.book-links h4{font-family:var(--font-display);font-size:12px;margin:0 0 8px;color:var(--muted);letter-spacing:0.05em;text-transform:uppercase;}
+.book-link-row{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;padding:6px 0;border-bottom:1px solid var(--line);}
+.book-link-row a{color:var(--accent-deep);}
+.book-links-empty{font-size:12px;color:var(--muted);padding:4px 0;}
+.book-link-add-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center;}
+.book-link-add-row input{padding:7px 9px;border:1px solid var(--line-strong);border-radius:7px;background:var(--card);font-family:var(--font-body);font-size:12.5px;color:var(--ink);flex:1;min-width:110px;}
+.author-card{position:relative;}
+.author-card-top{display:flex;align-items:center;gap:12px;margin-bottom:4px;}
+.author-photo-wrap{position:relative;flex:none;width:56px;height:56px;}
+.author-photo{width:56px;height:56px;border-radius:50%;object-fit:cover;background:var(--card-hover);border:1px solid var(--line);display:block;}
+.author-photo-ph{width:56px;height:56px;border-radius:50%;background:var(--card-hover);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:20px;color:var(--muted);}
+.author-photo-edit{position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;border-radius:50%;background:var(--accent-deep);color:#fff;border:2px solid var(--card);display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;}
+.author-photo-input{display:none;}
+.author-toggle summary{cursor:pointer;list-style:none;font-family:var(--font-display);font-size:17px;font-weight:600;color:var(--ink);}
+.author-toggle summary::-webkit-details-marker{display:none;}
+.author-toggle summary::after{content:'▸';font-size:11px;color:var(--muted);margin-left:6px;display:inline-block;transition:transform 0.15s;}
+.author-toggle[open] summary::after{transform:rotate(90deg);}
+.author-book-count{font-size:11.5px;color:var(--muted);margin:2px 0 0;}
+.author-books{margin-top:10px;}
 .detail-row .dl{width:120px;flex:none;color:var(--muted);font-weight:500;}
 .detail-row .dv{flex:1;min-width:0;overflow-wrap:break-word;word-break:break-word;}
 .view-header{display:flex;gap:16px;align-items:flex-start;margin-bottom:6px;}
@@ -577,6 +622,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     <button class="view-tab" id="navReader">Reader Page</button>
     <button class="view-tab" id="navReviews">Reviews</button>    
     <button class="view-tab" id="navSeries">Series</button>
+    <button class="view-tab" id="navAuthors">Authors</button>
     <button class="view-tab" id="navCalendar">Calendar</button>
     <a class="view-tab" href="./social.html" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center;">Social Post</a>
   </div>
@@ -642,6 +688,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   </div>
 
   <div id="seriesView" style="display:none;"></div>
+  <div id="authorsView" style="display:none;"></div>
   <div id="calendarView" style="display:none;"></div>
   <div id="reviewsView" style="display:none;"></div>
 
@@ -686,6 +733,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         <div class="field">
           <label>Status</label>
           <select id="f_status">
+            <option value="requested">Requested</option>
             <option value="want">Want to read</option>
             <option value="reading" id="statusReadingOption">Reading</option>
             <option value="hold">On Hold</option>
@@ -1134,7 +1182,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         genreList: meta.genreList || [],
         arcSourceList: meta.arcSourceList || [],
         readerLinks: meta.readerLinks || [],
-        customStamp: meta.customStamp || ''
+        customStamp: meta.customStamp || '',
+        authorPhotos: meta.authorPhotos || {}
       };
     },
     async saveBook(book){
@@ -1278,6 +1327,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   var tropeList = [];
   var genreList = [];
   var arcSourceList = [];
+  var authorPhotos = {};
   var pendingCover = null;
   var activeStatus = 'all';
   var dueSoonFilterActive = false;
@@ -1290,6 +1340,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   var statusMeta = {
     all: {label:'All'},
+    requested: {label:'Requested'},
     want: {label:'Want to read'},
     reading: {label:'Reading'},
     hold: {label:'On Hold'},
@@ -1330,6 +1381,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       else { arcSourceList = defaultArcSources.slice(); saveArcSourceList(); }
       readerLinks = data.readerLinks || [];
       customStampDataUrl = data.customStamp || '';
+      authorPhotos = data.authorPhotos || {};
       setSync('idle');
     }catch(e){
       books = [];
@@ -1337,6 +1389,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       genreList = defaultGenres.slice();
       arcSourceList = defaultArcSources.slice();
       readerLinks = [];
+      authorPhotos = {};
       setSync('error');
       showBanner("Couldn't load your library from the cloud. Check your connection and refresh.");
     }
@@ -1378,6 +1431,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   async function saveArcSourceList(){
     try{ await window.cloudStore.saveMeta({arcSourceList: arcSourceList}); }catch(e){}
+  }
+
+  async function saveAuthorPhotos(){
+    try{ await window.cloudStore.saveMeta({authorPhotos: authorPhotos}); }catch(e){
+      showBanner("Couldn't save that photo. Try a smaller image, then try again.");
+    }
   }
 
   function renderArcSourceList(){
@@ -1598,7 +1657,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   function getDueSoonBooks(days){
     return books.filter(function(b){
-      if(b.status === 'finished' || b.status === 'dnf' || b.status === 'hold') return false;
+      if(b.status === 'finished' || b.status === 'dnf' || b.status === 'hold' || b.status === 'requested') return false;
       var due = effectiveDueDate(b);
       if(!due) return false;
       var d = daysUntil(due);
@@ -1671,7 +1730,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       if(provider && b.arcSource !== provider) return false;
       if(dueSoonFilterActive){
         var due = effectiveDueDate(b);
-        if(!due || b.status === 'finished' || b.status === 'dnf' || b.status === 'hold') return false;
+        if(!due || b.status === 'finished' || b.status === 'dnf' || b.status === 'hold' || b.status === 'requested') return false;
         var d = daysUntil(due);
         if(d === null || d > DUE_SOON_DAYS) return false;
       }
@@ -1698,6 +1757,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
 
   function statusGroupWeight(b){
+    if(b.status === 'requested') return -1;
     if(b.status === 'hold') return 1;
     if(b.status === 'dnf') return 2;
     if(b.status === 'finished') return 3;
@@ -1758,7 +1818,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         '<div class="progress-text">' + (b.currentPage||0) + ' / ' + b.totalPages + ' ' + unit + ' · ' + pct + '%</div></div>';
     }
 
-    var showDueStamp = b.status !== 'finished' && b.status !== 'dnf' && b.status !== 'hold';
+    var showDueStamp = b.status !== 'finished' && b.status !== 'dnf' && b.status !== 'hold' && b.status !== 'requested';
     var stampHtml = '';
     if(showDueStamp && b.isARC && b.dueDate){
       var d = daysUntil(b.dueDate);
@@ -1775,7 +1835,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var readStampHtml = b.status === 'finished' ? '<div class="read-stamp">READ</div>' : '';
     var dnfStampHtml = b.status === 'dnf' ? '<div class="dnf-stamp">DNF</div>' : '';
     var holdStampHtml = b.status === 'hold' ? '<div class="hold-stamp">ON HOLD</div>' : '';
-    var stampColHtml = (stampHtml || readStampHtml || dnfStampHtml || holdStampHtml) ? '<div class="stamp-col">' + stampHtml + readStampHtml + dnfStampHtml + holdStampHtml + '</div>' : '';
+    var requestedStampHtml = b.status === 'requested' ? '<div class="requested-stamp">REQUESTED</div>' : '';
+    var stampColHtml = (stampHtml || readStampHtml || dnfStampHtml || holdStampHtml || requestedStampHtml) ? '<div class="stamp-col">' + stampHtml + readStampHtml + dnfStampHtml + holdStampHtml + requestedStampHtml + '</div>' : '';
 
     var arcSourceHtml = (b.isARC && b.arcSource) ? '<div class="arc-source">via ' + escapeHtml(b.arcSource) + '</div>' : '';
     var arcLinkHtml = (b.isARC && b.arcFormLink) ? '<a class="arc-link" href="' + escapeHtml(b.arcFormLink) + '" target="_blank" rel="noopener">Review form ↗</a>' : '';
@@ -2553,7 +2614,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   document.getElementById('exportBackupBtn').onclick = function(){
     document.getElementById('exportMenu').style.display = 'none';
-    var payload = {books: books, tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, exportedAt: new Date().toISOString()};
+    var payload = {books: books, tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, authorPhotos: authorPhotos, exportedAt: new Date().toISOString()};
     var blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
     var url = URL.createObjectURL(blob);
     var link = document.createElement('a');
@@ -2582,10 +2643,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       genreList = data.genreList || defaultGenres.slice();
       arcSourceList = data.arcSourceList || data.customArcSources || defaultArcSources.slice();
       readerLinks = data.readerLinks || [];
+      authorPhotos = data.authorPhotos || {};
       setSync('syncing');
       try{
         await window.cloudStore.replaceAllBooks(books);
-        await window.cloudStore.saveMeta({tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks});
+        await window.cloudStore.saveMeta({tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, authorPhotos: authorPhotos});
         setSync('idle');
       }catch(e){
         setSync('error');
@@ -2621,6 +2683,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   var NAV_TABS = {
     navLibrary: 'libraryView',
     navSeries: 'seriesView',
+    navAuthors: 'authorsView',
     navCalendar: 'calendarView',
     navReviews: 'reviewsView',
     navReader: 'readerView'
@@ -2636,12 +2699,14 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       document.getElementById(NAV_TABS[navId]).style.display = isActive ? 'block' : 'none';
     });
     if(activeNavId === 'navSeries') renderSeriesView();
+    if(activeNavId === 'navAuthors') renderAuthorsView();
     if(activeNavId === 'navCalendar') renderCalendarView();
     if(activeNavId === 'navReviews') renderReviewsView();
   }
 
   document.getElementById('navLibrary').onclick = function(){ switchView('navLibrary'); };
   document.getElementById('navSeries').onclick = function(){ switchView('navSeries'); };
+  document.getElementById('navAuthors').onclick = function(){ switchView('navAuthors'); };
   document.getElementById('navCalendar').onclick = function(){ switchView('navCalendar'); };
   document.getElementById('navReviews').onclick = function(){ switchView('navReviews'); };
   document.getElementById('navReader').onclick = function(){ switchView('navReader'); };
@@ -2963,8 +3028,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     if(b.totalPages) rows += '<div class="detail-row"><span class="dl">' + unit + '</span><span class="dv">' + (b.currentPage||0) + ' / ' + b.totalPages + '</span></div>';
     if(b.isARC){
       rows += '<div class="detail-row"><span class="dl">ARC source</span><span class="dv">' + escapeHtml(b.arcSource || '—') + '</span></div>';
-      if(b.dueDate) rows += '<div class="detail-row"><span class="dl">Review due</span><span class="dv">' + fmtDate(b.dueDate) + '</span></div>';
-      if(b.arcFormLink) rows += '<div class="detail-row"><span class="dl">Review form</span><span class="dv"><a href="' + escapeHtml(b.arcFormLink) + '" target="_blank" rel="noopener" style="color:var(--accent-deep);">' + escapeHtml(b.arcFormLink) + '</a></span></div>';
+      if(b.dueDate) rows += '<div class="detail-row"><span class="dl">Review Due Date</span><span class="dv">' + fmtDate(b.dueDate) + '</span></div>';
     }
     if(b.nowPlaying) rows += '<div class="detail-row"><span class="dl">Now playing</span><span class="dv">🎵 ' + escapeHtml(b.nowPlaying) + '</span></div>';
 
@@ -2972,6 +3036,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     if(b.dateStarted) datesParts.push('Started ' + fmtDate(b.dateStarted));
     if(b.dateFinished) datesParts.push('Finished ' + fmtDate(b.dateFinished));
     var datesLine = datesParts.length ? '<p class="dates" style="margin:3px 0 0;">' + datesParts.join(' · ') + '</p>' : '';
+
+    var blurbHtml = b.blurb ? '<details class="blurb-toggle"><summary>Read Blurb</summary><div class="detail-blurb">' + escapeHtml(b.blurb) + '</div></details>' : '';
 
     return '<div class="view-header">' +
       '<div class="view-cover">' + coverHtml + '</div>' +
@@ -2982,9 +3048,74 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         datesLine +
       '</div>' +
     '</div>' +
-    (b.blurb ? '<div class="detail-blurb">' + escapeHtml(b.blurb) + '</div>' : '') +
-    rows + buildCheckoutHistoryHtml(b);
+    blurbHtml +
+    rows + buildLinksHtml(b) + buildCheckoutHistoryHtml(b);
   }
+
+  // Review form (from the main Add/Edit form) plus any extra links the
+  // person adds right here in this panel — Goodreads, StoryGraph, whatever.
+  // Extra links only ever live on the book itself; they don't touch the
+  // main Add/Edit form.
+  function buildLinksHtml(b){
+    var extra = b.customLinks || [];
+    if(!b.arcFormLink && !extra.length) {
+      return '<div class="book-links"><h4>Links</h4>' +
+        '<p class="book-links-empty">No links added yet.</p>' +
+        buildLinkAddRowHtml() + '</div>';
+    }
+    var rowsHtml = '';
+    if(b.arcFormLink){
+      rowsHtml += '<div class="book-link-row"><a href="' + escapeHtml(b.arcFormLink) + '" target="_blank" rel="noopener">Review form</a><span></span></div>';
+    }
+    extra.forEach(function(link, idx){
+      rowsHtml += '<div class="book-link-row"><a href="' + escapeHtml(link.url) + '" target="_blank" rel="noopener">' + escapeHtml(link.label) + '</a>' +
+        '<button type="button" class="link-remove" data-idx="' + idx + '" title="Remove link">×</button></div>';
+    });
+    return '<div class="book-links"><h4>Links</h4>' + rowsHtml + buildLinkAddRowHtml() + '</div>';
+  }
+
+  function buildLinkAddRowHtml(){
+    return '<div class="book-link-add-row">' +
+      '<input type="text" id="linkNewLabel" placeholder="Label (e.g. Goodreads)">' +
+      '<input type="url" id="linkNewUrl" placeholder="https://...">' +
+      '<button type="button" class="small-btn" id="linkAddBtn">Add</button>' +
+      '</div>';
+  }
+
+  function wireLinksHandlers(){
+    var addBtn = document.getElementById('linkAddBtn');
+    if(addBtn) addBtn.onclick = addCustomLink;
+    document.querySelectorAll('#viewContent .book-link-row .link-remove').forEach(function(btn){
+      btn.onclick = function(){ removeCustomLink(parseInt(btn.getAttribute('data-idx'), 10)); };
+    });
+  }
+
+  function addCustomLink(){
+    var labelVal = document.getElementById('linkNewLabel').value.trim();
+    var urlVal = document.getElementById('linkNewUrl').value.trim();
+    if(!labelVal || !urlVal){ showBanner('Add both a label and a link first.'); return; }
+    if(!/^https?:\/\//i.test(urlVal)) urlVal = 'https://' + urlVal;
+    var b = books.find(function(x){ return x.id === currentViewBookId; });
+    if(!b) return;
+    b.customLinks = (b.customLinks || []).concat([{label: labelVal, url: urlVal}]);
+    books = books.map(function(x){ return x.id === b.id ? b : x; });
+    saveBookRemote(b);
+    document.getElementById('viewContent').innerHTML = buildViewHtml(b);
+    wireCheckoutHistoryHandlers();
+    wireLinksHandlers();
+  }
+
+  function removeCustomLink(idx){
+    var b = books.find(function(x){ return x.id === currentViewBookId; });
+    if(!b || !b.customLinks) return;
+    b.customLinks = b.customLinks.filter(function(l, i){ return i !== idx; });
+    books = books.map(function(x){ return x.id === b.id ? b : x; });
+    saveBookRemote(b);
+    document.getElementById('viewContent').innerHTML = buildViewHtml(b);
+    wireCheckoutHistoryHandlers();
+    wireLinksHandlers();
+  }
+
 
   function buildCheckoutHistoryHtml(b){
     var history = b.checkoutHistory || [];
@@ -3026,6 +3157,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     saveBookRemote(b);
     document.getElementById('viewContent').innerHTML = buildViewHtml(b);
     wireCheckoutHistoryHandlers();
+    wireLinksHandlers();
   }
 
   function removeCheckoutEntry(idx){
@@ -3036,6 +3168,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     saveBookRemote(b);
     document.getElementById('viewContent').innerHTML = buildViewHtml(b);
     wireCheckoutHistoryHandlers();
+    wireLinksHandlers();
   }
 
   function openViewModal(id){
@@ -3044,6 +3177,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     currentViewBookId = id;
     document.getElementById('viewContent').innerHTML = buildViewHtml(b);
     wireCheckoutHistoryHandlers();
+    wireLinksHandlers();
     document.getElementById('viewOverlay').style.display = 'flex';
   }
 
@@ -3149,12 +3283,114 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     if(id) openViewModal(id);
   });
 
+  // ===================== Authors tab =====================
+  function authorInitial(name){
+    return (name || '?').trim().charAt(0).toUpperCase() || '?';
+  }
+
+  function renderAuthorsView(){
+    var wrap = document.getElementById('authorsView');
+    var groups = {};
+    books.forEach(function(b){
+      if(!b.author) return;
+      if(!groups[b.author]) groups[b.author] = [];
+      groups[b.author].push(b);
+    });
+    var names = Object.keys(groups).sort(function(a, b){ return a.localeCompare(b); });
+    if(!names.length){
+      wrap.innerHTML = '<div class="cal-empty-note">No authors yet — add an author to a book to see them here.</div>';
+      return;
+    }
+
+    var cards = names.map(function(name){
+      var list = groups[name].slice().sort(function(a, b){ return (a.title || '').localeCompare(b.title || ''); });
+      var photo = authorPhotos[name];
+      var photoHtml = photo
+        ? '<img class="author-photo" src="' + photo + '" alt="">'
+        : '<div class="author-photo-ph">' + escapeHtml(authorInitial(name)) + '</div>';
+
+      var rows = list.map(function(b){
+        return '<div class="series-book-row" data-book-id="' + b.id + '">' +
+          '<div class="series-book-num"></div>' +
+          '<div class="series-book-title">' + escapeHtml(b.title) + '</div>' +
+          '<div class="series-book-status">' + escapeHtml(statusLabelFor(b)) + '</div>' +
+          '</div>';
+      }).join('');
+
+      var safeNameAttr = escapeHtml(name);
+      return '<div class="card author-card" data-author="' + safeNameAttr + '">' +
+        '<div class="author-card-top">' +
+          '<div class="author-photo-wrap">' +
+            photoHtml +
+            '<label class="author-photo-edit" title="Add/change photo">✎<input type="file" class="author-photo-input" accept="image/*"></label>' +
+          '</div>' +
+          '<div>' +
+            '<details class="author-toggle"><summary>' + escapeHtml(name) + '</summary></details>' +
+            '<p class="author-book-count">' + list.length + ' book' + (list.length === 1 ? '' : 's') + '</p>' +
+          '</div>' +
+        '</div>' +
+        '<div class="author-books" style="display:none;">' + rows + '</div>' +
+        '</div>';
+    }).join('');
+
+    wrap.innerHTML = '<div class="grid">' + cards + '</div>';
+  }
+
+  document.getElementById('authorsView').addEventListener('click', function(e){
+    var row = e.target.closest('.series-book-row');
+    if(row){
+      var id = row.getAttribute('data-book-id');
+      if(id) openViewModal(id);
+      return;
+    }
+  });
+
+  // The book-row list lives in its own div rather than inside <details>
+  // content directly, so its layout doesn't fight the details/summary
+  // animation — this just toggles it in sync with the details element.
+  document.getElementById('authorsView').addEventListener('toggle', function(e){
+    var toggle = e.target;
+    if(!toggle.classList || !toggle.classList.contains('author-toggle')) return;
+    var card = toggle.closest('.author-card');
+    if(!card) return;
+    var booksDiv = card.querySelector('.author-books');
+    if(booksDiv) booksDiv.style.display = toggle.open ? 'block' : 'none';
+  }, true);
+
+  document.getElementById('authorsView').addEventListener('change', function(e){
+    var input = e.target.closest('.author-photo-input');
+    if(!input) return;
+    var file = input.files[0];
+    if(!file) return;
+    var card = input.closest('.author-card');
+    var name = card ? card.getAttribute('data-author') : null;
+    if(!name) return;
+    resizeImage(file, 200, 0.82).then(function(dataUrl){
+      authorPhotos[name] = dataUrl;
+      saveAuthorPhotos();
+      renderAuthorsView();
+    }).catch(function(){
+      showBanner("Couldn't process that photo. Try a different image.");
+    });
+  });
+
   // ===================== Reviews shelf =====================
   function renderReviewsView(){
-    var reviewed = books.slice();
     var wrap = document.getElementById('reviewsView');
-    if(!reviewed.length){
+    if(!books.length){
       wrap.innerHTML = '<div class="cal-empty-note">Your shelf is empty — add a book and it\'ll land here.</div>';
+      return;
+    }
+
+    // Requested books (applied for / not out yet) haven't arrived, so they
+    // never join the main shelf clusters — they get their own small shelf
+    // off to the side, rendered after the main bookcase.
+    var requestedBooks = books.filter(function(b){ return b.status === 'requested'; });
+    var reviewed = books.filter(function(b){ return b.status !== 'requested'; });
+
+    if(!reviewed.length){
+      wrap.innerHTML = '<div class="cal-empty-note">Your shelf is empty — add a book and it\'ll land here.</div>' +
+        renderRequestedShelfHtml(requestedBooks);
       return;
     }
 
@@ -3209,6 +3445,14 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       return {bg: 'background:' + DNF_MUTED_BG + ';', textColor: DNF_MUTED_TEXT};
     }
 
+    // Requested books aren't in hand yet — applied for as an ARC, or just
+    // not out in the world yet — so they get a dashed, "not arrived"
+    // outline instead of a filled genre color, on their own little mini
+    // shelf off to the side (see renderRequestedShelfHtml below).
+    function requestedPileSpineStyleFor(b){
+      return {bg: 'background:rgba(0,0,0,0);border:1.5px dashed var(--requested-deep);', textColor: 'var(--requested-deep)'};
+    }
+
     // Renders one or more pile stacks (capped at 5 books per stack) from a
     // list of books, sharing the same stacking mechanic for both the TBR
     // pile and the DNF pile — just with a different style function and an
@@ -3240,6 +3484,16 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         }).join('');
         return '<div class="shelf-cluster tbr-pile-cluster"><div class="tbr-pile-stack" style="width:190px;">' + items + '</div></div>';
       }).join('');
+    }
+
+    // Builds the small standalone "Requested" shelf — its own heading and
+    // plank, separate from the main bookcase above. Returns '' if there's
+    // nothing requested yet, so it just doesn't show up.
+    function renderRequestedShelfHtml(list){
+      if(!list.length) return '';
+      var pileHtml = buildPileStacksHtml(list, requestedPileSpineStyleFor, 'requested-pile-item', 'REQ');
+      return '<h2 class="shelf-heading requested-shelf-heading">Requested</h2>' +
+        '<div class="shelf-wrap requested-shelf-wrap"><div class="shelf-tier"><div class="shelf-row">' + pileHtml + '</div><div class="shelf-plank"></div></div></div>';
     }
 
     // Status decides how a book sits on the shelf: currently-relevant books
@@ -3379,7 +3633,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       return '<div class="shelf-tier"><div class="shelf-row">' + rowHtml + '</div><div class="shelf-plank"></div></div>';
     }).join('');
 
-    wrap.innerHTML = '<div class="shelf-wrap">' + tiersHtml + '</div>';
+    wrap.innerHTML = '<div class="shelf-wrap">' + tiersHtml + '</div>' + renderRequestedShelfHtml(requestedBooks);
   }
 
   // Re-tier the shelf if the window is resized while the Reviews tab is open,
@@ -3414,7 +3668,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var itemsByDate = {};
     books.forEach(function(b){
       var due = effectiveDueDate(b);
-      if(!due || b.status === 'finished' || b.status === 'dnf' || b.status === 'hold') return;
+      if(!due || b.status === 'finished' || b.status === 'dnf' || b.status === 'hold' || b.status === 'requested') return;
       if(!itemsByDate[due]) itemsByDate[due] = [];
       itemsByDate[due].push(b);
     });
