@@ -545,6 +545,18 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .hbook-cover .ph{font-size:9px;color:var(--muted);text-align:center;padding:4px;}
 .hbook-title{font-size:11px;line-height:1.3;margin:5px 0 2px;max-height:2.6em;overflow:hidden;}
 .hbook-status{font-size:10px;color:var(--muted);}
+.author-name{font-family:var(--font-display);font-size:17px;font-weight:600;margin:0;color:var(--ink);}
+.author-series-list{margin-top:12px;}
+.author-series-row{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;padding:9px 2px;border-bottom:0.5px solid var(--line);cursor:pointer;}
+.author-series-row:hover{color:var(--accent-deep);}
+.author-series-num{color:var(--muted);margin-right:7px;}
+.author-series-count{color:var(--muted);font-size:12px;flex:none;}
+.author-standalone-toggle summary{list-style:none;}
+.author-standalone-toggle summary::-webkit-details-marker{display:none;}
+.author-standalone-toggle .author-series-row{border-bottom:0.5px solid var(--line);}
+.author-standalone-list{padding-left:4px;}
+.series-card-highlight{animation:seriesCardPulse 1.6s ease;}
+@keyframes seriesCardPulse{0%{box-shadow:0 0 0 3px var(--accent-deep);}100%{box-shadow:none;}}
 .detail-row .dl{width:120px;flex:none;color:var(--muted);font-weight:500;}
 .detail-row .dv{flex:1;min-width:0;overflow-wrap:break-word;word-break:break-word;}
 .view-header{display:flex;gap:16px;align-items:flex-start;margin-bottom:6px;}
@@ -3344,7 +3356,17 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       var info = seriesInfo[name];
       var descHtml = (info && info.description) ? '<p class="series-desc">' + escapeHtml(info.description) + '</p>' : '';
 
-      return '<div class="card series-card">' +
+      var rows = list.map(function(b){
+        var isNext = b.id === nextUpId;
+        var label = isNext ? 'Next up' : statusLabelFor(b);
+        return '<div class="series-book-row" data-book-id="' + b.id + '">' +
+          '<div class="series-book-num">' + ((b.seriesNumber || b.seriesNumber === 0) ? b.seriesNumber : '–') + '</div>' +
+          '<div class="series-book-title">' + escapeHtml(b.title) + '</div>' +
+          '<div class="series-book-status' + (isNext ? ' next-up' : '') + '">' + escapeHtml(label) + '</div>' +
+          '</div>';
+      }).join('');
+
+      return '<div class="card series-card" data-series-card="' + escapeHtml(name) + '">' +
         '<div class="series-card-head">' +
           buildSeriesThumbHtml(name) +
           '<div style="flex:1;min-width:0;">' +
@@ -3355,7 +3377,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
           buildSeriesEditBtnHtml(name) +
         '</div>' +
         descHtml +
-        buildHorizontalBooksHtml(list, nextUpId) +
+        rows +
         '</div>';
     }).join('');
     wrap.innerHTML = '<div class="grid">' + cards + '</div>';
@@ -3367,9 +3389,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       openSeriesEditModal(editBtn.getAttribute('data-series'));
       return;
     }
-    var item = e.target.closest('.hbook-item');
-    if(!item) return;
-    var id = item.getAttribute('data-book-id');
+    var row = e.target.closest('.series-book-row');
+    if(!row) return;
+    var id = row.getAttribute('data-book-id');
     if(id) openViewModal(id);
   });
 
@@ -3461,9 +3483,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         ? '<img class="author-photo" src="' + photo + '" alt="">'
         : '<div class="author-photo-ph">' + escapeHtml(authorInitial(name)) + '</div>';
 
-      // Group this author's books by series (kept in series order), with
-      // standalone titles collected into their own group at the end —
-      // mirrors how the Series tab organizes things, just author-first.
+      // Group this author's books by series (kept alphabetical), with
+      // standalone titles collected into their own numbered entry at the
+      // end. Clicking a series jumps to that series' card in Series View;
+      // clicking Standalone expands right here since there's no series
+      // card for it to jump to.
       var seriesGroups = {};
       var seriesOrder = [];
       var standalone = [];
@@ -3477,30 +3501,31 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       });
       seriesOrder.sort(function(a, b){ return a.localeCompare(b); });
 
-      function bookRowHtml(b){
-        return '<div class="series-book-row" data-book-id="' + b.id + '">' +
-          '<div class="series-book-num">' + ((b.seriesNumber || b.seriesNumber === 0) ? b.seriesNumber : '–') + '</div>' +
-          '<div class="series-book-title">' + escapeHtml(b.title) + '</div>' +
-          '<div class="series-book-status">' + escapeHtml(statusLabelFor(b)) + '</div>' +
+      var entryNum = 0;
+      var seriesRows = seriesOrder.map(function(sName){
+        entryNum++;
+        var count = seriesGroups[sName].length;
+        return '<div class="author-series-row" data-series="' + escapeHtml(sName) + '">' +
+          '<span><span class="author-series-num">' + entryNum + '.</span>' + escapeHtml(sName) + '</span>' +
+          '<span class="author-series-count">' + count + ' book' + (count === 1 ? '' : 's') + ' ›</span>' +
           '</div>';
-      }
-
-      var rows = seriesOrder.map(function(sName){
-        var sList = seriesGroups[sName].slice().sort(function(a, b){
-          var na = (a.seriesNumber === null || a.seriesNumber === undefined) ? 999 : a.seriesNumber;
-          var nb = (b.seriesNumber === null || b.seriesNumber === undefined) ? 999 : b.seriesNumber;
-          return na - nb;
-        });
-        return '<p class="author-series-heading">' +
-            buildSeriesThumbHtml(sName) +
-            '<span>' + escapeHtml(sName) + ' · ' + sList.length + ' book' + (sList.length === 1 ? '' : 's') + '</span>' +
-            buildSeriesEditBtnHtml(sName) +
-          '</p>' +
-          buildHorizontalBooksHtml(sList);
       }).join('');
+
+      var standaloneRow = '';
+      var standaloneRows = '';
       if(standalone.length){
-        rows += '<p class="author-series-heading"><span>Standalone · ' + standalone.length + ' book' + (standalone.length === 1 ? '' : 's') + '</span></p>' +
-          buildHorizontalBooksHtml(standalone);
+        entryNum++;
+        standaloneRow = '<details class="author-standalone-toggle">' +
+          '<summary class="author-series-row"><span><span class="author-series-num">' + entryNum + '.</span>Standalone</span>' +
+          '<span class="author-series-count">' + standalone.length + ' book' + (standalone.length === 1 ? '' : 's') + '</span></summary>' +
+          '<div class="author-standalone-list">' + standalone.map(function(b){
+            return '<div class="series-book-row" data-book-id="' + b.id + '">' +
+              '<div class="series-book-num">–</div>' +
+              '<div class="series-book-title">' + escapeHtml(b.title) + '</div>' +
+              '<div class="series-book-status">' + escapeHtml(statusLabelFor(b)) + '</div>' +
+              '</div>';
+          }).join('') + '</div>' +
+          '</details>';
       }
 
       var seriesCountLabel = seriesOrder.length ? (' · ' + seriesOrder.length + ' series') : '';
@@ -3512,11 +3537,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
             '<label class="author-photo-edit" title="Add/change photo">✎<input type="file" class="author-photo-input" accept="image/*"></label>' +
           '</div>' +
           '<div>' +
-            '<details class="author-toggle"><summary>' + escapeHtml(name) + '</summary></details>' +
+            '<p class="author-name">' + escapeHtml(name) + '</p>' +
             '<p class="author-book-count">' + list.length + ' book' + (list.length === 1 ? '' : 's') + seriesCountLabel + '</p>' +
           '</div>' +
         '</div>' +
-        '<div class="author-books" style="display:none;">' + rows + '</div>' +
+        '<div class="author-series-list">' + seriesRows + standaloneRow + '</div>' +
         '</div>';
     }).join('');
 
@@ -3538,31 +3563,32 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     };
   }
 
+  // Jumps to Series View and briefly highlights the matching series card
+  // so it's clear where you landed.
+  function goToSeriesCard(name){
+    switchView('navSeries');
+    requestAnimationFrame(function(){
+      var card = document.querySelector('#seriesView .series-card[data-series-card="' + CSS.escape(name) + '"]');
+      if(!card) return;
+      card.scrollIntoView({behavior: 'smooth', block: 'center'});
+      card.classList.add('series-card-highlight');
+      setTimeout(function(){ card.classList.remove('series-card-highlight'); }, 1600);
+    });
+  }
+
   document.getElementById('authorsView').addEventListener('click', function(e){
-    var editBtn = e.target.closest('.series-edit-btn');
-    if(editBtn){
-      openSeriesEditModal(editBtn.getAttribute('data-series'));
+    var seriesRow = e.target.closest('.author-series-row');
+    if(seriesRow && seriesRow.hasAttribute('data-series')){
+      goToSeriesCard(seriesRow.getAttribute('data-series'));
       return;
     }
-    var item = e.target.closest('.hbook-item');
-    if(item){
-      var id = item.getAttribute('data-book-id');
+    var bookRow = e.target.closest('.series-book-row');
+    if(bookRow){
+      var id = bookRow.getAttribute('data-book-id');
       if(id) openViewModal(id);
       return;
     }
   });
-
-  // The book-row list lives in its own div rather than inside <details>
-  // content directly, so its layout doesn't fight the details/summary
-  // animation — this just toggles it in sync with the details element.
-  document.getElementById('authorsView').addEventListener('toggle', function(e){
-    var toggle = e.target;
-    if(!toggle.classList || !toggle.classList.contains('author-toggle')) return;
-    var card = toggle.closest('.author-card');
-    if(!card) return;
-    var booksDiv = card.querySelector('.author-books');
-    if(booksDiv) booksDiv.style.display = toggle.open ? 'block' : 'none';
-  }, true);
 
   document.getElementById('authorsView').addEventListener('change', function(e){
     var input = e.target.closest('.author-photo-input');
