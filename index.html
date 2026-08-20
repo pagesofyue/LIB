@@ -527,11 +527,24 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .author-toggle[open] summary::after{transform:rotate(90deg);}
 .author-book-count{font-size:11.5px;color:var(--muted);margin:2px 0 0;}
 .author-books{margin-top:10px;}
-.author-series-heading{font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:0.03em;text-transform:uppercase;margin:12px 0 4px;}
+.author-series-heading{font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:0.03em;text-transform:uppercase;margin:12px 0 4px;display:flex;align-items:center;gap:6px;}
 .author-series-heading:first-child{margin-top:0;}
 .authors-search-wrap{position:relative;max-width:340px;margin-bottom:18px;}
 .authors-search-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--muted);}
 #authorsSearchInput{width:100%;padding:9px 12px 9px 34px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);font-family:var(--font-body);font-size:13.5px;color:var(--ink);}
+.series-edit-btn{background:none;border:none;color:var(--muted);cursor:pointer;padding:0;display:inline-flex;align-items:center;font-size:12px;flex:none;}
+.series-edit-btn:hover{color:var(--accent-deep);}
+.series-cover-thumb{width:34px;height:51px;border-radius:4px;object-fit:cover;flex:none;border:1px solid var(--line);}
+.series-cover-thumb-ph{width:34px;height:51px;border-radius:4px;flex:none;border:1px dashed var(--line-strong);background:var(--card-hover);}
+.series-card-head{display:flex;align-items:flex-start;gap:10px;}
+.series-desc{font-size:12px;color:var(--muted);line-height:1.5;margin:4px 0 0;}
+.hbook-row{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 8px;-webkit-overflow-scrolling:touch;}
+.hbook-item{flex:none;width:78px;cursor:pointer;}
+.hbook-cover{width:78px;height:117px;border-radius:5px;overflow:hidden;border:1px solid var(--line);background:var(--card-hover);display:flex;align-items:center;justify-content:center;}
+.hbook-cover img{width:100%;height:100%;object-fit:cover;}
+.hbook-cover .ph{font-size:9px;color:var(--muted);text-align:center;padding:4px;}
+.hbook-title{font-size:11px;line-height:1.3;margin:5px 0 2px;max-height:2.6em;overflow:hidden;}
+.hbook-status{font-size:10px;color:var(--muted);}
 .detail-row .dl{width:120px;flex:none;color:var(--muted);font-weight:500;}
 .detail-row .dv{flex:1;min-width:0;overflow-wrap:break-word;word-break:break-word;}
 .view-header{display:flex;gap:16px;align-items:flex-start;margin-bottom:6px;}
@@ -934,6 +947,31 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   </div>
 </div>
 
+<div class="overlay" id="seriesEditOverlay" style="display:none;">
+  <div class="modal" style="max-width:480px;">
+    <h2 id="seriesEditTitle">Edit series</h2>
+    <div class="field">
+      <label>Series cover</label>
+      <div class="cover-upload">
+        <div class="cover-preview" id="seriesCoverPreview"><span class="ph">No cover</span></div>
+        <div class="cover-btns">
+          <button type="button" class="small-btn" id="seriesCoverPickBtn">Choose image</button>
+          <input type="file" id="seriesCoverInput" accept="image/*" style="display:none;">
+          <button type="button" class="small-btn" id="seriesCoverRemoveBtn">Remove</button>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Series description</label>
+      <textarea id="seriesDescInput" rows="4" placeholder="What's this series about..." style="width:100%;padding:9px 11px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);font-family:var(--font-body);font-size:14px;color:var(--ink);resize:vertical;"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" id="seriesEditCancelBtn">Cancel</button>
+      <button type="button" class="btn-primary" id="seriesEditSaveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="reviewPageOverlay" style="display:none;">
   <div class="modal review-page-modal">
     <div id="reviewPageContent"></div>
@@ -1188,7 +1226,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         arcSourceList: meta.arcSourceList || [],
         readerLinks: meta.readerLinks || [],
         customStamp: meta.customStamp || '',
-        authorPhotos: meta.authorPhotos || {}
+        authorPhotos: meta.authorPhotos || {},
+        seriesInfo: meta.seriesInfo || {}
       };
     },
     async saveBook(book){
@@ -1333,6 +1372,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   var genreList = [];
   var arcSourceList = [];
   var authorPhotos = {};
+  var seriesInfo = {};
   var pendingCover = null;
   var activeStatus = 'all';
   var dueSoonFilterActive = false;
@@ -1387,6 +1427,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       readerLinks = data.readerLinks || [];
       customStampDataUrl = data.customStamp || '';
       authorPhotos = data.authorPhotos || {};
+      seriesInfo = data.seriesInfo || {};
       setSync('idle');
     }catch(e){
       books = [];
@@ -1395,6 +1436,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       arcSourceList = defaultArcSources.slice();
       readerLinks = [];
       authorPhotos = {};
+      seriesInfo = {};
       setSync('error');
       showBanner("Couldn't load your library from the cloud. Check your connection and refresh.");
     }
@@ -1441,6 +1483,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   async function saveAuthorPhotos(){
     try{ await window.cloudStore.saveMeta({authorPhotos: authorPhotos}); }catch(e){
       showBanner("Couldn't save that photo. Try a smaller image, then try again.");
+    }
+  }
+
+  async function saveSeriesInfo(){
+    try{ await window.cloudStore.saveMeta({seriesInfo: seriesInfo}); }catch(e){
+      showBanner("Couldn't save that series info. Try again.");
     }
   }
 
@@ -2619,7 +2667,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   document.getElementById('exportBackupBtn').onclick = function(){
     document.getElementById('exportMenu').style.display = 'none';
-    var payload = {books: books, tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, authorPhotos: authorPhotos, exportedAt: new Date().toISOString()};
+    var payload = {books: books, tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, authorPhotos: authorPhotos, seriesInfo: seriesInfo, exportedAt: new Date().toISOString()};
     var blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
     var url = URL.createObjectURL(blob);
     var link = document.createElement('a');
@@ -2649,10 +2697,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       arcSourceList = data.arcSourceList || data.customArcSources || defaultArcSources.slice();
       readerLinks = data.readerLinks || [];
       authorPhotos = data.authorPhotos || {};
+      seriesInfo = data.seriesInfo || {};
       setSync('syncing');
       try{
         await window.cloudStore.replaceAllBooks(books);
-        await window.cloudStore.saveMeta({tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, authorPhotos: authorPhotos});
+        await window.cloudStore.saveMeta({tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, authorPhotos: authorPhotos, seriesInfo: seriesInfo});
         setSync('idle');
       }catch(e){
         setSync('error');
@@ -3233,6 +3282,36 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   });
 
   // ===================== Series tracker =====================
+  // Renders a horizontal, scrollable strip of book covers — used by both
+  // the Series tab and each series group inside the Authors tab, so a
+  // series always looks the same wherever it shows up.
+  function buildHorizontalBooksHtml(list, nextUpId){
+    return '<div class="hbook-row">' + list.map(function(b){
+      var isNext = nextUpId && b.id === nextUpId;
+      var label = isNext ? 'Next up' : statusLabelFor(b);
+      var coverHtml = b.cover ? '<img src="' + b.cover + '" alt="">' : '<span class="ph">No cover</span>';
+      var numHtml = (b.seriesNumber || b.seriesNumber === 0) ? ('Book ' + b.seriesNumber + ' · ') : '';
+      return '<div class="hbook-item" data-book-id="' + b.id + '" title="' + escapeHtml(b.title) + '">' +
+        '<div class="hbook-cover">' + coverHtml + '</div>' +
+        '<p class="hbook-title">' + numHtml + escapeHtml(b.title) + '</p>' +
+        '<p class="hbook-status">' + escapeHtml(label) + '</p>' +
+        '</div>';
+    }).join('') + '</div>';
+  }
+
+  // Cover thumbnail + edit-pencil button shared by the Series tab card
+  // header and each series group heading in the Authors tab.
+  function buildSeriesThumbHtml(name){
+    var info = seriesInfo[name];
+    return info && info.cover
+      ? '<img class="series-cover-thumb" src="' + info.cover + '" alt="">'
+      : '<div class="series-cover-thumb-ph"></div>';
+  }
+
+  function buildSeriesEditBtnHtml(name){
+    return '<button type="button" class="series-edit-btn" data-series="' + escapeHtml(name) + '" title="Edit series cover &amp; description">✎ Edit series</button>';
+  }
+
   function renderSeriesView(){
     var groups = {};
     books.forEach(function(b){
@@ -3261,32 +3340,86 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       for(var i = 0; i < list.length; i++){
         if(list[i].status === 'want'){ nextUpId = list[i].id; break; }
       }
-      var rows = list.map(function(b){
-        var isNext = b.id === nextUpId;
-        var label = isNext ? 'Next up' : statusLabelFor(b);
-        return '<div class="series-book-row" data-book-id="' + b.id + '">' +
-          '<div class="series-book-num">' + ((b.seriesNumber || b.seriesNumber === 0) ? b.seriesNumber : '–') + '</div>' +
-          '<div class="series-book-title">' + escapeHtml(b.title) + '</div>' +
-          '<div class="series-book-status' + (isNext ? ' next-up' : '') + '">' + escapeHtml(label) + '</div>' +
-          '</div>';
-      }).join('');
+
+      var info = seriesInfo[name];
+      var descHtml = (info && info.description) ? '<p class="series-desc">' + escapeHtml(info.description) + '</p>' : '';
 
       return '<div class="card series-card">' +
-        '<h3>' + escapeHtml(name) + '</h3>' +
-        (author ? '<p class="byline">' + escapeHtml(author) + '</p>' : '') +
-        '<p style="font-size:11.5px;color:var(--muted);margin:2px 0 10px;">' + list.length + ' book' + (list.length === 1 ? '' : 's') + '</p>' +
-        rows +
+        '<div class="series-card-head">' +
+          buildSeriesThumbHtml(name) +
+          '<div style="flex:1;min-width:0;">' +
+            '<h3>' + escapeHtml(name) + '</h3>' +
+            (author ? '<p class="byline">' + escapeHtml(author) + '</p>' : '') +
+            '<p style="font-size:11.5px;color:var(--muted);margin:2px 0 0;">' + list.length + ' book' + (list.length === 1 ? '' : 's') + '</p>' +
+          '</div>' +
+          buildSeriesEditBtnHtml(name) +
+        '</div>' +
+        descHtml +
+        buildHorizontalBooksHtml(list, nextUpId) +
         '</div>';
     }).join('');
     wrap.innerHTML = '<div class="grid">' + cards + '</div>';
   }
 
   document.getElementById('seriesView').addEventListener('click', function(e){
-    var row = e.target.closest('.series-book-row');
-    if(!row) return;
-    var id = row.getAttribute('data-book-id');
+    var editBtn = e.target.closest('.series-edit-btn');
+    if(editBtn){
+      openSeriesEditModal(editBtn.getAttribute('data-series'));
+      return;
+    }
+    var item = e.target.closest('.hbook-item');
+    if(!item) return;
+    var id = item.getAttribute('data-book-id');
     if(id) openViewModal(id);
   });
+
+  // ===================== Series cover & description edit modal =====================
+  var editingSeriesName = null;
+  var pendingSeriesCover = null;
+
+  function openSeriesEditModal(name){
+    if(!name) return;
+    editingSeriesName = name;
+    var info = seriesInfo[name] || {};
+    pendingSeriesCover = info.cover || null;
+    document.getElementById('seriesEditTitle').textContent = 'Edit "' + name + '"';
+    document.getElementById('seriesCoverPreview').innerHTML = pendingSeriesCover ? '<img src="' + pendingSeriesCover + '" alt="">' : '<span class="ph">No cover</span>';
+    document.getElementById('seriesDescInput').value = info.description || '';
+    document.getElementById('seriesCoverInput').value = '';
+    document.getElementById('seriesEditOverlay').style.display = 'flex';
+  }
+
+  document.getElementById('seriesCoverPickBtn').onclick = function(){
+    document.getElementById('seriesCoverInput').click();
+  };
+  document.getElementById('seriesCoverInput').addEventListener('change', function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    resizeImage(file, 300, 0.82).then(function(dataUrl){
+      pendingSeriesCover = dataUrl;
+      document.getElementById('seriesCoverPreview').innerHTML = '<img src="' + dataUrl + '" alt="">';
+    });
+  });
+  document.getElementById('seriesCoverRemoveBtn').onclick = function(){
+    pendingSeriesCover = null;
+    document.getElementById('seriesCoverPreview').innerHTML = '<span class="ph">No cover</span>';
+    document.getElementById('seriesCoverInput').value = '';
+  };
+  document.getElementById('seriesEditCancelBtn').onclick = function(){
+    document.getElementById('seriesEditOverlay').style.display = 'none';
+  };
+  document.getElementById('seriesEditOverlay').addEventListener('click', function(e){
+    if(e.target.id === 'seriesEditOverlay') document.getElementById('seriesEditOverlay').style.display = 'none';
+  });
+  document.getElementById('seriesEditSaveBtn').onclick = function(){
+    if(!editingSeriesName) return;
+    var descVal = document.getElementById('seriesDescInput').value.trim();
+    seriesInfo[editingSeriesName] = {cover: pendingSeriesCover || '', description: descVal};
+    saveSeriesInfo();
+    document.getElementById('seriesEditOverlay').style.display = 'none';
+    if(currentActiveNav === 'navSeries') renderSeriesView();
+    if(currentActiveNav === 'navAuthors') renderAuthorsView();
+  };
 
   // ===================== Authors tab =====================
   function authorInitial(name){
@@ -3358,12 +3491,16 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
           var nb = (b.seriesNumber === null || b.seriesNumber === undefined) ? 999 : b.seriesNumber;
           return na - nb;
         });
-        return '<p class="author-series-heading">' + escapeHtml(sName) + ' · ' + sList.length + ' book' + (sList.length === 1 ? '' : 's') + '</p>' +
-          sList.map(bookRowHtml).join('');
+        return '<p class="author-series-heading">' +
+            buildSeriesThumbHtml(sName) +
+            '<span>' + escapeHtml(sName) + ' · ' + sList.length + ' book' + (sList.length === 1 ? '' : 's') + '</span>' +
+            buildSeriesEditBtnHtml(sName) +
+          '</p>' +
+          buildHorizontalBooksHtml(sList);
       }).join('');
       if(standalone.length){
-        rows += '<p class="author-series-heading">Standalone · ' + standalone.length + ' book' + (standalone.length === 1 ? '' : 's') + '</p>' +
-          standalone.map(bookRowHtml).join('');
+        rows += '<p class="author-series-heading"><span>Standalone · ' + standalone.length + ' book' + (standalone.length === 1 ? '' : 's') + '</span></p>' +
+          buildHorizontalBooksHtml(standalone);
       }
 
       var seriesCountLabel = seriesOrder.length ? (' · ' + seriesOrder.length + ' series') : '';
@@ -3402,9 +3539,14 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
 
   document.getElementById('authorsView').addEventListener('click', function(e){
-    var row = e.target.closest('.series-book-row');
-    if(row){
-      var id = row.getAttribute('data-book-id');
+    var editBtn = e.target.closest('.series-edit-btn');
+    if(editBtn){
+      openSeriesEditModal(editBtn.getAttribute('data-series'));
+      return;
+    }
+    var item = e.target.closest('.hbook-item');
+    if(item){
+      var id = item.getAttribute('data-book-id');
       if(id) openViewModal(id);
       return;
     }
