@@ -557,6 +557,29 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .author-standalone-list{padding-left:4px;}
 .series-card-highlight{animation:seriesCardPulse 1.6s ease;}
 @keyframes seriesCardPulse{0%{box-shadow:0 0 0 3px var(--accent-deep);}100%{box-shadow:none;}}
+
+.book-view-modal{max-width:640px;}
+.bv-top{display:flex;gap:18px;}
+.bv-cover{width:120px;height:180px;border-radius:8px;flex:none;overflow:hidden;background:var(--card-hover);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;}
+.bv-cover img{width:100%;height:100%;object-fit:cover;}
+.bv-cover .ph{font-size:10px;color:var(--muted);}
+.bv-top-fields{flex:1;min-width:0;}
+.bv-divider{border-top:1.5px dashed var(--line-strong);margin:18px 0;}
+.bv-cols{display:flex;gap:24px;}
+.bv-col-left{flex:1;min-width:0;}
+.bv-col-right{flex:1.3;min-width:0;}
+.bv-field{margin-bottom:14px;position:relative;}
+.bv-field-label{font-family:var(--font-display);font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin:0 0 3px;display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.bv-field-value{font-size:13.5px;color:var(--ink);line-height:1.5;}
+.bv-field-value a{color:var(--accent-deep);}
+.bv-field-value.empty{color:var(--muted);font-style:italic;}
+.bv-edit-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:0;flex:none;}
+.bv-edit-btn:hover{color:var(--accent-deep);}
+.bv-edit-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.bv-edit-row input[type="text"],.bv-edit-row input[type="date"],.bv-edit-row input[type="number"],.bv-edit-row input[type="url"],.bv-edit-row select{flex:1;min-width:100px;padding:6px 8px;border:1px solid var(--line-strong);border-radius:6px;background:var(--card);font-family:var(--font-body);font-size:13px;color:var(--ink);}
+.bv-edit-row textarea{width:100%;padding:8px 10px;border:1px solid var(--line-strong);border-radius:6px;background:var(--card);font-family:var(--font-body);font-size:13px;color:var(--ink);resize:vertical;}
+.bv-edit-actions{display:flex;gap:6px;margin-top:6px;}
+.bv-blurb-box{font-size:13px;line-height:1.65;color:var(--ink);background:var(--card-hover);border:1px solid var(--line);border-radius:8px;padding:12px 14px;white-space:pre-wrap;}
 .detail-row .dl{width:120px;flex:none;color:var(--muted);font-weight:500;}
 .detail-row .dv{flex:1;min-width:0;overflow-wrap:break-word;word-break:break-word;}
 .view-header{display:flex;gap:16px;align-items:flex-start;margin-bottom:6px;}
@@ -980,6 +1003,15 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     <div class="modal-actions">
       <button type="button" class="btn-secondary" id="seriesEditCancelBtn">Cancel</button>
       <button type="button" class="btn-primary" id="seriesEditSaveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="bookViewOverlay" style="display:none;">
+  <div class="modal book-view-modal" style="max-width:640px;">
+    <div id="bookViewContent"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" id="bookViewCloseBtn">Close</button>
     </div>
   </div>
 </div>
@@ -3392,7 +3424,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var row = e.target.closest('.series-book-row');
     if(!row) return;
     var id = row.getAttribute('data-book-id');
-    if(id) openViewModal(id);
+    if(id) openBookView(id);
   });
 
   // ===================== Series cover & description edit modal =====================
@@ -3442,6 +3474,180 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     if(currentActiveNav === 'navSeries') renderSeriesView();
     if(currentActiveNav === 'navAuthors') renderAuthorsView();
   };
+
+  // ===================== Book View (Series / Author tabs only) =====================
+  var currentBookViewId = null;
+  var bvEditingField = null;
+
+  function bvValueOrEmpty(html, isEmpty, emptyLabel){
+    return isEmpty ? '<span class="bv-field-value empty">' + escapeHtml(emptyLabel) + '</span>' : '<span class="bv-field-value">' + html + '</span>';
+  }
+
+  function bvEditBtnHtml(key){
+    return '<button type="button" class="bv-edit-btn" data-field="' + key + '">✎ Edit</button>';
+  }
+
+  function buildBookViewHtml(b){
+    var coverHtml = b.cover ? '<img src="' + b.cover + '" alt="">' : '<span class="ph">No cover</span>';
+
+    function field(key, label, editControlHtml, displayHtml){
+      var isEditing = bvEditingField === key;
+      var body = isEditing
+        ? '<div class="bv-edit-row">' + editControlHtml + '</div><div class="bv-edit-actions"><button type="button" class="small-btn bv-save-btn" data-field="' + key + '">Save</button><button type="button" class="small-btn bv-cancel-btn">Cancel</button></div>'
+        : displayHtml;
+      return '<div class="bv-field">' +
+        '<p class="bv-field-label"><span>' + escapeHtml(label) + '</span>' + (isEditing ? '' : bvEditBtnHtml(key)) + '</p>' +
+        body +
+        '</div>';
+    }
+
+    var authorField = field('author', 'Author',
+      '<input type="text" id="bvInput_author" value="' + escapeHtml(b.author || '') + '">',
+      bvValueOrEmpty(escapeHtml(b.author || ''), !b.author, '—'));
+
+    var seriesLabel = b.series ? (escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '')) : '';
+    var seriesField = field('series', 'Series',
+      '<input type="text" id="bvInput_series" placeholder="Series name" value="' + escapeHtml(b.series || '') + '">' +
+      '<input type="number" id="bvInput_seriesNumber" placeholder="#" style="max-width:70px;" value="' + ((b.seriesNumber || b.seriesNumber === 0) ? b.seriesNumber : '') + '">',
+      bvValueOrEmpty(seriesLabel, !b.series, '—'));
+
+    var linkDisplay = b.arcFormLink ? '<a href="' + escapeHtml(b.arcFormLink) + '" target="_blank" rel="noopener">Review form</a>' : '';
+    var linkField = field('arcFormLink', 'Review Link',
+      '<input type="url" id="bvInput_arcFormLink" placeholder="https://..." value="' + escapeHtml(b.arcFormLink || '') + '">',
+      bvValueOrEmpty(linkDisplay, !b.arcFormLink, 'No link added'));
+
+    var genreOptions = genreList.map(function(g){ return '<option value="' + escapeHtml(g) + '"' + (g === b.genre ? ' selected' : '') + '>' + escapeHtml(g) + '</option>'; }).join('');
+    var genreField = field('genre', 'Genre',
+      '<select id="bvInput_genre"><option value="">—</option>' + genreOptions + '</select>',
+      bvValueOrEmpty(escapeHtml(b.genre || ''), !b.genre, '—'));
+
+    var tropesDisplay = (b.tropes || []).map(escapeHtml).join(', ');
+    var tropesField = field('tropes', 'Tropes',
+      '<input type="text" id="bvInput_tropes" placeholder="Comma-separated" value="' + escapeHtml((b.tropes || []).join(', ')) + '">',
+      bvValueOrEmpty(tropesDisplay, !(b.tropes && b.tropes.length), 'None added'));
+
+    var arcRows = '';
+    if(b.isARC || bvEditingField === 'arcSource'){
+      arcRows += field('arcSource', 'Source',
+        '<input type="text" id="bvInput_arcSource" list="arcSourceOptions" value="' + escapeHtml(b.arcSource || '') + '">',
+        bvValueOrEmpty(escapeHtml(b.arcSource || ''), !b.arcSource, '—'));
+    }
+    if(b.isARC || bvEditingField === 'dueDate'){
+      arcRows += field('dueDate', 'Due Date',
+        '<input type="date" id="bvInput_dueDate" value="' + (b.dueDate || '') + '">',
+        bvValueOrEmpty(b.dueDate ? fmtDate(b.dueDate) : '', !b.dueDate, '—'));
+    }
+
+    var blurbBody;
+    if(bvEditingField === 'blurb'){
+      blurbBody = '<div class="bv-edit-row"><textarea id="bvInput_blurb" rows="7" placeholder="Paste the publisher\'s synopsis here...">' + escapeHtml(b.blurb || '') + '</textarea></div>' +
+        '<div class="bv-edit-actions"><button type="button" class="small-btn bv-save-btn" data-field="blurb">Save</button><button type="button" class="small-btn bv-cancel-btn">Cancel</button></div>';
+    } else if(b.blurb){
+      blurbBody = '<div class="bv-blurb-box">' + escapeHtml(b.blurb) + '</div>';
+    } else {
+      blurbBody = '<p class="bv-field-value empty">No Blurb Available</p><button type="button" class="small-btn bv-add-blurb-btn">+ Add blurb</button>';
+    }
+    var blurbField = '<div class="bv-field">' +
+      '<p class="bv-field-label"><span>Blurb</span>' + (bvEditingField === 'blurb' || (!b.blurb) ? '' : bvEditBtnHtml('blurb')) + '</p>' +
+      blurbBody +
+      '</div>';
+
+    return '<div class="bv-top">' +
+        '<div class="bv-cover">' + coverHtml + '</div>' +
+        '<div class="bv-top-fields">' + authorField + seriesField + linkField + '</div>' +
+      '</div>' +
+      '<div class="bv-divider"></div>' +
+      '<div class="bv-cols">' +
+        '<div class="bv-col-left">' + genreField + tropesField + arcRows + '</div>' +
+        '<div class="bv-col-right">' + blurbField + '</div>' +
+      '</div>';
+  }
+
+  function openBookView(id){
+    var b = books.find(function(x){ return x.id === id; });
+    if(!b) return;
+    currentBookViewId = id;
+    bvEditingField = null;
+    document.getElementById('bookViewContent').innerHTML = buildBookViewHtml(b);
+    document.getElementById('bookViewOverlay').style.display = 'flex';
+  }
+
+  function bvSaveField(key){
+    var b = books.find(function(x){ return x.id === currentBookViewId; });
+    if(!b) return;
+    if(key === 'author'){
+      b.author = document.getElementById('bvInput_author').value.trim();
+    } else if(key === 'series'){
+      b.series = document.getElementById('bvInput_series').value.trim();
+      var numVal = document.getElementById('bvInput_seriesNumber').value;
+      b.seriesNumber = numVal === '' ? null : Number(numVal);
+    } else if(key === 'arcFormLink'){
+      var lv = document.getElementById('bvInput_arcFormLink').value.trim();
+      if(lv && !/^https?:\/\//i.test(lv)) lv = 'https://' + lv;
+      b.arcFormLink = lv;
+    } else if(key === 'genre'){
+      b.genre = document.getElementById('bvInput_genre').value;
+      if(b.genre && genreList.indexOf(b.genre) === -1){ genreList.push(b.genre); saveGenreList(); }
+    } else if(key === 'tropes'){
+      var raw = document.getElementById('bvInput_tropes').value;
+      b.tropes = raw.split(',').map(function(t){ return t.trim(); }).filter(Boolean);
+    } else if(key === 'arcSource'){
+      b.arcSource = document.getElementById('bvInput_arcSource').value.trim();
+    } else if(key === 'dueDate'){
+      b.dueDate = document.getElementById('bvInput_dueDate').value;
+    } else if(key === 'blurb'){
+      b.blurb = document.getElementById('bvInput_blurb').value;
+    }
+    books = books.map(function(x){ return x.id === b.id ? b : x; });
+    saveBookRemote(b);
+    bvEditingField = null;
+    document.getElementById('bookViewContent').innerHTML = buildBookViewHtml(b);
+    render();
+    if(currentActiveNav === 'navSeries') renderSeriesView();
+    if(currentActiveNav === 'navAuthors') renderAuthorsView();
+  }
+
+  document.getElementById('bookViewContent').addEventListener('click', function(e){
+    var editBtn = e.target.closest('.bv-edit-btn');
+    if(editBtn){
+      bvEditingField = editBtn.getAttribute('data-field');
+      var b = books.find(function(x){ return x.id === currentBookViewId; });
+      if(b) document.getElementById('bookViewContent').innerHTML = buildBookViewHtml(b);
+      return;
+    }
+    var addBlurbBtn = e.target.closest('.bv-add-blurb-btn');
+    if(addBlurbBtn){
+      bvEditingField = 'blurb';
+      var b2 = books.find(function(x){ return x.id === currentBookViewId; });
+      if(b2) document.getElementById('bookViewContent').innerHTML = buildBookViewHtml(b2);
+      return;
+    }
+    var saveBtn = e.target.closest('.bv-save-btn');
+    if(saveBtn){
+      bvSaveField(saveBtn.getAttribute('data-field'));
+      return;
+    }
+    var cancelBtn = e.target.closest('.bv-cancel-btn');
+    if(cancelBtn){
+      bvEditingField = null;
+      var b3 = books.find(function(x){ return x.id === currentBookViewId; });
+      if(b3) document.getElementById('bookViewContent').innerHTML = buildBookViewHtml(b3);
+      return;
+    }
+  });
+
+  document.getElementById('bookViewCloseBtn').onclick = function(){
+    document.getElementById('bookViewOverlay').style.display = 'none';
+    bvEditingField = null;
+    currentBookViewId = null;
+  };
+  document.getElementById('bookViewOverlay').addEventListener('click', function(e){
+    if(e.target.id === 'bookViewOverlay'){
+      document.getElementById('bookViewOverlay').style.display = 'none';
+      bvEditingField = null;
+      currentBookViewId = null;
+    }
+  });
 
   // ===================== Authors tab =====================
   function authorInitial(name){
@@ -3585,7 +3791,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var bookRow = e.target.closest('.series-book-row');
     if(bookRow){
       var id = bookRow.getAttribute('data-book-id');
-      if(id) openViewModal(id);
+      if(id) openBookView(id);
       return;
     }
   });
