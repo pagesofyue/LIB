@@ -527,6 +527,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .author-toggle[open] summary::after{transform:rotate(90deg);}
 .author-book-count{font-size:11.5px;color:var(--muted);margin:2px 0 0;}
 .author-books{margin-top:10px;}
+.author-series-heading{font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:0.03em;text-transform:uppercase;margin:12px 0 4px;}
+.author-series-heading:first-child{margin-top:0;}
+.authors-search-wrap{position:relative;max-width:340px;margin-bottom:18px;}
+.authors-search-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--muted);}
+#authorsSearchInput{width:100%;padding:9px 12px 9px 34px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);font-family:var(--font-body);font-size:13.5px;color:var(--ink);}
 .detail-row .dl{width:120px;flex:none;color:var(--muted);font-weight:500;}
 .detail-row .dv{flex:1;min-width:0;overflow-wrap:break-word;word-break:break-word;}
 .view-header{display:flex;gap:16px;align-items:flex-start;margin-bottom:6px;}
@@ -3296,9 +3301,23 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       if(!groups[b.author]) groups[b.author] = [];
       groups[b.author].push(b);
     });
-    var names = Object.keys(groups).sort(function(a, b){ return a.localeCompare(b); });
-    if(!names.length){
+    var allNames = Object.keys(groups).sort(function(a, b){ return a.localeCompare(b); });
+    if(!allNames.length){
       wrap.innerHTML = '<div class="cal-empty-note">No authors yet — add an author to a book to see them here.</div>';
+      return;
+    }
+
+    var searchWrapHtml = '<div class="authors-search-wrap">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
+      '<input type="text" id="authorsSearchInput" placeholder="Search authors..." value="' + escapeHtml(authorsSearchTerm) + '">' +
+      '</div>';
+
+    var query = authorsSearchTerm.trim().toLowerCase();
+    var names = query ? allNames.filter(function(n){ return n.toLowerCase().indexOf(query) !== -1; }) : allNames;
+
+    if(!names.length){
+      wrap.innerHTML = searchWrapHtml + '<div class="cal-empty-note">No authors match "' + escapeHtml(authorsSearchTerm) + '".</div>';
+      wireAuthorsSearchInput();
       return;
     }
 
@@ -3309,14 +3328,45 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         ? '<img class="author-photo" src="' + photo + '" alt="">'
         : '<div class="author-photo-ph">' + escapeHtml(authorInitial(name)) + '</div>';
 
-      var rows = list.map(function(b){
+      // Group this author's books by series (kept in series order), with
+      // standalone titles collected into their own group at the end —
+      // mirrors how the Series tab organizes things, just author-first.
+      var seriesGroups = {};
+      var seriesOrder = [];
+      var standalone = [];
+      list.forEach(function(b){
+        if(b.series){
+          if(!seriesGroups[b.series]){ seriesGroups[b.series] = []; seriesOrder.push(b.series); }
+          seriesGroups[b.series].push(b);
+        } else {
+          standalone.push(b);
+        }
+      });
+      seriesOrder.sort(function(a, b){ return a.localeCompare(b); });
+
+      function bookRowHtml(b){
         return '<div class="series-book-row" data-book-id="' + b.id + '">' +
-          '<div class="series-book-num"></div>' +
+          '<div class="series-book-num">' + ((b.seriesNumber || b.seriesNumber === 0) ? b.seriesNumber : '–') + '</div>' +
           '<div class="series-book-title">' + escapeHtml(b.title) + '</div>' +
           '<div class="series-book-status">' + escapeHtml(statusLabelFor(b)) + '</div>' +
           '</div>';
-      }).join('');
+      }
 
+      var rows = seriesOrder.map(function(sName){
+        var sList = seriesGroups[sName].slice().sort(function(a, b){
+          var na = (a.seriesNumber === null || a.seriesNumber === undefined) ? 999 : a.seriesNumber;
+          var nb = (b.seriesNumber === null || b.seriesNumber === undefined) ? 999 : b.seriesNumber;
+          return na - nb;
+        });
+        return '<p class="author-series-heading">' + escapeHtml(sName) + ' · ' + sList.length + ' book' + (sList.length === 1 ? '' : 's') + '</p>' +
+          sList.map(bookRowHtml).join('');
+      }).join('');
+      if(standalone.length){
+        rows += '<p class="author-series-heading">Standalone · ' + standalone.length + ' book' + (standalone.length === 1 ? '' : 's') + '</p>' +
+          standalone.map(bookRowHtml).join('');
+      }
+
+      var seriesCountLabel = seriesOrder.length ? (' · ' + seriesOrder.length + ' series') : '';
       var safeNameAttr = escapeHtml(name);
       return '<div class="card author-card" data-author="' + safeNameAttr + '">' +
         '<div class="author-card-top">' +
@@ -3326,14 +3376,29 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
           '</div>' +
           '<div>' +
             '<details class="author-toggle"><summary>' + escapeHtml(name) + '</summary></details>' +
-            '<p class="author-book-count">' + list.length + ' book' + (list.length === 1 ? '' : 's') + '</p>' +
+            '<p class="author-book-count">' + list.length + ' book' + (list.length === 1 ? '' : 's') + seriesCountLabel + '</p>' +
           '</div>' +
         '</div>' +
         '<div class="author-books" style="display:none;">' + rows + '</div>' +
         '</div>';
     }).join('');
 
-    wrap.innerHTML = '<div class="grid">' + cards + '</div>';
+    wrap.innerHTML = searchWrapHtml + '<div class="grid">' + cards + '</div>';
+    wireAuthorsSearchInput();
+  }
+
+  var authorsSearchTerm = '';
+
+  function wireAuthorsSearchInput(){
+    var input = document.getElementById('authorsSearchInput');
+    if(!input) return;
+    input.focus();
+    var val = input.value;
+    input.setSelectionRange(val.length, val.length);
+    input.oninput = function(){
+      authorsSearchTerm = input.value;
+      renderAuthorsView();
+    };
   }
 
   document.getElementById('authorsView').addEventListener('click', function(e){
