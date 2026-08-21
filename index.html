@@ -3513,6 +3513,17 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   // description, plain numbered book list) from the live `books` array —
   // shared by the Series View grid and the single-series popup opened from
   // the Author tab, so both always look identical.
+  var SERIES_LIST_PAGE_SIZE = 5;
+  var seriesListExpanded = {};
+
+  function toggleSeriesListExpanded(name){
+    seriesListExpanded[name] = !seriesListExpanded[name];
+    if(currentActiveNav === 'navSeries') renderSeriesView();
+    if(document.getElementById('seriesPeekOverlay').style.display === 'flex'){
+      document.getElementById('seriesPeekContent').innerHTML = buildSeriesCardHtml(name);
+    }
+  }
+
   function buildSeriesCardHtml(name){
     var list = books.filter(function(b){ return b.series === name; }).sort(function(a, b){
       var na = (a.seriesNumber === null || a.seriesNumber === undefined) ? 999 : a.seriesNumber;
@@ -3532,7 +3543,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var info = seriesInfo[name];
     var descHtml = (info && info.description) ? '<p class="series-desc">' + escapeHtml(info.description) + '</p>' : '';
 
-    var rows = list.map(function(b){
+    var expanded = !!seriesListExpanded[name];
+    var shownList = expanded ? list : list.slice(0, SERIES_LIST_PAGE_SIZE);
+    var rows = shownList.map(function(b){
       var isNext = b.id === nextUpId;
       var label = isNext ? 'Next up' : statusLabelFor(b);
       return '<div class="series-book-row" data-book-id="' + b.id + '">' +
@@ -3541,6 +3554,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         '<div class="series-book-status' + (isNext ? ' next-up' : '') + '">' + escapeHtml(label) + '</div>' +
         '</div>';
     }).join('');
+    var seeMoreHtml = '';
+    if(list.length > SERIES_LIST_PAGE_SIZE){
+      seeMoreHtml = expanded
+        ? '<button type="button" class="see-more-btn" data-series-toggle="' + escapeHtml(name) + '">Show fewer</button>'
+        : '<button type="button" class="see-more-btn" data-series-toggle="' + escapeHtml(name) + '">See ' + (list.length - SERIES_LIST_PAGE_SIZE) + ' more</button>';
+    }
 
     return '<div class="card series-card" data-series-card="' + escapeHtml(name) + '">' +
       '<div class="series-card-head">' +
@@ -3554,6 +3573,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       '</div>' +
       descHtml +
       rows +
+      seeMoreHtml +
       '</div>';
   }
 
@@ -3651,6 +3671,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
 
   document.getElementById('seriesView').addEventListener('click', function(e){
+    var toggleBtn = e.target.closest('.see-more-btn[data-series-toggle]');
+    if(toggleBtn){
+      toggleSeriesListExpanded(toggleBtn.getAttribute('data-series-toggle'));
+      return;
+    }
     var editBtn = e.target.closest('.series-edit-btn');
     if(editBtn){
       openSeriesEditModal(editBtn.getAttribute('data-series'));
@@ -3969,6 +3994,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   });
 
   // ===================== Authors tab =====================
+  var authorStandaloneExpanded = {};
+
   function authorInitial(name){
     return (name || '?').trim().charAt(0).toUpperCase() || '?';
   }
@@ -4024,16 +4051,24 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var standaloneRow = '';
     if(standalone.length){
       entryNum++;
+      var standaloneExpanded = !!authorStandaloneExpanded[name];
+      var shownStandalone = standaloneExpanded ? standalone : standalone.slice(0, SERIES_LIST_PAGE_SIZE);
+      var standaloneSeeMoreHtml = '';
+      if(standalone.length > SERIES_LIST_PAGE_SIZE){
+        standaloneSeeMoreHtml = standaloneExpanded
+          ? '<button type="button" class="see-more-btn" data-standalone-toggle="' + escapeHtml(name) + '">Show fewer</button>'
+          : '<button type="button" class="see-more-btn" data-standalone-toggle="' + escapeHtml(name) + '">See ' + (standalone.length - SERIES_LIST_PAGE_SIZE) + ' more</button>';
+      }
       standaloneRow = '<details class="author-standalone-toggle">' +
         '<summary class="author-series-row"><span><span class="author-series-num">' + entryNum + '.</span>Standalone</span>' +
         '<span class="author-series-count">' + standalone.length + ' book' + (standalone.length === 1 ? '' : 's') + '</span></summary>' +
-        '<div class="author-standalone-list">' + standalone.map(function(b){
+        '<div class="author-standalone-list">' + shownStandalone.map(function(b){
           return '<div class="series-book-row" data-book-id="' + b.id + '">' +
             '<div class="series-book-num">–</div>' +
             '<div class="series-book-title">' + escapeHtml(b.title) + '</div>' +
             '<div class="series-book-status">' + escapeHtml(statusLabelFor(b)) + '</div>' +
             '</div>';
-        }).join('') + '</div>' +
+        }).join('') + standaloneSeeMoreHtml + '</div>' +
         '</details>';
     }
 
@@ -4119,6 +4154,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     if(e.target.id === 'authorPeekOverlay') closeAuthorPeek();
   });
   document.getElementById('authorPeekContent').addEventListener('click', function(e){
+    var standaloneToggleBtn = e.target.closest('.see-more-btn[data-standalone-toggle]');
+    if(standaloneToggleBtn){
+      toggleAuthorStandaloneExpanded(standaloneToggleBtn.getAttribute('data-standalone-toggle'));
+      return;
+    }
     var editBtn = e.target.closest('.entity-link-edit-btn');
     if(editBtn){
       openEntityLinksEditModal(editBtn.getAttribute('data-entity-kind'), editBtn.getAttribute('data-entity-name'));
@@ -4137,6 +4177,14 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     }
   });
 
+  function toggleAuthorStandaloneExpanded(name){
+    authorStandaloneExpanded[name] = !authorStandaloneExpanded[name];
+    if(currentActiveNav === 'navAuthors') renderAuthorsView();
+    if(document.getElementById('authorPeekOverlay').style.display === 'flex'){
+      document.getElementById('authorPeekContent').innerHTML = buildAuthorCardHtml(name);
+    }
+  }
+
   // Pops open just that one series' card on top of wherever you are —
   // Author tab, Series View, anywhere — so you can peek at it and close
   // it without losing your place.
@@ -4154,6 +4202,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     if(e.target.id === 'seriesPeekOverlay') closeSeriesPeek();
   });
   document.getElementById('seriesPeekContent').addEventListener('click', function(e){
+    var toggleBtn = e.target.closest('.see-more-btn[data-series-toggle]');
+    if(toggleBtn){
+      toggleSeriesListExpanded(toggleBtn.getAttribute('data-series-toggle'));
+      return;
+    }
     var editBtn = e.target.closest('.series-edit-btn');
     if(editBtn){
       openSeriesEditModal(editBtn.getAttribute('data-series'));
@@ -4171,6 +4224,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   });
 
   document.getElementById('authorsView').addEventListener('click', function(e){
+    var standaloneToggleBtn = e.target.closest('.see-more-btn[data-standalone-toggle]');
+    if(standaloneToggleBtn){
+      toggleAuthorStandaloneExpanded(standaloneToggleBtn.getAttribute('data-standalone-toggle'));
+      return;
+    }
     var linkEditBtn = e.target.closest('.entity-link-edit-btn');
     if(linkEditBtn){
       openEntityLinksEditModal(linkEditBtn.getAttribute('data-entity-kind'), linkEditBtn.getAttribute('data-entity-name'));
@@ -4503,14 +4561,16 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     }
 
     // Requested books aren't in hand yet — applied for as an ARC, or just
-    // not out in the world yet — so they still get their genre color
-    // (same as every other pile), just with a dashed "not arrived" outline
-    // instead of a solid fill, on their own little mini shelf off to the
-    // side (see renderRequestedShelfHtml below).
+    // not out in the world yet — so they still get a solid genre-color
+    // fill just like every other pile; the dashed border (a fixed color,
+    // not genre-tied) is what marks them as "not arrived", on their own
+    // little mini shelf off to the side (see renderRequestedShelfHtml below).
     function requestedPileSpineStyleFor(b){
       var isF1 = (b.tropes || []).indexOf('Formula 1') !== -1;
-      var color = isF1 ? FORMULA_1_BG : genreColorFor(b.genre);
-      return {bg: 'background:rgba(0,0,0,0);border:1.5px dashed ' + color + ';', textColor: color};
+      return {
+        bg: 'background:' + (isF1 ? FORMULA_1_BG : genreColorFor(b.genre)) + ';border:1.5px dashed var(--requested-deep);',
+        textColor: isF1 ? FORMULA_1_TEXT : null
+      };
     }
 
     // Renders one or more pile stacks (capped at 5 books per stack) from a
