@@ -417,6 +417,10 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .manage-list{display:flex;flex-direction:column;gap:4px;max-height:150px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--card);margin-bottom:8px;}
 .manage-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:3px 4px;gap:6px;}
 .genre-swatch{flex:none;width:12px;height:12px;border-radius:50%;border:1px solid var(--line-strong);}
+.genre-swatch-input{flex:none;width:16px;height:16px;padding:0;border:1px solid var(--line-strong);border-radius:50%;cursor:pointer;background:none;-webkit-appearance:none;appearance:none;}
+.genre-swatch-input::-webkit-color-swatch-wrapper{padding:0;border-radius:50%;}
+.genre-swatch-input::-webkit-color-swatch{border:none;border-radius:50%;}
+.genre-swatch-input::-moz-color-swatch{border:none;border-radius:50%;}
 
 .stars{position:relative;display:inline-block;font-size:14px;line-height:1;letter-spacing:2px;height:14px;}
 .stars-bg,.stars-fill{white-space:nowrap;}
@@ -573,6 +577,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .entity-link-edit-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:0;flex:none;white-space:nowrap;}
 .entity-link-edit-btn:hover{color:var(--accent-deep);}
 .platform-card .series-card-head{align-items:flex-start;}
+.see-more-btn{display:block;margin:8px auto 0;background:none;border:none;color:var(--accent-deep);font-size:12px;cursor:pointer;padding:4px;}
+.see-more-btn:hover{text-decoration:underline;}
 
 .book-view-modal{max-width:820px;}
 .bv-top{display:flex;gap:18px;}
@@ -1338,7 +1344,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         authorPhotos: meta.authorPhotos || {},
         seriesInfo: meta.seriesInfo || {},
         authorLinks: meta.authorLinks || {},
-        sourceInfo: meta.sourceInfo || {}
+        sourceInfo: meta.sourceInfo || {},
+        customGenreColors: meta.customGenreColors || {}
       };
     },
     async saveBook(book){
@@ -1486,6 +1493,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   var seriesInfo = {};
   var authorLinks = {};
   var sourceInfo = {};
+  var customGenreColors = {};
   var pendingCover = null;
   var activeStatus = 'all';
   var dueSoonFilterActive = false;
@@ -1568,6 +1576,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       seriesInfo = data.seriesInfo || {};
       authorLinks = data.authorLinks || {};
       sourceInfo = data.sourceInfo || {};
+      customGenreColors = data.customGenreColors || {};
       setSync('idle');
       normalizeArcSourceNames();
     }catch(e){
@@ -1580,6 +1589,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       seriesInfo = {};
       authorLinks = {};
       sourceInfo = {};
+      customGenreColors = {};
       setSync('error');
       showBanner("Couldn't load your library from the cloud. Check your connection and refresh.");
     }
@@ -1644,6 +1654,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   async function saveSourceInfo(){
     try{ await window.cloudStore.saveMeta({sourceInfo: sourceInfo}); }catch(e){
       showBanner("Couldn't save that info. Try again.");
+    }
+  }
+
+  async function saveCustomGenreColors(){
+    try{ await window.cloudStore.saveMeta({customGenreColors: customGenreColors}); }catch(e){
+      showBanner("Couldn't save that color. Try again.");
     }
   }
 
@@ -1955,21 +1971,24 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       filtered.sort(buildSortComparator());
     }
 
-    // Cards are always grouped in this fixed order — Want/Reading, then On
-    // Hold, then DNF, then Finished — on top of whichever sort is selected
-    // above. Array.sort is stable, so it preserves the ordering already
-    // established (by the sort above) within each group.
+    // Cards are always grouped in a fixed order on top of whichever sort
+    // is selected above — see statusGroupWeight below for the exact order.
     filtered.sort(function(a,b){ return statusGroupWeight(a) - statusGroupWeight(b); });
 
     return filtered;
   }
 
+  // Cards are grouped in this fixed order on top of whichever sort is
+  // selected above: active books with a due date first, then active books
+  // without one, then Requested, then Finished, then On Hold, then DNF
+  // last. Array.sort is stable, so within the first group the existing
+  // nearest-due-date ordering from compareDue is preserved.
   function statusGroupWeight(b){
-    if(b.status === 'requested') return -1;
-    if(b.status === 'hold') return 1;
-    if(b.status === 'dnf') return 2;
+    if(b.status === 'dnf') return 5;
+    if(b.status === 'hold') return 4;
     if(b.status === 'finished') return 3;
-    return 0;
+    if(b.status === 'requested') return 2;
+    return effectiveDueDate(b) ? 0 : 1;
   }
 
   function statusLabelFor(b){
@@ -2010,6 +2029,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   function genreColorFor(genre){
     if(!genre) return GENRE_COLOR_PALETTE[0];
+    if(customGenreColors[genre]) return customGenreColors[genre];
     if(GENRE_COLOR_MAP[genre]) return GENRE_COLOR_MAP[genre];
     var hash = 0;
     for(var i = 0; i < genre.length; i++){ hash = (hash * 31 + genre.charCodeAt(i)) & 0xffffffff; }
@@ -2327,9 +2347,20 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     list.forEach(function(item){
       var row = document.createElement('div');
       row.className = 'manage-row';
-      var swatchHtml = manageMode === 'genre' ? '<span class="genre-swatch" style="background:' + genreColorFor(item) + ';" title="' + escapeHtml(item) + ' color"></span>' : '';
+      var swatchHtml = manageMode === 'genre'
+        ? '<input type="color" class="genre-swatch-input" value="' + genreColorFor(item) + '" title="Click to change ' + escapeHtml(item) + '\'s color">'
+        : '';
       row.innerHTML = swatchHtml + '<input type="text" class="manage-edit-input" value="' + escapeHtml(item) + '" style="flex:1;border:none;background:none;font-size:13px;color:var(--ink);padding:3px 4px;font-family:var(--font-body);">' +
         '<button type="button" class="link-remove" title="Delete">×</button>';
+      if(manageMode === 'genre'){
+        var swatchInput = row.querySelector('.genre-swatch-input');
+        swatchInput.addEventListener('input', function(){
+          customGenreColors[item] = swatchInput.value;
+          saveCustomGenreColors();
+          render();
+          if(currentActiveNav === 'navReviews') renderReviewsView();
+        });
+      }
       var input = row.querySelector('.manage-edit-input');
       input.addEventListener('focus', function(){ input.style.background = 'var(--card-hover)'; input.style.borderRadius = '5px'; });
       function commitRename(){
@@ -2341,6 +2372,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         if(manageMode === 'genre'){
           if(mergingInto){ genreList = genreList.filter(function(g){ return g !== item; }); }
           else { genreList = genreList.map(function(g){ return g === item ? newVal : g; }); }
+          if(customGenreColors[item] && !mergingInto){
+            customGenreColors[newVal] = customGenreColors[item];
+            delete customGenreColors[item];
+            saveCustomGenreColors();
+          }
           saveGenreList();
           var currentGenreVal = document.getElementById('f_genre').value;
           renderGenreSelect(currentGenreVal === item ? newVal : currentGenreVal);
@@ -2822,7 +2858,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   document.getElementById('exportBackupBtn').onclick = function(){
     document.getElementById('exportMenu').style.display = 'none';
-    var payload = {books: books, tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, authorPhotos: authorPhotos, seriesInfo: seriesInfo, authorLinks: authorLinks, sourceInfo: sourceInfo, exportedAt: new Date().toISOString()};
+    var payload = {books: books, tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, authorPhotos: authorPhotos, seriesInfo: seriesInfo, authorLinks: authorLinks, sourceInfo: sourceInfo, customGenreColors: customGenreColors, exportedAt: new Date().toISOString()};
     var blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
     var url = URL.createObjectURL(blob);
     var link = document.createElement('a');
@@ -2855,10 +2891,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       seriesInfo = data.seriesInfo || {};
       authorLinks = data.authorLinks || {};
       sourceInfo = data.sourceInfo || {};
+      customGenreColors = data.customGenreColors || {};
       setSync('syncing');
       try{
         await window.cloudStore.replaceAllBooks(books);
-        await window.cloudStore.saveMeta({tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, authorPhotos: authorPhotos, seriesInfo: seriesInfo, authorLinks: authorLinks, sourceInfo: sourceInfo});
+        await window.cloudStore.saveMeta({tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, authorPhotos: authorPhotos, seriesInfo: seriesInfo, authorLinks: authorLinks, sourceInfo: sourceInfo, customGenreColors: customGenreColors});
         setSync('idle');
       }catch(e){
         setSync('error');
@@ -4174,6 +4211,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   // "Author/Publisher" (isAuthorDirect) shows a list of the authors you've
   // gotten books directly from instead of a book list, since one such
   // entry can span many different authors — click a name to peek at them.
+  var PLATFORM_LIST_PAGE_SIZE = 10;
+  var platformsExpanded = {};
+
   function renderPlatformsView(){
     var wrap = document.getElementById('platformsView');
     var groups = {};
@@ -4182,7 +4222,15 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       if(!groups[b.arcSource]) groups[b.arcSource] = [];
       groups[b.arcSource].push(b);
     });
-    var names = Object.keys(groups).sort(function(a, b){ return a.localeCompare(b); });
+    // Platforms marked "Author/Publisher" (direct-from-author sources)
+    // float to the top, since they behave differently from the rest;
+    // everything else stays alphabetical.
+    var names = Object.keys(groups).sort(function(a, b){
+      var aDirect = (sourceInfo[a] || {}).isAuthorDirect ? 0 : 1;
+      var bDirect = (sourceInfo[b] || {}).isAuthorDirect ? 0 : 1;
+      if(aDirect !== bDirect) return aDirect - bDirect;
+      return a.localeCompare(b);
+    });
     if(!names.length){
       wrap.innerHTML = '<div class="cal-empty-note">No ARC sources logged yet — set a source on a book to see it grouped here.</div>';
       return;
@@ -4193,26 +4241,40 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       var info = sourceInfo[name] || {};
       var linksHtml = buildEntityLinksHtml(info);
       var safeNameAttr = escapeHtml(name);
+      var expanded = !!platformsExpanded[name];
 
       var bodyHtml;
+      var totalEntries;
       if(info.isAuthorDirect){
         var authorCounts = {};
         list.forEach(function(b){ if(b.author) authorCounts[b.author] = (authorCounts[b.author] || 0) + 1; });
         var authorNames = Object.keys(authorCounts).sort(function(a, b){ return a.localeCompare(b); });
-        bodyHtml = authorNames.map(function(aName, idx){
+        totalEntries = authorNames.length;
+        var shownAuthors = expanded ? authorNames : authorNames.slice(0, PLATFORM_LIST_PAGE_SIZE);
+        bodyHtml = shownAuthors.map(function(aName, idx){
           return '<div class="author-series-row" data-platform-author="' + escapeHtml(aName) + '">' +
             '<span><span class="author-series-num">' + (idx + 1) + '.</span>' + escapeHtml(aName) + '</span>' +
             '<span class="author-series-count">' + authorCounts[aName] + ' book' + (authorCounts[aName] === 1 ? '' : 's') + ' ›</span>' +
             '</div>';
         }).join('');
       } else {
-        bodyHtml = list.slice().sort(function(a, b){ return (a.title || '').localeCompare(b.title || ''); }).map(function(b){
+        var sortedList = list.slice().sort(function(a, b){ return (a.title || '').localeCompare(b.title || ''); });
+        totalEntries = sortedList.length;
+        var shownBooks = expanded ? sortedList : sortedList.slice(0, PLATFORM_LIST_PAGE_SIZE);
+        bodyHtml = shownBooks.map(function(b){
           return '<div class="series-book-row" data-book-id="' + b.id + '">' +
             '<div class="series-book-num">–</div>' +
             '<div class="series-book-title">' + escapeHtml(b.title) + (b.author ? ' <span style="color:var(--muted);font-weight:400;">— ' + escapeHtml(b.author) + '</span>' : '') + '</div>' +
             '<div class="series-book-status">' + escapeHtml(statusLabelFor(b)) + '</div>' +
             '</div>';
         }).join('');
+      }
+
+      var seeMoreHtml = '';
+      if(totalEntries > PLATFORM_LIST_PAGE_SIZE){
+        seeMoreHtml = expanded
+          ? '<button type="button" class="see-more-btn" data-platform-toggle="' + safeNameAttr + '">Show fewer</button>'
+          : '<button type="button" class="see-more-btn" data-platform-toggle="' + safeNameAttr + '">See ' + (totalEntries - PLATFORM_LIST_PAGE_SIZE) + ' more</button>';
       }
 
       return '<div class="card platform-card">' +
@@ -4225,6 +4287,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
           '<button type="button" class="entity-link-edit-btn" data-entity-kind="source" data-entity-name="' + safeNameAttr + '" title="Edit website &amp; social links">✎ Edit info</button>' +
         '</div>' +
         bodyHtml +
+        seeMoreHtml +
         '</div>';
     }).join('');
 
@@ -4232,6 +4295,13 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
 
   document.getElementById('platformsView').addEventListener('click', function(e){
+    var toggleBtn = e.target.closest('.see-more-btn');
+    if(toggleBtn){
+      var pName = toggleBtn.getAttribute('data-platform-toggle');
+      platformsExpanded[pName] = !platformsExpanded[pName];
+      renderPlatformsView();
+      return;
+    }
     var editBtn = e.target.closest('.entity-link-edit-btn');
     if(editBtn){
       openEntityLinksEditModal(editBtn.getAttribute('data-entity-kind'), editBtn.getAttribute('data-entity-name'));
@@ -4433,11 +4503,14 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     }
 
     // Requested books aren't in hand yet — applied for as an ARC, or just
-    // not out in the world yet — so they get a dashed, "not arrived"
-    // outline instead of a filled genre color, on their own little mini
-    // shelf off to the side (see renderRequestedShelfHtml below).
+    // not out in the world yet — so they still get their genre color
+    // (same as every other pile), just with a dashed "not arrived" outline
+    // instead of a solid fill, on their own little mini shelf off to the
+    // side (see renderRequestedShelfHtml below).
     function requestedPileSpineStyleFor(b){
-      return {bg: 'background:rgba(0,0,0,0);border:1.5px dashed var(--requested-deep);', textColor: 'var(--requested-deep)'};
+      var isF1 = (b.tropes || []).indexOf('Formula 1') !== -1;
+      var color = isF1 ? FORMULA_1_BG : genreColorFor(b.genre);
+      return {bg: 'background:rgba(0,0,0,0);border:1.5px dashed ' + color + ';', textColor: color};
     }
 
     // Renders one or more pile stacks (capped at 5 books per stack) from a
