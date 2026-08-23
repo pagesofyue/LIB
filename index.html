@@ -955,7 +955,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       <select id="postcardSize">
         <option value="a6_landscape">Landscape (postcard)</option>
         <option value="a6_portrait">Portrait (postcard)</option>
-        <option value="ig_post">Instagram Post (square)</option>
+        <option value="ig_post">Instagram Post (4:5)</option>
         <option value="ig_story">Instagram Story (9:16)</option>
       </select>
     </div>
@@ -3086,7 +3086,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   var POSTCARD_SIZES = {
     a6_landscape: {w: 559, h: 397, scale: 3},
     a6_portrait: {w: 397, h: 559, scale: 3},
-    ig_post: {w: 1080, h: 1080, scale: 2},
+    ig_post: {w: 1080, h: 1350, scale: 2},
     ig_story: {w: 1080, h: 1920, scale: 2}
   };
 
@@ -3193,13 +3193,35 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   function fitPostcardText(){
     fitPostcardTitle();
     fitPostcardReviewText();
+    fitPostcardFooter();
   }
 
   function postcardSocialsFooterHtml(fontSize){
     return '<div style="text-align:center;color:#6B4E93;">' +
-      '<div style="font-size:' + fontSize + 'px;letter-spacing:0.02em;white-space:nowrap;">Reviews : pagesofyue.com &nbsp;|&nbsp; ARC Catalog : arc.pagesofyue.com</div>' +
-      '<div style="font-size:' + fontSize + 'px;letter-spacing:0.02em;margin-top:4px;white-space:nowrap;">IG / Threads / TikTok : @pagesofyue</div>' +
+      '<div id="pcFooterLine1" style="font-size:' + fontSize + 'px;letter-spacing:0.02em;white-space:nowrap;display:inline-block;">Reviews : pagesofyue.com &nbsp;|&nbsp; ARC Catalog : arc.pagesofyue.com</div>' +
+      '<div id="pcFooterLine2" style="font-size:' + fontSize + 'px;letter-spacing:0.02em;margin-top:4px;white-space:nowrap;display:inline-block;">IG / Threads / TikTok : @pagesofyue</div>' +
       '</div>';
+  }
+
+  // Shrinks a single-line footer element until it actually fits its
+  // parent's width — same measure-and-adjust approach as the title, so a
+  // long handle/URL combo never gets clipped at the card's edges.
+  function fitPostcardFooterLine(id){
+    var el = document.getElementById(id);
+    if(!el) return;
+    var parent = el.parentElement;
+    if(!parent) return;
+    var size = parseInt(el.style.fontSize, 10) || 14;
+    var minSize = 8;
+    while(size > minSize && el.scrollWidth > parent.clientWidth){
+      size -= 1;
+      el.style.fontSize = size + 'px';
+    }
+  }
+
+  function fitPostcardFooter(){
+    fitPostcardFooterLine('pcFooterLine1');
+    fitPostcardFooterLine('pcFooterLine2');
   }
 
   function buildPostcardSquare(b, reviewText){
@@ -3211,7 +3233,10 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     // Float-based header row (not flexbox) — html2canvas can badly
     // miscalculate a flex:1 text column's width next to a fixed-width
     // cover box, which is what caused the "one word per line" bug.
-    return '<div style="width:1080px;height:1080px;position:relative;box-sizing:border-box;padding:56px 64px;background:#FBF7FF;border:3px solid #3B2A55;font-family:\'Courier Prime\',monospace;color:#3B2A55;">' +
+    // 1080×1350 (4:5 — Instagram's portrait post ratio, more room than
+    // a square) with a float-based header row for the same html2canvas-
+    // safety reasons as the other templates.
+    return '<div style="width:1080px;height:1350px;position:relative;box-sizing:border-box;padding:56px 64px;background:#FBF7FF;border:3px solid #3B2A55;font-family:\'Courier Prime\',monospace;color:#3B2A55;">' +
       postcardStampHtml('ig_post') +
       '<div style="overflow:hidden;">' +
         '<div style="float:left;width:130px;height:195px;border-radius:6px;overflow:hidden;box-shadow:0 4px 14px rgba(59,42,85,0.25);background:radial-gradient(circle at 30% 20%,#E4D2F2,transparent 65%),radial-gradient(circle at 70% 80%,#F0DCEA,transparent 65%),#F5EEFC;display:table;">' +
@@ -3223,7 +3248,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         '</div>' +
       '</div>' +
       '<div style="height:1px;background:rgba(59,42,85,0.28);margin:28px 0;"></div>' +
-      '<div id="pcReviewBox" style="height:530px;overflow:hidden;padding:0 12px;box-sizing:border-box;">' +
+      '<div id="pcReviewBox" style="height:770px;overflow:hidden;padding:0 12px;box-sizing:border-box;">' +
         '<div id="pcReviewText" style="font-style:italic;line-height:1.5;font-size:32px;text-align:left;white-space:pre-wrap;">' + reviewHtml + '</div>' +
       '</div>' +
       '<div style="position:absolute;bottom:56px;left:64px;right:64px;">' + postcardSocialsFooterHtml(14) + '</div>' +
