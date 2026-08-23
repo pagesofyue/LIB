@@ -288,6 +288,8 @@ body[data-theme="velaris"] .reader-intro p{color:#D2C6F1;text-shadow:0 1px 6px r
 .series-group h3{font-family:var(--font-display);font-size:17px;margin:0 0 10px;}
 .series-book-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:13px;}
 .series-book-row:first-of-type{border-top:none;}
+.book-row-edit-btn{flex:none;background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:2px 4px;}
+.book-row-edit-btn:hover{color:var(--accent-deep);}
 .series-book-num{flex:none;width:26px;height:26px;border-radius:50%;background:var(--card-hover);color:var(--muted);font-family:var(--font-mono);font-size:11px;display:flex;align-items:center;justify-content:center;}
 .series-book-title{flex:1;min-width:0;}
 .series-book-status{flex:none;font-size:11px;padding:3px 9px;border-radius:10px;background:rgba(59,42,85,0.07);color:var(--muted);}
@@ -610,12 +612,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .detail-row .dl{width:120px;flex:none;color:var(--muted);font-weight:500;}
 .detail-row .dv{flex:1;min-width:0;overflow-wrap:break-word;word-break:break-word;}
 .view-header{display:flex;gap:16px;align-items:flex-start;margin-bottom:6px;}
-.checkout-history{margin-top:16px;}
-.checkout-history h4{font-family:var(--font-display);font-size:12px;margin:0 0 8px;color:var(--muted);letter-spacing:0.05em;text-transform:uppercase;}
-.checkout-entry{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;padding:6px 0;border-bottom:1px solid var(--line);}
-.checkout-empty{font-size:12.5px;color:var(--muted);margin:0 0 10px;}
-.checkout-add-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center;}
-.checkout-add-row input{padding:7px 9px;border:1px solid var(--line-strong);border-radius:7px;background:var(--card);font-family:var(--font-body);font-size:12.5px;color:var(--ink);}
 .view-cover{flex:none;width:100px;height:150px;border-radius:8px;overflow:hidden;background:radial-gradient(circle at 30% 20%, #E4D2F2, transparent 65%), radial-gradient(circle at 70% 80%, #F0DCEA, transparent 65%), var(--card);border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;}
 .view-cover img{width:100%;height:100%;object-fit:cover;}
 .card.clickable{cursor:pointer;}
@@ -3125,7 +3121,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       '<div id="pcTitle" style="width:280px;font-size:19px;font-weight:700;line-height:1.25;white-space:nowrap;overflow:hidden;">' + escapeHtml(b.title) + '</div>' +
       (b.author ? authorHtml : '') +
       seriesHtml + ratingHtml +
-      '<div id="pcReviewBox" style="border-top:1px dashed rgba(59,42,85,0.3);padding-top:8px;margin-top:10px;width:320px;height:170px;overflow:hidden;">' +
+      '<div id="pcReviewBox" style="border-top:1px dashed rgba(59,42,85,0.3);padding-top:8px;margin-top:10px;width:320px;height:215px;overflow:hidden;">' +
         '<div id="pcReviewText" style="font-style:italic;font-size:14px;line-height:1.5;color:#3B2A55;text-align:left;white-space:pre-wrap;">' + (reviewText ? escapeHtml(reviewText) : '<span style="color:#B8ABCB;">— your review —</span>') + '</div>' +
       '</div>' +
       '<div style="position:absolute;bottom:16px;left:20px;">' + postcardWordmark(15) + '</div>' +
@@ -3167,7 +3163,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var textEl = document.getElementById('pcReviewText');
     if(!box || !textEl) return;
     var size = parseInt(textEl.style.fontSize, 10) || 32;
-    var minSize = 11;
+    var minSize = 8;
     while(size > minSize && textEl.scrollHeight > box.clientHeight){
       size -= 1;
       textEl.style.fontSize = size + 'px';
@@ -3198,8 +3194,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   function postcardSocialsFooterHtml(fontSize){
     return '<div style="text-align:center;color:#6B4E93;">' +
-      '<div style="font-size:' + fontSize + 'px;letter-spacing:0.02em;">pagesofyue.com &nbsp;|&nbsp; ARC Catalog : arc.pagesofyue.com</div>' +
-      '<div style="font-size:' + fontSize + 'px;letter-spacing:0.02em;margin-top:4px;">IG / Threads / TikTok : @pagesofyue</div>' +
+      '<div style="font-size:' + fontSize + 'px;letter-spacing:0.02em;white-space:nowrap;">Reviews : pagesofyue.com &nbsp;|&nbsp; ARC Catalog : arc.pagesofyue.com</div>' +
+      '<div style="font-size:' + fontSize + 'px;letter-spacing:0.02em;margin-top:4px;white-space:nowrap;">IG / Threads / TikTok : @pagesofyue</div>' +
       '</div>';
   }
 
@@ -3414,7 +3410,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       '</div>' +
     '</div>' +
     blurbHtml +
-    rows + buildLinksHtml(b) + buildCheckoutHistoryHtml(b);
+    rows + buildLinksHtml(b);
   }
 
   // Review form (from the main Add/Edit form) plus any extra links the
@@ -3466,7 +3462,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     books = books.map(function(x){ return x.id === b.id ? b : x; });
     saveBookRemote(b);
     document.getElementById('viewContent').innerHTML = buildViewHtml(b);
-    wireCheckoutHistoryHandlers();
     wireLinksHandlers();
   }
 
@@ -3477,71 +3472,15 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     books = books.map(function(x){ return x.id === b.id ? b : x; });
     saveBookRemote(b);
     document.getElementById('viewContent').innerHTML = buildViewHtml(b);
-    wireCheckoutHistoryHandlers();
     wireLinksHandlers();
   }
 
-
-  function buildCheckoutHistoryHtml(b){
-    var history = b.checkoutHistory || [];
-    var entriesHtml = history.length ? history.map(function(h, idx){
-      return '<div class="checkout-entry">' +
-        '<span>Checked out ' + fmtDate(h.checkedOut) + (h.returned ? ' · Returned ' + fmtDate(h.returned) : ' · Still out') + '</span>' +
-        '<button type="button" class="link-remove" data-idx="' + idx + '" title="Remove entry">×</button>' +
-        '</div>';
-    }).join('') : '<p class="checkout-empty">No checkouts logged yet — handy for tracking rereads of borrowed or ARC copies.</p>';
-
-    return '<div class="checkout-history">' +
-      '<h4>Checkout history</h4>' +
-      entriesHtml +
-      '<div class="checkout-add-row">' +
-        '<input type="date" id="checkoutNewOut" lang="en-US">' +
-        '<input type="date" id="checkoutNewReturned" lang="en-US">' +
-        '<button type="button" class="small-btn" id="checkoutAddBtn">Log</button>' +
-      '</div>' +
-      '<p class="hint">Leave "returned" blank if it\'s still checked out.</p>' +
-      '</div>';
-  }
-
-  function wireCheckoutHistoryHandlers(){
-    var addBtn = document.getElementById('checkoutAddBtn');
-    if(addBtn) addBtn.onclick = addCheckoutEntry;
-    document.querySelectorAll('#viewContent .checkout-entry .link-remove').forEach(function(btn){
-      btn.onclick = function(){ removeCheckoutEntry(parseInt(btn.getAttribute('data-idx'), 10)); };
-    });
-  }
-
-  function addCheckoutEntry(){
-    var outVal = document.getElementById('checkoutNewOut').value;
-    if(!outVal){ showBanner('Pick a "checked out" date first.'); return; }
-    var retVal = document.getElementById('checkoutNewReturned').value;
-    var b = books.find(function(x){ return x.id === currentViewBookId; });
-    if(!b) return;
-    b.checkoutHistory = (b.checkoutHistory || []).concat([{checkedOut: outVal, returned: retVal || ''}]);
-    books = books.map(function(x){ return x.id === b.id ? b : x; });
-    saveBookRemote(b);
-    document.getElementById('viewContent').innerHTML = buildViewHtml(b);
-    wireCheckoutHistoryHandlers();
-    wireLinksHandlers();
-  }
-
-  function removeCheckoutEntry(idx){
-    var b = books.find(function(x){ return x.id === currentViewBookId; });
-    if(!b || !b.checkoutHistory) return;
-    b.checkoutHistory = b.checkoutHistory.filter(function(h, i){ return i !== idx; });
-    books = books.map(function(x){ return x.id === b.id ? b : x; });
-    saveBookRemote(b);
-    document.getElementById('viewContent').innerHTML = buildViewHtml(b);
-    wireCheckoutHistoryHandlers();
-    wireLinksHandlers();
-  }
 
   function openViewModal(id){
     var b = books.find(function(x){ return x.id === id; });
     if(!b) return;
     currentViewBookId = id;
     document.getElementById('viewContent').innerHTML = buildViewHtml(b);
-    wireCheckoutHistoryHandlers();
     wireLinksHandlers();
     document.getElementById('viewOverlay').style.display = 'flex';
   }
@@ -3612,6 +3551,20 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   // Cover thumbnail + edit-pencil button shared by the Series tab card
   // header and each series group heading in the Authors tab.
+  // Shared row markup for a book inside a plain list (Series View, an
+  // author's Standalone list, a Platforms card) — includes a small edit
+  // pencil so the full Add/Edit form is reachable without detouring
+  // through Book View first.
+  function buildSeriesBookRowHtml(b, isNext){
+    var label = isNext ? 'Next up' : statusLabelFor(b);
+    return '<div class="series-book-row" data-book-id="' + b.id + '">' +
+      '<div class="series-book-num">' + ((b.seriesNumber || b.seriesNumber === 0) ? b.seriesNumber : '–') + '</div>' +
+      '<div class="series-book-title">' + escapeHtml(b.title) + '</div>' +
+      '<div class="series-book-status' + (isNext ? ' next-up' : '') + '">' + escapeHtml(label) + '</div>' +
+      '<button type="button" class="book-row-edit-btn" data-edit-book-id="' + b.id + '" title="Edit full book details">✎</button>' +
+      '</div>';
+  }
+
   function buildSeriesThumbHtml(name){
     var info = seriesInfo[name];
     return info && info.cover
@@ -3661,12 +3614,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var shownList = expanded ? list : list.slice(0, SERIES_LIST_PAGE_SIZE);
     var rows = shownList.map(function(b){
       var isNext = b.id === nextUpId;
-      var label = isNext ? 'Next up' : statusLabelFor(b);
-      return '<div class="series-book-row" data-book-id="' + b.id + '">' +
-        '<div class="series-book-num">' + ((b.seriesNumber || b.seriesNumber === 0) ? b.seriesNumber : '–') + '</div>' +
-        '<div class="series-book-title">' + escapeHtml(b.title) + '</div>' +
-        '<div class="series-book-status' + (isNext ? ' next-up' : '') + '">' + escapeHtml(label) + '</div>' +
-        '</div>';
+      return buildSeriesBookRowHtml(b, isNext);
     }).join('');
     var seeMoreHtml = '';
     if(list.length > SERIES_LIST_PAGE_SIZE){
@@ -3785,6 +3733,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
 
   document.getElementById('seriesView').addEventListener('click', function(e){
+    var editRowBtn = e.target.closest('.book-row-edit-btn');
+    if(editRowBtn){
+      openModal(editRowBtn.getAttribute('data-edit-book-id'), 'full');
+      return;
+    }
     var toggleBtn = e.target.closest('.see-more-btn[data-series-toggle]');
     if(toggleBtn){
       toggleSeriesListExpanded(toggleBtn.getAttribute('data-series-toggle'));
@@ -4175,11 +4128,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         '<summary class="author-series-row"><span><span class="author-series-num">' + entryNum + '.</span>Standalone</span>' +
         '<span class="author-series-count">' + standalone.length + ' book' + (standalone.length === 1 ? '' : 's') + '</span></summary>' +
         '<div class="author-standalone-list">' + shownStandalone.map(function(b){
-          return '<div class="series-book-row" data-book-id="' + b.id + '">' +
-            '<div class="series-book-num">–</div>' +
-            '<div class="series-book-title">' + escapeHtml(b.title) + '</div>' +
-            '<div class="series-book-status">' + escapeHtml(statusLabelFor(b)) + '</div>' +
-            '</div>';
+          return buildSeriesBookRowHtml(b, false);
         }).join('') + standaloneSeeMoreHtml + '</div>' +
         '</details>';
     }
@@ -4266,6 +4215,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     if(e.target.id === 'authorPeekOverlay') closeAuthorPeek();
   });
   document.getElementById('authorPeekContent').addEventListener('click', function(e){
+    var editRowBtn = e.target.closest('.book-row-edit-btn');
+    if(editRowBtn){
+      openModal(editRowBtn.getAttribute('data-edit-book-id'), 'full');
+      return;
+    }
     var standaloneToggleBtn = e.target.closest('.see-more-btn[data-standalone-toggle]');
     if(standaloneToggleBtn){
       toggleAuthorStandaloneExpanded(standaloneToggleBtn.getAttribute('data-standalone-toggle'));
@@ -4314,6 +4268,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     if(e.target.id === 'seriesPeekOverlay') closeSeriesPeek();
   });
   document.getElementById('seriesPeekContent').addEventListener('click', function(e){
+    var editRowBtn = e.target.closest('.book-row-edit-btn');
+    if(editRowBtn){
+      openModal(editRowBtn.getAttribute('data-edit-book-id'), 'full');
+      return;
+    }
     var toggleBtn = e.target.closest('.see-more-btn[data-series-toggle]');
     if(toggleBtn){
       toggleSeriesListExpanded(toggleBtn.getAttribute('data-series-toggle'));
@@ -4336,6 +4295,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   });
 
   document.getElementById('authorsView').addEventListener('click', function(e){
+    var editRowBtn = e.target.closest('.book-row-edit-btn');
+    if(editRowBtn){
+      openModal(editRowBtn.getAttribute('data-edit-book-id'), 'full');
+      return;
+    }
     var standaloneToggleBtn = e.target.closest('.see-more-btn[data-standalone-toggle]');
     if(standaloneToggleBtn){
       toggleAuthorStandaloneExpanded(standaloneToggleBtn.getAttribute('data-standalone-toggle'));
@@ -4436,6 +4400,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
             '<div class="series-book-num">–</div>' +
             '<div class="series-book-title">' + escapeHtml(b.title) + (b.author ? ' <span style="color:var(--muted);font-weight:400;">— ' + escapeHtml(b.author) + '</span>' : '') + '</div>' +
             '<div class="series-book-status">' + escapeHtml(statusLabelFor(b)) + '</div>' +
+            '<button type="button" class="book-row-edit-btn" data-edit-book-id="' + b.id + '" title="Edit full book details">✎</button>' +
             '</div>';
         }).join('');
       }
@@ -4465,6 +4430,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
 
   document.getElementById('platformsView').addEventListener('click', function(e){
+    var editRowBtn = e.target.closest('.book-row-edit-btn');
+    if(editRowBtn){
+      openModal(editRowBtn.getAttribute('data-edit-book-id'), 'full');
+      return;
+    }
     var toggleBtn = e.target.closest('.see-more-btn');
     if(toggleBtn){
       var pName = toggleBtn.getAttribute('data-platform-toggle');
