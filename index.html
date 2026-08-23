@@ -3105,29 +3105,26 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var ratingHtml = b.rating ? '<div style="margin-top:8px;font-size:16px;letter-spacing:2px;color:#6B4E93;">' + starsPlain(b.rating) + '</div>' : '';
     var seriesHtml = b.series ? '<div style="font-size:10.5px;color:#7C6D94;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '') + '</div>' : '';
     var authorHtml = b.author ? '<div style="font-size:12px;font-style:italic;color:#7C6D94;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(b.author) + '</div>' : '';
-    // Table/table-cell layout (not flexbox, not a fixed height) — the two
-    // side-by-side panels naturally match height to whichever is taller,
-    // and the whole card grows downward to fit a long review instead of
-    // clipping it. html2canvas also handles table layout far more
-    // reliably than flexbox, which is what caused the earlier "one word
-    // per line" bug.
-    return '<div style="width:559px;position:relative;background:#FBF7FF;border:2px solid #3B2A55;border-radius:8px;font-family:\'Courier Prime\',monospace;color:#3B2A55;box-sizing:border-box;display:table;">' +
-      '<div style="display:table-row;">' +
-        '<div style="display:table-cell;width:180px;vertical-align:middle;text-align:center;background:radial-gradient(circle at 30% 20%,#E4D2F2,transparent 65%),radial-gradient(circle at 70% 80%,#F0DCEA,transparent 65%),#F5EEFC;">' +
-          '<div style="width:118px;height:177px;margin:20px auto;border-radius:5px;overflow:hidden;box-shadow:0 3px 10px rgba(59,42,85,0.25);background:#F5EEFC;display:table;">' +
+    // Fixed landscape dimensions (559×397) — the card keeps its wide,
+    // short shape no matter how long the review is; the review text
+    // shrinks (via fitPostcardReviewText) to fit the fixed box instead.
+    return '<div style="width:559px;height:397px;position:relative;overflow:hidden;background:#FBF7FF;border:2px solid #3B2A55;border-radius:8px;font-family:\'Courier Prime\',monospace;color:#3B2A55;box-sizing:border-box;">' +
+      '<div style="float:left;width:180px;height:397px;background:radial-gradient(circle at 30% 20%,#E4D2F2,transparent 65%),radial-gradient(circle at 70% 80%,#F0DCEA,transparent 65%),#F5EEFC;display:table;">' +
+        '<div style="display:table-cell;vertical-align:middle;text-align:center;">' +
+          '<div style="width:118px;height:177px;margin:0 auto;border-radius:5px;overflow:hidden;box-shadow:0 3px 10px rgba(59,42,85,0.25);background:#F5EEFC;display:table;">' +
             '<div style="display:table-cell;vertical-align:middle;text-align:center;">' + coverHtml + '</div>' +
           '</div>' +
         '</div>' +
-        '<div style="display:table-cell;vertical-align:top;position:relative;box-sizing:border-box;padding:20px;">' +
-        postcardStampHtml('a6_landscape') +
-        '<div id="pcTitle" style="width:280px;font-size:19px;font-weight:700;line-height:1.25;white-space:nowrap;overflow:hidden;">' + escapeHtml(b.title) + '</div>' +
-        (b.author ? authorHtml : '') +
-        seriesHtml + ratingHtml +
-        '<div id="pcReviewBox" style="border-top:1px dashed rgba(59,42,85,0.3);padding-top:8px;margin-top:10px;width:320px;">' +
-          '<div id="pcReviewText" style="font-style:italic;font-size:14px;line-height:1.5;color:#3B2A55;text-align:left;white-space:pre-wrap;">' + (reviewText ? escapeHtml(reviewText) : '<span style="color:#B8ABCB;">— your review —</span>') + '</div>' +
-        '</div>' +
-        '<div style="margin-top:16px;">' + postcardWordmark(15) + '</div>' +
-        '</div>' +
+      '</div>' +
+      '<div style="margin-left:180px;height:397px;position:relative;box-sizing:border-box;padding:20px;">' +
+      postcardStampHtml('a6_landscape') +
+      '<div id="pcTitle" style="width:280px;font-size:19px;font-weight:700;line-height:1.25;white-space:nowrap;overflow:hidden;">' + escapeHtml(b.title) + '</div>' +
+      (b.author ? authorHtml : '') +
+      seriesHtml + ratingHtml +
+      '<div id="pcReviewBox" style="border-top:1px dashed rgba(59,42,85,0.3);padding-top:8px;margin-top:10px;width:320px;height:215px;overflow:hidden;">' +
+        '<div id="pcReviewText" style="font-style:italic;font-size:14px;line-height:1.5;color:#3B2A55;text-align:left;white-space:pre-wrap;">' + (reviewText ? escapeHtml(reviewText) : '<span style="color:#B8ABCB;">— your review —</span>') + '</div>' +
+      '</div>' +
+      '<div style="position:absolute;bottom:16px;left:20px;">' + postcardWordmark(15) + '</div>' +
       '</div>' +
       '</div>';
   }
@@ -3137,11 +3134,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var ratingHtml = b.rating ? '<div style="margin-top:7px;font-size:16px;letter-spacing:2px;color:#6B4E93;">' + starsPlain(b.rating) + '</div>' : '';
     var seriesHtml = b.series ? '<div style="font-size:10.5px;color:#7C6D94;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '') + '</div>' : '';
     var authorHtml = b.author ? '<div style="font-size:12px;font-style:italic;color:#7C6D94;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(b.author) + '</div>' : '';
-    // No fixed height here either — the card grows taller to fit a long
-    // review instead of clipping it. Cover section stays a fixed height
-    // since it's just a photo, not content that needs to expand.
-    return '<div style="width:397px;position:relative;background:#FBF7FF;border:2px solid #3B2A55;border-radius:8px;font-family:\'Courier Prime\',monospace;color:#3B2A55;box-sizing:border-box;">' +
-      '<div style="height:230px;position:relative;background:radial-gradient(circle at 30% 20%,#E4D2F2,transparent 65%),radial-gradient(circle at 70% 80%,#F0DCEA,transparent 65%),#F5EEFC;display:table;width:100%;box-sizing:border-box;">' +
+    // Fixed portrait dimensions (397×559) — same idea, tall-and-narrow
+    // shape stays fixed, review text shrinks to fit instead of the card
+    // growing taller.
+    return '<div style="width:397px;height:559px;position:relative;overflow:hidden;background:#FBF7FF;border:2px solid #3B2A55;border-radius:8px;font-family:\'Courier Prime\',monospace;color:#3B2A55;box-sizing:border-box;">' +
+      '<div style="height:230px;position:relative;background:radial-gradient(circle at 30% 20%,#E4D2F2,transparent 65%),radial-gradient(circle at 70% 80%,#F0DCEA,transparent 65%),#F5EEFC;display:table;width:100%;">' +
       '<div style="display:table-cell;vertical-align:middle;text-align:center;">' +
       '<div style="width:130px;height:195px;margin:0 auto;border-radius:5px;overflow:hidden;box-shadow:0 3px 10px rgba(59,42,85,0.25);background:#F5EEFC;display:table;">' +
         '<div style="display:table-cell;vertical-align:middle;text-align:center;">' + coverHtml + '</div>' +
@@ -3149,13 +3146,13 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       '</div>' +
       postcardStampHtml('a6_portrait') +
       '</div>' +
-      '<div style="position:relative;box-sizing:border-box;padding:18px 20px;">' +
+      '<div style="height:329px;position:relative;box-sizing:border-box;padding:18px 20px;">' +
       '<div id="pcTitle" style="width:357px;font-size:19px;font-weight:700;line-height:1.25;white-space:nowrap;overflow:hidden;">' + escapeHtml(b.title) + '</div>' +
       authorHtml + seriesHtml + ratingHtml +
-      '<div id="pcReviewBox" style="border-top:1px dashed rgba(59,42,85,0.3);padding-top:8px;margin-top:10px;width:357px;">' +
+      '<div id="pcReviewBox" style="border-top:1px dashed rgba(59,42,85,0.3);padding-top:8px;margin-top:10px;width:357px;height:150px;overflow:hidden;">' +
         '<div id="pcReviewText" style="font-style:italic;font-size:14px;line-height:1.5;color:#3B2A55;text-align:left;white-space:pre-wrap;">' + (reviewText ? escapeHtml(reviewText) : '<span style="color:#B8ABCB;">— your review —</span>') + '</div>' +
       '</div>' +
-      '<div style="margin-top:18px;padding-bottom:18px;">' + postcardWordmark(15) + '</div>' +
+      '<div style="position:absolute;bottom:18px;left:20px;">' + postcardWordmark(15) + '</div>' +
       '</div>' +
       '</div>';
   }
@@ -3169,7 +3166,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var textEl = document.getElementById('pcReviewText');
     if(!box || !textEl) return;
     var size = parseInt(textEl.style.fontSize, 10) || 32;
-    var minSize = 8;
+    var minSize = 6;
     while(size > minSize && textEl.scrollHeight > box.clientHeight){
       size -= 1;
       textEl.style.fontSize = size + 'px';
