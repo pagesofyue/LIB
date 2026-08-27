@@ -293,6 +293,8 @@ body[data-theme="velaris"] .reader-intro p{color:#D2C6F1;text-shadow:0 1px 6px r
 .series-book-num{flex:none;width:26px;height:26px;border-radius:50%;background:var(--card-hover);color:var(--muted);font-family:var(--font-mono);font-size:11px;display:flex;align-items:center;justify-content:center;}
 .series-book-title{flex:1;min-width:0;}
 .series-book-status{flex:none;font-size:11px;padding:3px 9px;border-radius:10px;background:rgba(59,42,85,0.07);color:var(--muted);}
+.platform-book-row .series-book-status{width:78px;text-align:center;}
+.platform-book-trailing{flex:none;font-size:12px;color:var(--muted);max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .series-book-status.next-up{background:var(--accent);color:var(--card);}
 
 .shelf-heading{font-family:var(--font-script);font-size:26px;color:var(--dnf-deep);margin:0 0 26px;text-align:center;}
@@ -412,7 +414,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .hold-stamp{flex:none;font-family:var(--font-stamp);font-size:10px;font-weight:400;letter-spacing:0.06em;text-align:center;border:1.5px dashed var(--hold-deep);color:var(--hold-deep);background:radial-gradient(circle at 35% 35%, rgba(143,111,60,0.18), transparent 70%);border-radius:4px;padding:7px 8px;transform:rotate(3deg);line-height:1.15;}
 .requested-stamp{flex:none;font-family:var(--font-stamp);font-size:10px;font-weight:400;letter-spacing:0.06em;text-align:center;border:1.5px dashed var(--requested-deep);color:var(--requested-deep);background:radial-gradient(circle at 35% 35%, rgba(92,115,150,0.18), transparent 70%);border-radius:4px;padding:7px 8px;transform:rotate(-3deg);line-height:1.15;}
 .arc-source{font-size:10.5px;color:var(--muted);margin-top:2px;font-family:var(--font-mono);}
-.dup-badge{display:inline-block;font-size:10px;color:var(--dnf-deep);background:rgba(138,78,113,0.12);border-radius:8px;padding:2px 8px;margin-top:5px;}
+.dup-banner{display:block;font-size:12.5px;font-weight:700;letter-spacing:0.02em;color:#8A3B3B;background:#F4D9D9;border:1px solid rgba(138,59,59,0.3);border-radius:6px;padding:7px 10px;margin-bottom:10px;text-align:center;}
 .arc-link{display:inline-block;font-size:10.5px;color:var(--accent-deep);margin-top:3px;text-decoration:underline;font-family:var(--font-body);}
 
 .manage-link{background:none;border:none;color:var(--accent-deep);font-size:11px;font-weight:500;cursor:pointer;padding:0;margin-left:6px;text-decoration:underline;}
@@ -561,6 +563,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .hbook-row{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 8px;-webkit-overflow-scrolling:touch;}
 .hbook-item{flex:none;width:78px;cursor:pointer;}
 .hbook-cover{width:78px;height:117px;border-radius:5px;overflow:hidden;border:1px solid var(--line);background:var(--card-hover);display:flex;align-items:center;justify-content:center;}
+.cover-thumb.audiobook-cover{height:70px;}
+.cover-preview.audiobook-cover{height:64px;}
+.flat-shelf-cover.audiobook-cover{height:96px;}
+.hbook-cover.audiobook-cover{height:78px;}
+.bv-cover.audiobook-cover{height:120px;}
+.view-cover.audiobook-cover{height:100px;}
 .hbook-cover img{width:100%;height:100%;object-fit:cover;}
 .hbook-cover .ph{font-size:9px;color:var(--muted);text-align:center;padding:4px;}
 .hbook-title{font-size:11px;line-height:1.3;margin:5px 0 2px;max-height:2.6em;overflow:hidden;}
@@ -2089,18 +2097,19 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var formatLabelHtml = b.format ? '<div class="format-label">' + escapeHtml(b.format) + '</div>' : '';
     var genreTabHtml = b.genre ? '<div class="genre-tab" style="background:' + genreColorFor(b.genre) + ';">' + escapeHtml(b.genre) + '</div>' : '';
     var ribbonHtml = b.status === 'reading' ? '<div class="reading-ribbon" title="Currently reading"></div>' : '';
-    var dupBadgeHtml = duplicateIds[b.id] ? '<span class="dup-badge" title="Another entry has the same title and author">⚠ Possible duplicate</span>' : '';
+    var dupBadgeHtml = duplicateIds[b.id] ? '<div class="dup-banner" title="Another entry has the same title, author, and format">⚠ Possible Duplicate</div>' : '';
 
     var card = document.createElement('div');
     card.className = 'card clickable';
     card.innerHTML =
       '<div class="status-tab ' + b.status + '"></div>' +
       genreTabHtml +
+      dupBadgeHtml +
       '<div class="card-top">' +
-        '<div class="cover-col">' + ribbonHtml + '<div class="cover-thumb">' + coverHtml + '</div>' + formatLabelHtml + '</div>' +
+        '<div class="cover-col">' + ribbonHtml + '<div class="cover-thumb' + (b.format === 'Audiobook' ? ' audiobook-cover' : '') + '">' + coverHtml + '</div>' + formatLabelHtml + '</div>' +
         '<div class="card-info"><h3>' + escapeHtml(b.title) + '</h3>' +
         (b.author ? '<p class="byline">' + escapeHtml(b.author) + '</p>' : '') +
-        seriesHtml + arcSourceHtml + arcLinkHtml + dupBadgeHtml + '</div>' +
+        seriesHtml + arcSourceHtml + arcLinkHtml + '</div>' +
         stampColHtml +
       '</div>' +
       ratingHtml + tagsHtml + progressHtml +
@@ -2156,8 +2165,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   function computeDuplicateIds(){
     var groups = {};
     books.forEach(function(b){
-      var key = (b.title || '').trim().toLowerCase() + '|' + (b.author || '').trim().toLowerCase();
-      if(!key.replace('|', '').trim()) return;
+      var key = (b.title || '').trim().toLowerCase() + '|' + (b.author || '').trim().toLowerCase() + '|' + (b.format || '').trim().toLowerCase();
+      if(!(b.title || '').trim() && !(b.author || '').trim()) return;
       if(!groups[key]) groups[key] = [];
       groups[key].push(b.id);
     });
@@ -2529,6 +2538,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     document.getElementById('currentPageLabel').textContent = isAudiobook ? 'Current chapter' : 'Current page';
     document.getElementById('f_totalPages').placeholder = isAudiobook ? '18' : '320';
     document.getElementById('f_currentPage').placeholder = '0';
+    document.getElementById('coverPreview').classList.toggle('audiobook-cover', isAudiobook);
 
     document.getElementById('ownershipFields').style.display = isPaperback ? 'grid' : 'none';
     if(!isPaperback){
@@ -3111,7 +3121,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     return '<div style="width:559px;height:397px;position:relative;overflow:hidden;background:#FBF7FF;border:2px solid #3B2A55;border-radius:8px;font-family:\'Courier Prime\',monospace;color:#3B2A55;box-sizing:border-box;">' +
       '<div style="float:left;width:180px;height:397px;background:radial-gradient(circle at 30% 20%,#E4D2F2,transparent 65%),radial-gradient(circle at 70% 80%,#F0DCEA,transparent 65%),#F5EEFC;display:table;">' +
         '<div style="display:table-cell;vertical-align:middle;text-align:center;">' +
-          '<div style="width:118px;height:177px;margin:0 auto;border-radius:5px;overflow:hidden;box-shadow:0 3px 10px rgba(59,42,85,0.25);background:#F5EEFC;display:table;">' +
+          '<div style="width:118px;height:' + (b.format === 'Audiobook' ? 118 : 177) + 'px;margin:0 auto;border-radius:5px;overflow:hidden;box-shadow:0 3px 10px rgba(59,42,85,0.25);background:#F5EEFC;display:table;">' +
             '<div style="display:table-cell;vertical-align:middle;text-align:center;">' + coverHtml + '</div>' +
           '</div>' +
         '</div>' +
@@ -3140,7 +3150,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     return '<div style="width:397px;height:559px;position:relative;overflow:hidden;background:#FBF7FF;border:2px solid #3B2A55;border-radius:8px;font-family:\'Courier Prime\',monospace;color:#3B2A55;box-sizing:border-box;">' +
       '<div style="height:230px;position:relative;background:radial-gradient(circle at 30% 20%,#E4D2F2,transparent 65%),radial-gradient(circle at 70% 80%,#F0DCEA,transparent 65%),#F5EEFC;display:table;width:100%;">' +
       '<div style="display:table-cell;vertical-align:middle;text-align:center;">' +
-      '<div style="width:130px;height:195px;margin:0 auto;border-radius:5px;overflow:hidden;box-shadow:0 3px 10px rgba(59,42,85,0.25);background:#F5EEFC;display:table;">' +
+      '<div style="width:130px;height:' + (b.format === 'Audiobook' ? 130 : 195) + 'px;margin:0 auto;border-radius:5px;overflow:hidden;box-shadow:0 3px 10px rgba(59,42,85,0.25);background:#F5EEFC;display:table;">' +
         '<div style="display:table-cell;vertical-align:middle;text-align:center;">' + coverHtml + '</div>' +
       '</div>' +
       '</div>' +
@@ -3239,7 +3249,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     return '<div style="width:1080px;height:1350px;position:relative;box-sizing:border-box;padding:56px 64px;background:#FBF7FF;border:3px solid #3B2A55;font-family:\'Courier Prime\',monospace;color:#3B2A55;">' +
       postcardStampHtml('ig_post') +
       '<div style="overflow:hidden;">' +
-        '<div style="float:left;width:130px;height:195px;border-radius:6px;overflow:hidden;box-shadow:0 4px 14px rgba(59,42,85,0.25);background:radial-gradient(circle at 30% 20%,#E4D2F2,transparent 65%),radial-gradient(circle at 70% 80%,#F0DCEA,transparent 65%),#F5EEFC;display:table;">' +
+        '<div style="float:left;width:130px;height:' + (b.format === 'Audiobook' ? 130 : 195) + 'px;border-radius:6px;overflow:hidden;box-shadow:0 4px 14px rgba(59,42,85,0.25);background:radial-gradient(circle at 30% 20%,#E4D2F2,transparent 65%),radial-gradient(circle at 70% 80%,#F0DCEA,transparent 65%),#F5EEFC;display:table;">' +
           '<div style="display:table-cell;vertical-align:middle;text-align:center;">' + coverHtml + '</div>' +
         '</div>' +
         '<div style="margin-left:130px;padding-left:22px;padding-right:110px;padding-top:6px;text-align:left;box-sizing:border-box;">' +
@@ -3264,7 +3274,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     return '<div style="width:1080px;height:1920px;position:relative;box-sizing:border-box;padding:80px 70px;background:#FBF7FF;border:3px solid #3B2A55;font-family:\'Courier Prime\',monospace;color:#3B2A55;">' +
       postcardStampHtml('ig_story') +
       '<div style="overflow:hidden;">' +
-        '<div style="float:left;width:150px;height:225px;border-radius:6px;overflow:hidden;box-shadow:0 4px 14px rgba(59,42,85,0.25);background:radial-gradient(circle at 30% 20%,#E4D2F2,transparent 65%),radial-gradient(circle at 70% 80%,#F0DCEA,transparent 65%),#F5EEFC;display:table;">' +
+        '<div style="float:left;width:150px;height:' + (b.format === 'Audiobook' ? 150 : 225) + 'px;border-radius:6px;overflow:hidden;box-shadow:0 4px 14px rgba(59,42,85,0.25);background:radial-gradient(circle at 30% 20%,#E4D2F2,transparent 65%),radial-gradient(circle at 70% 80%,#F0DCEA,transparent 65%),#F5EEFC;display:table;">' +
           '<div style="display:table-cell;vertical-align:middle;text-align:center;">' + coverHtml + '</div>' +
         '</div>' +
         '<div style="margin-left:150px;padding-left:26px;padding-right:120px;padding-top:8px;text-align:left;box-sizing:border-box;">' +
@@ -3429,7 +3439,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var blurbHtml = b.blurb ? '<details class="blurb-toggle"><summary>Read Blurb</summary><div class="detail-blurb">' + escapeHtml(b.blurb) + '</div></details>' : '';
 
     return '<div class="view-header">' +
-      '<div class="view-cover">' + coverHtml + '</div>' +
+      '<div class="view-cover' + (b.format === 'Audiobook' ? ' audiobook-cover' : '') + '">' + coverHtml + '</div>' +
       '<div>' +
         '<h2 style="margin-bottom:2px;">' + escapeHtml(b.title) + '</h2>' +
         (b.author ? '<p style="color:var(--muted);font-style:italic;margin:0 0 3px;">' + escapeHtml(b.author) + '</p>' : '') +
@@ -3583,12 +3593,28 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   // author's Standalone list, a Platforms card) — includes a small edit
   // pencil so the full Add/Edit form is reachable without detouring
   // through Book View first.
+  // Not-finished statuses read as red (a "still owe this one attention"
+  // cue), except On Hold, which gets its own navy color instead.
+  function bookStatusTextColor(b){
+    if(b.status === 'hold') return '#1F3A6B';
+    if(b.status !== 'finished') return '#B03A3A';
+    return '';
+  }
+
+  // Shared row markup for a book inside a plain list (Series View, an
+  // author's Standalone list, a Platforms card) — includes a small edit
+  // pencil so the full Add/Edit form is reachable without detouring
+  // through Book View first.
   function buildSeriesBookRowHtml(b, isNext){
     var label = isNext ? 'Next up' : statusLabelFor(b);
+    var showPages = !isNext && b.status !== 'finished' && b.status !== 'requested' && b.totalPages;
+    if(showPages) label += ' · ' + b.totalPages + 'p';
+    var color = isNext ? '' : bookStatusTextColor(b);
+    var colorStyle = color ? 'color:' + color + ';' : '';
     return '<div class="series-book-row" data-book-id="' + b.id + '">' +
       '<div class="series-book-num">' + ((b.seriesNumber || b.seriesNumber === 0) ? b.seriesNumber : '–') + '</div>' +
       '<div class="series-book-title">' + escapeHtml(b.title) + '</div>' +
-      '<div class="series-book-status' + (isNext ? ' next-up' : '') + '">' + escapeHtml(label) + '</div>' +
+      '<div class="series-book-status' + (isNext ? ' next-up' : '') + '" style="' + colorStyle + '">' + escapeHtml(label) + '</div>' +
       '<button type="button" class="book-row-edit-btn" data-edit-book-id="' + b.id + '" title="Edit full book details">✎</button>' +
       '</div>';
   }
@@ -3992,7 +4018,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       '</div>';
 
     return '<div class="bv-top">' +
-        '<div class="bv-cover">' + coverHtml + '</div>' +
+        '<div class="bv-cover' + (b.format === 'Audiobook' ? ' audiobook-cover' : '') + '">' + coverHtml + '</div>' +
         '<div class="bv-top-fields">' + authorField + seriesField + linkField + '</div>' +
       '</div>' +
       '<div class="bv-divider"></div>' +
@@ -4424,10 +4450,15 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         totalEntries = sortedList.length;
         var shownBooks = expanded ? sortedList : sortedList.slice(0, PLATFORM_LIST_PAGE_SIZE);
         bodyHtml = shownBooks.map(function(b){
-          return '<div class="series-book-row" data-book-id="' + b.id + '">' +
-            '<div class="series-book-num">–</div>' +
-            '<div class="series-book-title">' + escapeHtml(b.title) + (b.author ? ' <span style="color:var(--muted);font-weight:400;">— ' + escapeHtml(b.author) + '</span>' : '') + '</div>' +
-            '<div class="series-book-status">' + escapeHtml(statusLabelFor(b)) + '</div>' +
+          var color = bookStatusTextColor(b);
+          var colorStyle = color ? 'color:' + color + ';' : '';
+          var trailing = b.status === 'finished'
+            ? (b.author ? escapeHtml(b.author) : '')
+            : (b.totalPages ? (b.totalPages + ' pages') : '');
+          return '<div class="series-book-row platform-book-row" data-book-id="' + b.id + '">' +
+            '<div class="series-book-status" style="' + colorStyle + '">' + escapeHtml(statusLabelFor(b)) + '</div>' +
+            '<div class="series-book-title">' + escapeHtml(b.title) + '</div>' +
+            '<div class="platform-book-trailing">' + trailing + '</div>' +
             '<button type="button" class="book-row-edit-btn" data-edit-book-id="' + b.id + '" title="Edit full book details">✎</button>' +
             '</div>';
         }).join('');
@@ -4565,7 +4596,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       var coverHtml = b.cover ? '<img src="' + b.cover + '" alt="">' : '<span class="ph">' + escapeHtml((b.title || '?').charAt(0)) + '</span>';
       var tagColor = REVIEWS_STATUS_TAG_COLORS[b.status] || 'var(--muted)';
       return '<div class="shelf-book flat-shelf-item" data-book-id="' + b.id + '" title="' + escapeHtml(b.title) + '">' +
-        '<div class="flat-shelf-cover">' + coverHtml + '</div>' +
+        '<div class="flat-shelf-cover' + (b.format === 'Audiobook' ? ' audiobook-cover' : '') + '">' + coverHtml + '</div>' +
         '<span class="flat-shelf-status-tag" style="background:' + tagColor + ';">' + escapeHtml(statusLabelFor(b)) + '</span>' +
         '<p class="flat-shelf-title">' + escapeHtml(b.title) + '</p>' +
         '</div>';
