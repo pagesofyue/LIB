@@ -254,9 +254,19 @@ body[data-theme="velaris"] .reader-intro p{color:#D2C6F1;text-shadow:0 1px 6px r
 .header h1{font-family:var(--font-script);font-weight:700;font-size:42px;margin:0 0 2px;letter-spacing:0.01em;color:var(--accent-deep);}
 .header p{margin:0;color:var(--muted);font-size:14px;}
 
-.view-nav{display:flex;gap:8px;margin-bottom:20px;}
+.view-nav{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;position:relative;z-index:5;}
 .view-tab{border:1px solid var(--line-strong);background:var(--card);border-radius:20px;padding:7px 16px;font-size:13px;font-family:var(--font-body);color:var(--muted);cursor:pointer;}
 .view-tab.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.nav-dropdown{position:relative;}
+.nav-dropdown-trigger{border:1px solid var(--line-strong);background:var(--card);border-radius:20px;padding:7px 16px;font-size:13px;font-family:var(--font-body);color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
+.nav-dropdown-trigger.parent-active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.nav-dropdown-trigger .caret{font-size:9px;transition:transform 0.15s;}
+.nav-dropdown.open .nav-dropdown-trigger .caret{transform:rotate(180deg);}
+.nav-dropdown-menu{position:absolute;top:calc(100% + 6px);left:0;background:var(--card);border:1px solid var(--line-strong);border-radius:12px;padding:6px;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,0.12);display:none;flex-direction:column;gap:2px;z-index:20;}
+.nav-dropdown.open .nav-dropdown-menu{display:flex;}
+.nav-dropdown-item{border:none;background:none;text-align:left;padding:8px 10px;font-size:13px;font-family:var(--font-body);color:var(--ink);cursor:pointer;border-radius:8px;text-decoration:none;display:block;}
+.nav-dropdown-item:hover{background:var(--card-hover);}
+.nav-dropdown-item.active{background:var(--accent);color:var(--card);}
 
 .reader-intro{margin-bottom:18px;display:flex;align-items:flex-start;justify-content:space-between;gap:14px;}
 .reader-intro h2{font-family:var(--font-display);font-size:24px;margin:0 0 4px;}
@@ -342,6 +352,14 @@ body[data-theme="velaris"] .reader-intro p{color:#D2C6F1;text-shadow:0 1px 6px r
 .stat-scope-toggle{display:flex;font-family:var(--font-mono);font-size:10px;border:1px solid var(--line-strong);border-radius:20px;overflow:hidden;flex:none;}
 .stat-scope-toggle button{border:none;background:none;padding:3px 8px;cursor:pointer;color:var(--muted);font-family:var(--font-mono);font-size:10px;}
 .stat-scope-toggle button.active{background:var(--accent);color:var(--card);}
+.format-tabs{display:flex;font-family:var(--font-mono);font-size:9.5px;border:1px solid var(--line-strong);border-radius:20px;overflow:hidden;margin-top:5px;}
+.format-tabs button{border:none;background:none;padding:2px 7px;cursor:pointer;color:var(--muted);font-family:var(--font-mono);font-size:9.5px;flex:1;white-space:nowrap;}
+.format-tabs button.active{background:var(--accent);color:var(--card);}
+.detail-format-block{border:1px solid var(--line-strong);border-radius:10px;padding:12px;margin:10px 0;background:var(--card-hover);}
+.detail-format-block h4{margin:0 0 8px;font-size:13px;}
+.detail-format-cover{width:56px;height:82px;border-radius:6px;overflow:hidden;flex:none;background:var(--line);}
+.detail-format-cover img{width:100%;height:100%;object-fit:cover;}
+.detail-format-top{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;}
 .pagination{display:flex;align-items:center;justify-content:center;gap:14px;margin:20px 0 4px;}
 .pagination button{background:var(--card);border:1px solid var(--line-strong);border-radius:8px;padding:7px 14px;font-family:var(--font-body);font-size:13px;color:var(--ink);cursor:pointer;}
 .pagination button:hover:not(:disabled){border-color:var(--accent);}
@@ -701,15 +719,25 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   <div class="banner" id="saveBanner"></div>
 
-  <div class="view-nav">
+  <div class="view-nav" id="mainNav">
     <button class="view-tab active" id="navLibrary">My Library</button>
-    <button class="view-tab" id="navReader">Reader Page</button>
-    <button class="view-tab" id="navReviews">Reviews</button>    
-    <button class="view-tab" id="navSeries">Series</button>
-    <button class="view-tab" id="navAuthors">Authors</button>
-    <button class="view-tab" id="navPlatforms">Platforms</button>
-    <button class="view-tab" id="navCalendar">Calendar</button>
-    <a class="view-tab" href="./social.html" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center;">Social Post</a>
+    <button class="view-tab" id="navReviews">Reviews</button>
+    <div class="nav-dropdown" id="navBrowseDropdown">
+      <button type="button" class="nav-dropdown-trigger" id="navBrowseTrigger">Browse <span class="caret">▾</span></button>
+      <div class="nav-dropdown-menu">
+        <button type="button" class="nav-dropdown-item" id="navSeries">Series</button>
+        <button type="button" class="nav-dropdown-item" id="navAuthors">Authors</button>
+        <button type="button" class="nav-dropdown-item" id="navPlatforms">Platforms</button>
+        <button type="button" class="nav-dropdown-item" id="navCalendar">Calendar</button>
+      </div>
+    </div>
+    <div class="nav-dropdown" id="navProfileDropdown">
+      <button type="button" class="nav-dropdown-trigger" id="navProfileTrigger">Profile <span class="caret">▾</span></button>
+      <div class="nav-dropdown-menu">
+        <button type="button" class="nav-dropdown-item" id="navReader">Reader Page</button>
+        <a class="nav-dropdown-item" href="./social.html" target="_blank" rel="noopener">Social Post</a>
+      </div>
+    </div>
   </div>
 
   <div id="libraryView">
@@ -722,6 +750,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     </div>
     <select id="genreFilter"><option value="">All genres</option></select>
     <select id="providerFilter"><option value="">All providers</option></select>
+    <select id="formatFilter">
+      <option value="">All formats</option>
+      <option value="Paperback">Paperback</option>
+      <option value="eBook / ePub">eBook / ePub</option>
+      <option value="Audiobook">Audiobook</option>
+    </select>
     <div class="sort-dropdown" id="sortDropdownWrap">
       <button type="button" class="sort-dropdown-btn" id="sortDropdownBtn">
         <span id="sortDropdownLabel">Due Soon</span>
@@ -797,7 +831,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     <form id="bookForm">
       <div class="core-fields" id="coreFields1">
       <div class="field">
-        <label>Cover image</label>
+        <label>Cover image <span style="font-weight:normal;color:var(--muted);">(default — used if a format below doesn't have its own)</span></label>
         <div class="cover-upload">
           <div class="cover-preview" id="coverPreview"><span class="ph">No cover</span></div>
           <div class="cover-btns">
@@ -817,54 +851,15 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
           <input type="text" id="f_author" placeholder="Gene Wolfe">
         </div>
         <div class="field">
-          <label>Status</label>
-          <select id="f_status">
-            <option value="requested">Requested</option>
-            <option value="want">Want to read</option>
-            <option value="reading" id="statusReadingOption">Reading</option>
-            <option value="hold">On Hold</option>
-            <option value="finished">Finished</option>
-            <option value="dnf">Did not finish</option>
-          </select>
-        </div>
-      </div>
-      <div class="field" id="field-dnf-reason" style="display:none;">
-        <label>Why'd you DNF it? (optional)</label>
-        <input type="text" id="f_dnfReason" placeholder="e.g. Pacing, not for me, DNF for now...">
-      </div>
-      <div class="field-row">
-        <div class="field">
           <label>Series</label>
           <input type="text" id="f_series" placeholder="e.g. The Broken Earth">
         </div>
-        <div class="field">
-          <label>Book # in series</label>
-          <input type="number" id="f_seriesNum" min="0" step="0.5" placeholder="1">
-        </div>
       </div>
       <div class="field">
-        <label>Format</label>
-        <select id="f_format">
-          <option value="">Select a format</option>
-          <option value="Paperback">Paperback</option>
-          <option value="eBook / ePub">eBook / ePub</option>
-          <option value="Audiobook">Audiobook</option>
-        </select>
+        <label>Book # in series</label>
+        <input type="number" id="f_seriesNum" min="0" step="0.5" placeholder="1">
       </div>
-      <div class="field-row" id="ownershipFields" style="display:none;">
-        <div class="field">
-          <label>Ownership</label>
-          <select id="f_ownership">
-            <option value="Owned">Owned</option>
-            <option value="Borrowed">Borrowed</option>
-          </select>
-        </div>
-        <div class="field" id="borrowDueField" style="display:none;">
-          <label>Borrowed — due back</label>
-          <input type="date" id="f_borrowDueDate" lang="en-US">
-        </div>
-      </div>
-      <div class="checkbox-row">
+      <div class="checkbox-row" id="f_isArcRow">
         <input type="checkbox" id="f_isArc">
         <label for="f_isArc">This is an ARC (advance reader copy)</label>
       </div>
@@ -887,16 +882,18 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
           <p class="hint">If the promoter needs a feedback form filled out, paste the link here.</p>
         </div>
       </div>
-      <div class="field-row">
-        <div class="field">
-          <label id="totalPagesLabel">Total pages</label>
-          <input type="number" id="f_totalPages" min="0" placeholder="320">
+
+      <div class="field" style="margin-top:6px;">
+        <label>Formats <span style="font-weight:normal;color:var(--muted);">(select every format you have — each gets its own cover, status, and progress)</span></label>
+        <div class="checkbox-row" style="gap:16px;flex-wrap:wrap;">
+          <span><input type="checkbox" class="f_formatType" value="Paperback" id="f_fmt_paperback"> <label for="f_fmt_paperback" style="display:inline;">Paperback</label></span>
+          <span><input type="checkbox" class="f_formatType" value="eBook / ePub" id="f_fmt_ebook"> <label for="f_fmt_ebook" style="display:inline;">eBook / ePub</label></span>
+          <span><input type="checkbox" class="f_formatType" value="Audiobook" id="f_fmt_audiobook"> <label for="f_fmt_audiobook" style="display:inline;">Audiobook</label></span>
         </div>
-        <div class="field">
-          <label id="currentPageLabel">Current page</label>
-          <input type="number" id="f_currentPage" min="0" placeholder="0">
-        </div>
+        <p class="hint" id="noFormatsHint">Pick at least one format to track status and progress.</p>
       </div>
+      <div id="formatPanels"></div>
+
       <div class="field-row">
         <div class="field">
           <label>Date started</label>
@@ -1494,6 +1491,24 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   var books = [];
   var duplicateIds = {};
+  // Which format-tab is currently shown per book card / detail view, keyed by book id.
+  // In-memory only (resets on reload) — defaults to the "reading" format, else the first one.
+  var cardActiveFormat = {};
+  function getActiveFormatInstance(b){
+    if(!b.formats || !b.formats.length) return null;
+    var chosenId = cardActiveFormat[b.id];
+    if(chosenId){
+      var found = b.formats.find(function(f){ return f.id === chosenId; });
+      if(found) return found;
+    }
+    return primaryFormatFor(b.formats);
+  }
+  function formatTabsHtml(b, af){
+    if(!b.formats || b.formats.length < 2) return '';
+    return '<div class="format-tabs">' + b.formats.map(function(f){
+      return '<button type="button" data-fmtid="' + f.id + '" class="' + (f.id === af.id ? 'active' : '') + '">' + escapeHtml(f.type) + '</button>';
+    }).join('') + '</div>';
+  }
   var readerLinks = [];
   var customStampDataUrl = '';
   var currentPostcardBook = null;
@@ -1529,6 +1544,56 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   function uid(){
     return 'b_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+  }
+  function fmtUid(){
+    return 'fmt_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+  }
+
+  // --- Multi-format migration -------------------------------------------
+  // Old shape: book.format (single string) + book.cover/status/progress/etc at the book level.
+  // New shape: book.formats = [ {id, type, cover, status, progress, ownership, borrowDueDate, dnfReason} ]
+  // This runs once per book (whenever a book with no formats array is encountered) and is
+  // non-destructive: the legacy fields are left in place untouched, so nothing else that
+  // still reads book.format directly breaks while we migrate the rest of the app over.
+  function migrateBookToFormats(b){
+    if(b.formats && Array.isArray(b.formats) && b.formats.length){ return b; }
+    var legacyType = b.format || '';
+    var inst = {
+      id: fmtUid(),
+      type: legacyType,
+      cover: b.cover || '',
+      status: b.status || 'want',
+      totalPages: (b.totalPages || b.totalPages === 0) ? b.totalPages : null,
+      currentPage: (b.currentPage || b.currentPage === 0) ? b.currentPage : null,
+      ownership: b.ownership || '',
+      borrowDueDate: b.borrowDueDate || '',
+      dnfReason: b.dnfReason || ''
+    };
+    b.formats = legacyType ? [inst] : [];
+    return b;
+  }
+  function migrateAllBooks(list){
+    var touched = false;
+    var out = (list || []).map(function(b){
+      if(!b.formats || !Array.isArray(b.formats) || !b.formats.length){
+        touched = true;
+        return migrateBookToFormats(b);
+      }
+      return b;
+    });
+    return { books: out, touched: touched };
+  }
+  // Convenience accessors used throughout the app so we can gradually move call sites
+  // over to the multi-format model without breaking everything in one pass.
+  function primaryFormat(b){
+    if(b.formats && b.formats.length){ return b.formats[0]; }
+    return null;
+  }
+  function formatTypesOf(b){
+    if(b.formats && b.formats.length){
+      return b.formats.map(function(f){ return f.type; }).filter(Boolean);
+    }
+    return b.format ? [b.format] : [];
   }
 
   function setSync(state){
@@ -1577,6 +1642,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     try{
       var data = await window.cloudStore.loadAll();
       books = data.books || [];
+      var migration = migrateAllBooks(books);
+      books = migration.books;
+      if(migration.touched){
+        // Persist the migrated shape so this doesn't re-run (and re-save) on every load.
+        books.forEach(function(b){ saveBookRemote(b); });
+      }
       if(data.tropeList && data.tropeList.length){ tropeList = data.tropeList; }
       else { tropeList = defaultTropes.slice(); saveTropeList(); }
       if(data.genreList && data.genreList.length){ genreList = data.genreList; }
@@ -1747,21 +1818,28 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   var pagesReadScope = 'year'; // 'year' | 'month' — which timeframe the "Pages read" card shows
 
   function renderStats(){
-    var reading = books.filter(function(b){ return b.status === 'reading'; }).length;
+    // "Currently reading" counts active format-instances, not books — reading the
+    // paperback and listening to the audiobook of two different titles is 2, accurately.
+    var reading = books.reduce(function(sum, b){
+      return sum + formatInstancesOf(b).filter(function(f){ return f.status === 'reading'; }).length;
+    }, 0);
     var dueSoon = getDueSoonBooks(DUE_SOON_DAYS).length;
-    var needsReview = books.filter(function(b){ return b.status === 'finished' && !(b.review && b.review.trim()); }).length;
+    var needsReview = books.filter(function(b){ return bookHasAnyFinished(b) && !(b.review && b.review.trim()); }).length;
     var now = new Date();
     var thisYear = now.getFullYear();
 
+    // "Books read" is naturally per-book (not per-format): dateFinished/rating/review
+    // are shared across a book's formats, so finishing the same title in two formats
+    // still only counts once here.
     var finishedThisYearList = books.filter(function(b){
-      return b.status === 'finished' && b.dateFinished && new Date(b.dateFinished + 'T00:00:00').getFullYear() === thisYear;
+      return bookHasAnyFinished(b) && b.dateFinished && new Date(b.dateFinished + 'T00:00:00').getFullYear() === thisYear;
     });
     var finishedThisMonthList = getFinishedInMonth(thisYear, now.getMonth());
     var finishedCount = booksReadScope === 'month' ? finishedThisMonthList.length : finishedThisYearList.length;
     var finishedLabel = booksReadScope === 'month' ? ('Books read in ' + monthName(now.getMonth())) : ('Books read in ' + thisYear);
 
-    var pagesThisYear = finishedThisYearList.reduce(function(sum, b){ return sum + (b.totalPages || 0); }, 0);
-    var pagesThisMonth = finishedThisMonthList.reduce(function(sum, b){ return sum + (b.totalPages || 0); }, 0);
+    var pagesThisYear = finishedThisYearList.reduce(function(sum, b){ var fi = finishedInstanceWithPages(b); return sum + (fi && fi.totalPages ? fi.totalPages : (b.totalPages || 0)); }, 0);
+    var pagesThisMonth = finishedThisMonthList.reduce(function(sum, b){ var fi = finishedInstanceWithPages(b); return sum + (fi && fi.totalPages ? fi.totalPages : (b.totalPages || 0)); }, 0);
     var pagesCount = pagesReadScope === 'month' ? pagesThisMonth : pagesThisYear;
     var pagesLabel = pagesReadScope === 'month' ? ('Pages read in ' + monthName(now.getMonth())) : ('Pages read in ' + thisYear);
 
@@ -1835,7 +1913,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   function getFinishedInMonth(year, monthIndex){
     return books.filter(function(b){
-      if(b.status !== 'finished' || !b.dateFinished) return false;
+      if(!bookHasAnyFinished(b) || !b.dateFinished) return false;
       var d = new Date(b.dateFinished + 'T00:00:00');
       return d.getFullYear() === year && d.getMonth() === monthIndex;
     });
@@ -1885,8 +1963,52 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     });
   }
 
+  // Returns a book's format-instances, falling back to a synthetic single instance
+  // built from legacy fields for the rare case a book still hasn't been migrated.
+  function formatInstancesOf(b){
+    if(b.formats && b.formats.length) return b.formats;
+    return b.format ? [{
+      type: b.format, status: b.status, totalPages: b.totalPages, currentPage: b.currentPage,
+      ownership: b.ownership, borrowDueDate: b.borrowDueDate, dnfReason: b.dnfReason, cover: b.cover
+    }] : [];
+  }
+
+  // True once every format the person owns is either finished or DNF'd — used to
+  // decide whether a book-level ARC due date should still count as "due soon".
+  function bookIsFullyDone(b){
+    var instances = formatInstancesOf(b);
+    if(!instances.length) return false;
+    return instances.every(function(f){ return f.status === 'finished' || f.status === 'dnf'; });
+  }
+
+  // True if ANY format is marked finished — used for "books read"/"needs review"
+  // stats, which are naturally per-book already since rating/review/dateFinished
+  // are shared fields across a book's formats.
+  function bookHasAnyFinished(b){
+    return formatInstancesOf(b).some(function(f){ return f.status === 'finished'; });
+  }
+
+  // The finished format instance to credit for "pages read" — prefers one that
+  // actually has a page/chapter count, so a book finished in two formats is only
+  // counted once (using whichever finished instance has pages recorded).
+  function finishedInstanceWithPages(b){
+    var finished = formatInstancesOf(b).filter(function(f){ return f.status === 'finished'; });
+    var withPages = finished.find(function(f){ return f.totalPages; });
+    return withPages || finished[0] || null;
+  }
+
   function effectiveDueDate(b){
-    return b.dueDate || (b.format === 'Paperback' && b.ownership === 'Borrowed' ? b.borrowDueDate : '') || '';
+    var candidates = [];
+    if(b.isARC && b.dueDate && !bookIsFullyDone(b)) candidates.push(b.dueDate);
+    formatInstancesOf(b).forEach(function(f){
+      if(f.type === 'Paperback' && f.ownership === 'Borrowed' && f.borrowDueDate &&
+         f.status !== 'finished' && f.status !== 'dnf' && f.status !== 'hold' && f.status !== 'requested'){
+        candidates.push(f.borrowDueDate);
+      }
+    });
+    if(!candidates.length) return '';
+    candidates.sort();
+    return candidates[0];
   }
   window.lunariaEffectiveDueDate = effectiveDueDate;
 
@@ -1894,7 +2016,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   function getDueSoonBooks(days){
     return books.filter(function(b){
-      if(b.status === 'finished' || b.status === 'dnf' || b.status === 'hold' || b.status === 'requested') return false;
       var due = effectiveDueDate(b);
       if(!due) return false;
       var d = daysUntil(due);
@@ -1960,14 +2081,16 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var search = document.getElementById('searchInput').value.trim().toLowerCase();
     var genre = document.getElementById('genreFilter').value;
     var provider = document.getElementById('providerFilter').value;
+    var formatFilter = document.getElementById('formatFilter').value;
 
     var filtered = books.filter(function(b){
       if(activeStatus !== 'all' && b.status !== activeStatus) return false;
       if(genre && b.genre !== genre) return false;
       if(provider && b.arcSource !== provider) return false;
+      if(formatFilter && formatTypesOf(b).indexOf(formatFilter) === -1) return false;
       if(dueSoonFilterActive){
         var due = effectiveDueDate(b);
-        if(!due || b.status === 'finished' || b.status === 'dnf' || b.status === 'hold' || b.status === 'requested') return false;
+        if(!due) return false;
         var d = daysUntil(due);
         if(d === null || d > DUE_SOON_DAYS) return false;
       }
@@ -2051,15 +2174,20 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
 
   function bookCard(b){
-    var unit = b.format === 'Audiobook' ? 'chapters' : 'pages';
+    var af = getActiveFormatInstance(b) || {
+      type: b.format || '', status: b.status || 'want', cover: b.cover || '',
+      totalPages: b.totalPages, currentPage: b.currentPage, ownership: b.ownership,
+      borrowDueDate: b.borrowDueDate, dnfReason: b.dnfReason
+    };
+    var unit = af.type === 'Audiobook' ? 'chapters' : 'pages';
     var progressHtml = '';
-    if((b.status === 'reading' || b.status === 'hold') && b.totalPages){
-      var pct = Math.max(0, Math.min(100, Math.round((b.currentPage||0) / b.totalPages * 100)));
+    if((af.status === 'reading' || af.status === 'hold') && af.totalPages){
+      var pct = Math.max(0, Math.min(100, Math.round((af.currentPage||0) / af.totalPages * 100)));
       progressHtml = '<div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%"></div></div>' +
-        '<div class="progress-text">' + (b.currentPage||0) + ' / ' + b.totalPages + ' ' + unit + ' · ' + pct + '%</div></div>';
+        '<div class="progress-text">' + (af.currentPage||0) + ' / ' + af.totalPages + ' ' + unit + ' · ' + pct + '%</div></div>';
     }
 
-    var showDueStamp = b.status !== 'finished' && b.status !== 'dnf' && b.status !== 'hold' && b.status !== 'requested';
+    var showDueStamp = af.status !== 'finished' && af.status !== 'dnf' && af.status !== 'hold' && af.status !== 'requested';
     var stampHtml = '';
     if(showDueStamp && b.isARC && b.dueDate){
       var d = daysUntil(b.dueDate);
@@ -2067,16 +2195,16 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       stampHtml = '<div class="stamp' + (overdue ? ' overdue' : '') + '"><span class="lbl">' + (overdue ? 'overdue' : 'due back') + '</span><span>' + fmtShort(b.dueDate) + '</span></div>';
     } else if(showDueStamp && b.isARC){
       stampHtml = '<div class="stamp"><span class="lbl">checked out</span></div>';
-    } else if(showDueStamp && b.format === 'Paperback' && b.ownership === 'Borrowed' && b.borrowDueDate){
-      var bd = daysUntil(b.borrowDueDate);
+    } else if(showDueStamp && af.type === 'Paperback' && af.ownership === 'Borrowed' && af.borrowDueDate){
+      var bd = daysUntil(af.borrowDueDate);
       var bOverdue = bd !== null && bd < 0;
-      stampHtml = '<div class="stamp' + (bOverdue ? ' overdue' : '') + '"><span class="lbl">' + (bOverdue ? 'overdue' : 'due back') + '</span><span>' + fmtShort(b.borrowDueDate) + '</span></div>';
+      stampHtml = '<div class="stamp' + (bOverdue ? ' overdue' : '') + '"><span class="lbl">' + (bOverdue ? 'overdue' : 'due back') + '</span><span>' + fmtShort(af.borrowDueDate) + '</span></div>';
     }
 
-    var readStampHtml = b.status === 'finished' ? '<div class="read-stamp">READ</div>' : '';
-    var dnfStampHtml = b.status === 'dnf' ? '<div class="dnf-stamp">DNF</div>' : '';
-    var holdStampHtml = b.status === 'hold' ? '<div class="hold-stamp">ON HOLD</div>' : '';
-    var requestedStampHtml = b.status === 'requested' ? '<div class="requested-stamp">REQUESTED</div>' : '';
+    var readStampHtml = af.status === 'finished' ? '<div class="read-stamp">READ</div>' : '';
+    var dnfStampHtml = af.status === 'dnf' ? '<div class="dnf-stamp">DNF</div>' : '';
+    var holdStampHtml = af.status === 'hold' ? '<div class="hold-stamp">ON HOLD</div>' : '';
+    var requestedStampHtml = af.status === 'requested' ? '<div class="requested-stamp">REQUESTED</div>' : '';
     var stampColHtml = (stampHtml || readStampHtml || dnfStampHtml || holdStampHtml || requestedStampHtml) ? '<div class="stamp-col">' + stampHtml + readStampHtml + dnfStampHtml + holdStampHtml + requestedStampHtml + '</div>' : '';
 
     var arcSourceHtml = (b.isARC && b.arcSource) ? '<div class="arc-source">via ' + escapeHtml(b.arcSource) + '</div>' : '';
@@ -2093,20 +2221,20 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
     var isConfirming = confirmingDelete === b.id;
 
-    var coverHtml = b.cover ? '<img src="' + b.cover + '" alt="">' : '<span class="ph">No cover</span>';
-    var formatLabelHtml = b.format ? '<div class="format-label">' + escapeHtml(b.format) + '</div>' : '';
+    var coverHtml = af.cover ? '<img src="' + af.cover + '" alt="">' : (b.cover ? '<img src="' + b.cover + '" alt="">' : '<span class="ph">No cover</span>');
+    var formatLabelHtml = af.type ? '<div class="format-label">' + escapeHtml(af.type) + '</div>' : '';
     var genreTabHtml = b.genre ? '<div class="genre-tab" style="background:' + genreColorFor(b.genre) + ';">' + escapeHtml(b.genre) + '</div>' : '';
-    var ribbonHtml = b.status === 'reading' ? '<div class="reading-ribbon" title="Currently reading"></div>' : '';
+    var ribbonHtml = af.status === 'reading' ? '<div class="reading-ribbon" title="Currently reading"></div>' : '';
     var dupBadgeHtml = duplicateIds[b.id] ? '<div class="dup-banner" title="Another entry has the same title, author, and format">⚠ Possible Duplicate</div>' : '';
 
     var card = document.createElement('div');
     card.className = 'card clickable';
     card.innerHTML =
-      '<div class="status-tab ' + b.status + '"></div>' +
+      '<div class="status-tab ' + af.status + '"></div>' +
       genreTabHtml +
       dupBadgeHtml +
       '<div class="card-top">' +
-        '<div class="cover-col">' + ribbonHtml + '<div class="cover-thumb' + (b.format === 'Audiobook' ? ' audiobook-cover' : '') + '">' + coverHtml + '</div>' + formatLabelHtml + '</div>' +
+        '<div class="cover-col">' + ribbonHtml + '<div class="cover-thumb' + (af.type === 'Audiobook' ? ' audiobook-cover' : '') + '">' + coverHtml + '</div>' + formatLabelHtml + formatTabsHtml(b, af) + '</div>' +
         '<div class="card-info"><h3>' + escapeHtml(b.title) + '</h3>' +
         (b.author ? '<p class="byline">' + escapeHtml(b.author) + '</p>' : '') +
         seriesHtml + arcSourceHtml + arcLinkHtml + '</div>' +
@@ -2123,6 +2251,14 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     card.addEventListener('click', function(e){
       if(e.target.closest('button') || e.target.closest('a')) return;
       openViewModal(b.id);
+    });
+
+    card.querySelectorAll('.format-tabs button').forEach(function(btn){
+      btn.onclick = function(e){
+        e.stopPropagation();
+        cardActiveFormat[b.id] = btn.getAttribute('data-fmtid');
+        render();
+      };
     });
 
     card.querySelector('.postcard-btn').onclick = function(){ openPostcardModal(b.id); };
@@ -2165,10 +2301,14 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   function computeDuplicateIds(){
     var groups = {};
     books.forEach(function(b){
-      var key = (b.title || '').trim().toLowerCase() + '|' + (b.author || '').trim().toLowerCase() + '|' + (b.format || '').trim().toLowerCase();
       if(!(b.title || '').trim() && !(b.author || '').trim()) return;
-      if(!groups[key]) groups[key] = [];
-      groups[key].push(b.id);
+      var titleAuthor = (b.title || '').trim().toLowerCase() + '|' + (b.author || '').trim().toLowerCase();
+      var types = formatTypesOf(b);
+      var keys = types.length ? types.map(function(t){ return titleAuthor + '|' + t.trim().toLowerCase(); }) : [titleAuthor + '|'];
+      keys.forEach(function(key){
+        if(!groups[key]) groups[key] = [];
+        if(groups[key].indexOf(b.id) === -1) groups[key].push(b.id);
+      });
     });
     var dupIds = {};
     Object.keys(groups).forEach(function(key){
@@ -2197,6 +2337,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       document.getElementById('searchInput').value,
       document.getElementById('genreFilter').value,
       document.getElementById('providerFilter').value,
+      document.getElementById('formatFilter').value,
       activeSortCriteria,
       dueSoonFilterActive
     ]);
@@ -2528,26 +2669,228 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     document.getElementById('starPreview').textContent = starsPlain(v);
   });
 
-  function applyFormatUI(){
-    var format = document.getElementById('f_format').value;
-    var isAudiobook = format === 'Audiobook';
-    var isPaperback = format === 'Paperback';
+  // --- Multi-format panel builder ------------------------------------------
+  // formatPanelState holds in-progress values for each checked format type
+  // while the modal is open, keyed by type string. Kept separate from the DOM
+  // so switching a checkbox off and back on doesn't lose what was typed.
+  var formatPanelState = {};
+  var formatPendingCovers = {}; // type -> dataUrl, for covers picked but not yet saved
 
-    document.getElementById('statusReadingOption').textContent = isAudiobook ? 'Listening' : 'Reading';
-    document.getElementById('totalPagesLabel').textContent = isAudiobook ? 'Total chapters' : 'Total pages';
-    document.getElementById('currentPageLabel').textContent = isAudiobook ? 'Current chapter' : 'Current page';
-    document.getElementById('f_totalPages').placeholder = isAudiobook ? '18' : '320';
-    document.getElementById('f_currentPage').placeholder = '0';
-    document.getElementById('coverPreview').classList.toggle('audiobook-cover', isAudiobook);
+  function fmtKey(type){ return type.replace(/[^a-z0-9]/gi, ''); }
 
-    document.getElementById('ownershipFields').style.display = isPaperback ? 'grid' : 'none';
-    if(!isPaperback){
-      document.getElementById('f_ownership').value = 'Owned';
-      document.getElementById('f_borrowDueDate').value = '';
-      document.getElementById('borrowDueField').style.display = 'none';
-    } else {
-      document.getElementById('borrowDueField').style.display = document.getElementById('f_ownership').value === 'Borrowed' ? 'block' : 'none';
-    }
+  function checkedFormatTypes(){
+    return Array.from(document.querySelectorAll('.f_formatType:checked')).map(function(cb){ return cb.value; });
+  }
+
+  function renderFormatPanels(){
+    var types = checkedFormatTypes();
+    document.getElementById('noFormatsHint').style.display = types.length ? 'none' : 'block';
+    var container = document.getElementById('formatPanels');
+    container.innerHTML = types.map(function(type){
+      var key = fmtKey(type);
+      var st = formatPanelState[type] || {};
+      var isAudiobook = type === 'Audiobook';
+      var isPaperback = type === 'Paperback';
+      var cover = formatPendingCovers[type] || st.cover || '';
+      var coverHtml = cover ? '<img src="' + cover + '" alt="">' : '<span class="ph">No cover</span>';
+      return '' +
+        '<div class="field format-panel" style="border:1px solid var(--line-strong);border-radius:10px;padding:12px;margin-bottom:12px;background:var(--card-hover);">' +
+          '<label style="font-weight:bold;">' + escapeHtml(type) + '</label>' +
+          '<div class="cover-upload" style="margin-bottom:10px;">' +
+            '<div class="cover-preview' + (isAudiobook ? ' audiobook-cover' : '') + '" id="fmtCoverPreview_' + key + '">' + coverHtml + '</div>' +
+            '<div class="cover-btns">' +
+              '<label class="small-btn" for="fmtCoverInput_' + key + '" style="text-align:center;">Choose cover</label>' +
+              '<input type="file" id="fmtCoverInput_' + key + '" accept="image/*" style="display:none;">' +
+              '<button type="button" class="small-btn fmtRemoveCoverBtn" data-type="' + escapeHtml(type) + '">Remove</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="field-row">' +
+            '<div class="field">' +
+              '<label>Status</label>' +
+              '<select class="fmtStatus" data-type="' + escapeHtml(type) + '" id="fmtStatus_' + key + '">' +
+                '<option value="requested">Requested</option>' +
+                '<option value="want">Want to read</option>' +
+                '<option value="reading">' + (isAudiobook ? 'Listening' : 'Reading') + '</option>' +
+                '<option value="hold">On Hold</option>' +
+                '<option value="finished">Finished</option>' +
+                '<option value="dnf">Did not finish</option>' +
+              '</select>' +
+            '</div>' +
+            '<div class="field fmtDnfField" id="fmtDnfField_' + key + '" style="display:' + (st.status === 'dnf' ? 'block' : 'none') + ';">' +
+              '<label>DNF reason (optional)</label>' +
+              '<input type="text" class="fmtDnfReason" data-type="' + escapeHtml(type) + '" id="fmtDnfReason_' + key + '" value="' + escapeHtml(st.dnfReason || '') + '">' +
+            '</div>' +
+          '</div>' +
+          '<div class="field-row">' +
+            '<div class="field">' +
+              '<label>' + (isAudiobook ? 'Total chapters' : 'Total pages') + '</label>' +
+              '<input type="number" min="0" class="fmtTotal" data-type="' + escapeHtml(type) + '" id="fmtTotal_' + key + '" placeholder="' + (isAudiobook ? '18' : '320') + '" value="' + (st.totalPages || '') + '">' +
+            '</div>' +
+            '<div class="field">' +
+              '<label>' + (isAudiobook ? 'Current chapter' : 'Current page') + '</label>' +
+              '<input type="number" min="0" class="fmtCurrent" data-type="' + escapeHtml(type) + '" id="fmtCurrent_' + key + '" placeholder="0" value="' + (st.currentPage || '') + '">' +
+            '</div>' +
+          '</div>' +
+          (isPaperback ?
+            '<div class="field-row">' +
+              '<div class="field">' +
+                '<label>Ownership</label>' +
+                '<select class="fmtOwnership" data-type="' + escapeHtml(type) + '" id="fmtOwnership_' + key + '">' +
+                  '<option value="Owned">Owned</option>' +
+                  '<option value="Borrowed">Borrowed</option>' +
+                '</select>' +
+              '</div>' +
+              '<div class="field fmtBorrowField" id="fmtBorrowField_' + key + '" style="display:' + (st.ownership === 'Borrowed' ? 'block' : 'none') + ';">' +
+                '<label>Borrowed — due back</label>' +
+                '<input type="date" class="fmtBorrowDue" data-type="' + escapeHtml(type) + '" id="fmtBorrowDue_' + key + '" value="' + (st.borrowDueDate || '') + '" lang="en-US">' +
+              '</div>' +
+            '</div>'
+          : '') +
+        '</div>';
+    }).join('');
+
+    // Wire up per-panel listeners now that the DOM exists
+    types.forEach(function(type){
+      var key = fmtKey(type);
+      var statusEl = document.getElementById('fmtStatus_' + key);
+      statusEl.value = (formatPanelState[type] && formatPanelState[type].status) || 'want';
+      statusEl.addEventListener('change', function(){
+        formatPanelState[type] = formatPanelState[type] || {};
+        formatPanelState[type].status = this.value;
+        document.getElementById('fmtDnfField_' + key).style.display = this.value === 'dnf' ? 'block' : 'none';
+      });
+      var ownEl = document.getElementById('fmtOwnership_' + key);
+      if(ownEl){
+        ownEl.value = (formatPanelState[type] && formatPanelState[type].ownership) || 'Owned';
+        ownEl.addEventListener('change', function(){
+          formatPanelState[type] = formatPanelState[type] || {};
+          formatPanelState[type].ownership = this.value;
+          document.getElementById('fmtBorrowField_' + key).style.display = this.value === 'Borrowed' ? 'block' : 'none';
+        });
+      }
+      var coverInput = document.getElementById('fmtCoverInput_' + key);
+      coverInput.addEventListener('change', function(e){
+        var file = e.target.files[0];
+        if(!file) return;
+        resizeImage(file, 200, 0.82).then(function(dataUrl){
+          formatPendingCovers[type] = dataUrl;
+          var isAudiobook = type === 'Audiobook';
+          document.getElementById('fmtCoverPreview_' + key).innerHTML = '<img src="' + dataUrl + '" alt="">';
+        });
+      });
+    });
+    document.querySelectorAll('.fmtRemoveCoverBtn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var type = this.getAttribute('data-type');
+        formatPendingCovers[type] = null;
+        formatPanelState[type] = formatPanelState[type] || {};
+        formatPanelState[type].cover = '';
+        var key = fmtKey(type);
+        document.getElementById('fmtCoverPreview_' + key).innerHTML = '<span class="ph">No cover</span>';
+        document.getElementById('fmtCoverInput_' + key).value = '';
+      });
+    });
+  }
+
+  document.querySelectorAll('.f_formatType').forEach(function(cb){
+    cb.addEventListener('change', renderFormatPanels);
+  });
+
+  // Reads whatever is currently unsaved in each format panel's inputs back
+  // into formatPanelState (in case the user typed something and didn't
+  // trigger a change/blur event on totalPages/currentPage/dnfReason before submit).
+  function syncFormatPanelStateFromDom(){
+    checkedFormatTypes().forEach(function(type){
+      var key = fmtKey(type);
+      formatPanelState[type] = formatPanelState[type] || {};
+      var totalEl = document.getElementById('fmtTotal_' + key);
+      var currentEl = document.getElementById('fmtCurrent_' + key);
+      var dnfEl = document.getElementById('fmtDnfReason_' + key);
+      var borrowEl = document.getElementById('fmtBorrowDue_' + key);
+      if(totalEl) formatPanelState[type].totalPages = totalEl.value ? Number(totalEl.value) : null;
+      if(currentEl) formatPanelState[type].currentPage = currentEl.value ? Number(currentEl.value) : null;
+      if(dnfEl) formatPanelState[type].dnfReason = dnfEl.value.trim();
+      if(borrowEl) formatPanelState[type].borrowDueDate = borrowEl.value || '';
+    });
+  }
+
+  // Builds the formats[] array to save, preserving existing format ids where possible.
+  function collectFormats(existingFormats){
+    syncFormatPanelStateFromDom();
+    var existingById = {};
+    (existingFormats || []).forEach(function(f){ existingById[f.type] = f; });
+    return checkedFormatTypes().map(function(type){
+      var st = formatPanelState[type] || {};
+      var existing = existingById[type];
+      var cover = formatPendingCovers.hasOwnProperty(type) ? formatPendingCovers[type] : (existing ? existing.cover : '');
+      return {
+        id: existing ? existing.id : fmtUid(),
+        type: type,
+        cover: cover || '',
+        status: st.status || 'want',
+        dnfReason: st.status === 'dnf' ? (st.dnfReason || '') : '',
+        totalPages: (st.totalPages || st.totalPages === 0) ? st.totalPages : null,
+        currentPage: (st.currentPage || st.currentPage === 0) ? st.currentPage : null,
+        ownership: type === 'Paperback' ? (st.ownership || 'Owned') : '',
+        borrowDueDate: (type === 'Paperback' && st.ownership === 'Borrowed') ? (st.borrowDueDate || '') : ''
+      };
+    });
+  }
+
+  // Populates the checkboxes + panel state from a book's existing formats
+  // (used when opening the edit modal). Resets state for "Add a book".
+  function populateFormatUI(book){
+    formatPanelState = {};
+    formatPendingCovers = {};
+    document.querySelectorAll('.f_formatType').forEach(function(cb){ cb.checked = false; });
+    var formats = (book && book.formats) || [];
+    formats.forEach(function(f){
+      var cb = document.querySelector('.f_formatType[value="' + f.type + '"]');
+      if(cb) cb.checked = true;
+      formatPanelState[f.type] = {
+        status: f.status || 'want',
+        dnfReason: f.dnfReason || '',
+        totalPages: f.totalPages,
+        currentPage: f.currentPage,
+        ownership: f.ownership || 'Owned',
+        borrowDueDate: f.borrowDueDate || '',
+        cover: f.cover || ''
+      };
+    });
+    renderFormatPanels();
+  }
+
+  // Derives the legacy top-level fields (format/status/cover/etc) from the
+  // first format-instance, so older code paths that haven't been updated yet
+  // to read book.formats directly (library grid, stats, exports — coming in
+  // later phases) keep working off a sensible value in the meantime.
+  // Picks which format-instance represents the book everywhere that still only
+  // shows one status/cover (postcard, bookshelf spine, series/platform lists,
+  // reviews list, calendar). Priority: actively being read > on hold > queued >
+  // requested > finished > dnf — so a book you're mid-audiobook on shows as
+  // "Reading" even if you also own an unstarted paperback.
+  var STATUS_PRIORITY = {reading: 0, hold: 1, want: 2, requested: 3, finished: 4, dnf: 5};
+  function primaryFormatFor(formats){
+    if(!formats || !formats.length) return null;
+    var sorted = formats.slice().sort(function(a, b){
+      var pa = STATUS_PRIORITY.hasOwnProperty(a.status) ? STATUS_PRIORITY[a.status] : 6;
+      var pb = STATUS_PRIORITY.hasOwnProperty(b.status) ? STATUS_PRIORITY[b.status] : 6;
+      return pa - pb;
+    });
+    return sorted[0];
+  }
+
+  function applyLegacyFieldsFromFormats(data){
+    var primary = primaryFormatFor(data.formats);
+    data.format = primary ? primary.type : '';
+    data.status = primary ? primary.status : 'want';
+    data.dnfReason = primary ? primary.dnfReason : '';
+    data.totalPages = primary ? primary.totalPages : null;
+    data.currentPage = primary ? primary.currentPage : null;
+    data.ownership = primary ? primary.ownership : '';
+    data.borrowDueDate = primary ? primary.borrowDueDate : '';
+    data.cover = primary ? (primary.cover || pendingCover || null) : (pendingCover || null);
+    return data;
   }
 
   var modalMode = 'full';
@@ -2562,29 +2905,37 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var b = books.find(function(x){ return x.id === id; });
     if(!b) return;
     var newSeriesNumber = (b.seriesNumber || b.seriesNumber === 0) ? b.seriesNumber + 1 : null;
+    // Carry over which formats the series is typically read in (type + ownership),
+    // but reset everything specific to an individual copy: status, progress, cover.
+    var dupFormats = (b.formats || []).map(function(f){
+      return {
+        id: fmtUid(),
+        type: f.type,
+        cover: '',
+        status: 'want',
+        dnfReason: '',
+        totalPages: null,
+        currentPage: null,
+        ownership: f.ownership || 'Owned',
+        borrowDueDate: ''
+      };
+    });
     var dup = {
       id: uid(),
       title: '',
       author: b.author || '',
-      status: 'want',
       series: b.series || '',
       seriesNumber: newSeriesNumber,
-      format: b.format || '',
-      ownership: b.ownership || 'Owned',
-      borrowDueDate: '',
+      formats: dupFormats,
       isARC: !!b.isARC,
       arcSource: b.isARC ? (b.arcSource || '') : '',
       dueDate: '',
       arcFormLink: '',
-      totalPages: null,
-      currentPage: null,
       dateStarted: '',
       dateFinished: '',
       genre: b.genre || '',
       rating: 0,
       tropes: (b.tropes || []).slice(),
-      cover: null,
-      dnfReason: '',
       nowPlaying: '',
       review: '',
       postcardCaption: '',
@@ -2592,6 +2943,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       createdAt: Date.now(),
       statusChangedAt: Date.now()
     };
+    applyLegacyFieldsFromFormats(dup);
     books.push(dup);
     saveBookRemote(dup);
     render();
@@ -2611,20 +2963,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     document.getElementById('field-nowplaying').style.display = isReviewOnly ? '' : 'none';
     document.getElementById('f_title').value = b ? b.title || '' : '';
     document.getElementById('f_author').value = b ? b.author || '' : '';
-    document.getElementById('f_status').value = b ? b.status || 'want' : 'want';
-    document.getElementById('f_dnfReason').value = b ? b.dnfReason || '' : '';
-    document.getElementById('field-dnf-reason').style.display = (b && b.status === 'dnf') ? 'block' : 'none';
     document.getElementById('f_series').value = b ? b.series || '' : '';
     document.getElementById('f_seriesNum').value = b && (b.seriesNumber || b.seriesNumber === 0) ? b.seriesNumber : '';
-    document.getElementById('f_format').value = b ? b.format || '' : '';
-    document.getElementById('f_ownership').value = b && b.ownership ? b.ownership : 'Owned';
-    document.getElementById('f_borrowDueDate').value = b ? b.borrowDueDate || '' : '';
     document.getElementById('f_isArc').checked = b ? !!b.isARC : false;
     document.getElementById('f_arcSource').value = b ? b.arcSource || '' : '';
     document.getElementById('f_dueDate').value = b ? b.dueDate || '' : '';
     document.getElementById('f_arcFormLink').value = b ? b.arcFormLink || '' : '';
-    document.getElementById('f_totalPages').value = b && b.totalPages ? b.totalPages : '';
-    document.getElementById('f_currentPage').value = b && b.currentPage ? b.currentPage : '';
     document.getElementById('f_dateStarted').value = b ? b.dateStarted || '' : '';
     document.getElementById('f_dateFinished').value = b ? b.dateFinished || '' : '';
     renderGenreSelect(b ? b.genre || '' : '');
@@ -2644,7 +2988,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     renderTropeOptions();
     document.getElementById('tropeSearchInput').value = '';
     document.getElementById('arcFields').style.display = document.getElementById('f_isArc').checked ? 'block' : 'none';
-    applyFormatUI();
+    populateFormatUI(b);
     document.getElementById('overlay').style.display = 'flex';
     if(!isReviewOnly) document.getElementById('f_title').focus();
   }
@@ -2665,10 +3009,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     document.getElementById('arcFields').style.display = e.target.checked ? 'block' : 'none';
   });
 
-  document.getElementById('f_status').addEventListener('change', function(e){
-    document.getElementById('field-dnf-reason').style.display = e.target.value === 'dnf' ? 'block' : 'none';
-  });
-
   document.getElementById('addBlurbLink').addEventListener('click', function(e){
     e.preventDefault();
     this.style.display = 'none';
@@ -2677,33 +3017,24 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     ta.focus();
   });
 
-  document.getElementById('f_format').addEventListener('change', applyFormatUI);
-  document.getElementById('f_ownership').addEventListener('change', function(){
-    document.getElementById('borrowDueField').style.display = this.value === 'Borrowed' ? 'block' : 'none';
-    if(this.value !== 'Borrowed') document.getElementById('f_borrowDueDate').value = '';
-  });
-
   document.getElementById('bookForm').addEventListener('submit', function(e){
     e.preventDefault();
     var title = document.getElementById('f_title').value.trim();
     if(!title) return;
 
+    var existingBook = editingId ? books.find(function(x){ return x.id === editingId; }) : null;
+    var formats = collectFormats(existingBook ? existingBook.formats : null);
+
     var data = {
       title: title,
       author: document.getElementById('f_author').value.trim(),
-      status: document.getElementById('f_status').value,
-      dnfReason: document.getElementById('f_status').value === 'dnf' ? document.getElementById('f_dnfReason').value.trim() : '',
       series: document.getElementById('f_series').value.trim(),
       seriesNumber: document.getElementById('f_seriesNum').value ? Number(document.getElementById('f_seriesNum').value) : null,
-      format: document.getElementById('f_format').value,
-      ownership: document.getElementById('f_format').value === 'Paperback' ? document.getElementById('f_ownership').value : '',
-      borrowDueDate: (document.getElementById('f_format').value === 'Paperback' && document.getElementById('f_ownership').value === 'Borrowed') ? document.getElementById('f_borrowDueDate').value : '',
+      formats: formats,
       isARC: document.getElementById('f_isArc').checked,
       arcSource: document.getElementById('f_isArc').checked ? document.getElementById('f_arcSource').value.trim() : '',
       dueDate: document.getElementById('f_isArc').checked ? document.getElementById('f_dueDate').value : '',
       arcFormLink: document.getElementById('f_isArc').checked ? document.getElementById('f_arcFormLink').value.trim() : '',
-      totalPages: document.getElementById('f_totalPages').value ? Number(document.getElementById('f_totalPages').value) : null,
-      currentPage: document.getElementById('f_currentPage').value ? Number(document.getElementById('f_currentPage').value) : null,
       dateStarted: document.getElementById('f_dateStarted').value,
       dateFinished: document.getElementById('f_dateFinished').value,
       genre: document.getElementById('f_genre').value,
@@ -2711,9 +3042,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       review: document.getElementById('f_review').value.trim(),
       nowPlaying: document.getElementById('f_nowPlaying').value.trim(),
       blurb: document.getElementById('f_blurb').value.trim(),
-      tropes: selectedTropes.slice(),
-      cover: pendingCover
+      tropes: selectedTropes.slice()
     };
+    applyLegacyFieldsFromFormats(data);
 
     if(data.arcSource && arcSourceList.indexOf(data.arcSource) === -1){
       arcSourceList.push(data.arcSource);
@@ -2747,6 +3078,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   document.getElementById('searchInput').addEventListener('input', render);
   document.getElementById('genreFilter').addEventListener('change', render);
   document.getElementById('providerFilter').addEventListener('change', render);
+  document.getElementById('formatFilter').addEventListener('change', render);
 
   function updateSortDropdownUI(){
     var panel = document.getElementById('sortDropdownPanel');
@@ -2924,7 +3256,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       '<button id="cancelRestoreBtn" style="margin-left:6px;padding:4px 10px;border-radius:6px;border:1px solid var(--line-strong);background:none;color:var(--ink);cursor:pointer;font-size:12px;">Cancel</button>';
     b.style.display = 'block';
     document.getElementById('confirmRestoreBtn').onclick = async function(){
-      books = data.books;
+      books = migrateAllBooks(data.books).books;
       tropeList = data.tropeList || data.customTropes || defaultTropes.slice();
       genreList = data.genreList || defaultGenres.slice();
       arcSourceList = data.arcSourceList || data.customArcSources || defaultArcSources.slice();
@@ -2994,7 +3326,50 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     if(activeNavId === 'navPlatforms') renderPlatformsView();
     if(activeNavId === 'navCalendar') renderCalendarView();
     if(activeNavId === 'navReviews') renderReviewsView();
+    updateNavDropdownHighlights();
   }
+
+  // The Browse/Profile groups replace what used to be individual top-level tabs
+  // (Series/Authors/Platforms/Calendar and Reader Page/Social Post). This keeps
+  // their trigger button highlighted whenever one of their items is the active view,
+  // and auto-closes the menu once a destination is picked.
+  var NAV_DROPDOWN_GROUPS = {
+    navBrowseDropdown: {trigger: 'navBrowseTrigger', items: ['navSeries', 'navAuthors', 'navPlatforms', 'navCalendar']},
+    navProfileDropdown: {trigger: 'navProfileTrigger', items: ['navReader']}
+  };
+
+  function updateNavDropdownHighlights(){
+    Object.keys(NAV_DROPDOWN_GROUPS).forEach(function(groupId){
+      var group = NAV_DROPDOWN_GROUPS[groupId];
+      var isParentActive = group.items.indexOf(currentActiveNav) !== -1;
+      document.getElementById(group.trigger).classList.toggle('parent-active', isParentActive);
+    });
+  }
+
+  function closeAllNavDropdowns(){
+    Object.keys(NAV_DROPDOWN_GROUPS).forEach(function(groupId){
+      document.getElementById(groupId).classList.remove('open');
+    });
+  }
+
+  Object.keys(NAV_DROPDOWN_GROUPS).forEach(function(groupId){
+    var group = NAV_DROPDOWN_GROUPS[groupId];
+    document.getElementById(group.trigger).addEventListener('click', function(e){
+      e.stopPropagation();
+      var wasOpen = document.getElementById(groupId).classList.contains('open');
+      closeAllNavDropdowns();
+      document.getElementById(groupId).classList.toggle('open', !wasOpen);
+    });
+  });
+  document.addEventListener('click', function(e){
+    if(!e.target.closest('.nav-dropdown')) closeAllNavDropdowns();
+  });
+  document.getElementById('navBrowseDropdown').addEventListener('click', function(e){
+    if(e.target.closest('.nav-dropdown-item')) closeAllNavDropdowns();
+  });
+  document.getElementById('navProfileDropdown').addEventListener('click', function(e){
+    if(e.target.closest('.nav-dropdown-item')) closeAllNavDropdowns();
+  });
 
   document.getElementById('navLibrary').onclick = function(){ switchView('navLibrary'); };
   document.getElementById('navSeries').onclick = function(){ switchView('navSeries'); };
@@ -3413,18 +3788,25 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   var currentViewBookId = null;
 
   function buildViewHtml(b){
-    var coverHtml = b.cover ? '<img src="' + b.cover + '" alt="">' : '<span class="ph">No cover</span>';
-    var unit = b.format === 'Audiobook' ? 'Chapters' : 'Pages';
+    var formats = (b.formats && b.formats.length) ? b.formats : null;
+    var primaryCover = (formats && formats[0] && formats[0].cover) || b.cover;
+    var anyAudiobook = formats && formats.some(function(f){ return f.type === 'Audiobook'; });
+    var coverHtml = primaryCover ? '<img src="' + primaryCover + '" alt="">' : '<span class="ph">No cover</span>';
+
     var rows = '';
-    rows += '<div class="detail-row"><span class="dl">Status</span><span class="dv">' + escapeHtml(statusLabelFor(b)) + '</span></div>';
-    if(b.status === 'dnf' && b.dnfReason) rows += '<div class="detail-row"><span class="dl">DNF reason</span><span class="dv">' + escapeHtml(b.dnfReason) + '</span></div>';
-    if(b.format) rows += '<div class="detail-row"><span class="dl">Format</span><span class="dv">' + escapeHtml(b.format) + '</span></div>';
-    if(b.format === 'Paperback' && b.ownership) rows += '<div class="detail-row"><span class="dl">Ownership</span><span class="dv">' + escapeHtml(b.ownership) + '</span></div>';
-    if(b.format === 'Paperback' && b.ownership === 'Borrowed' && b.borrowDueDate) rows += '<div class="detail-row"><span class="dl">Return by</span><span class="dv">' + fmtDate(b.borrowDueDate) + '</span></div>';
+    if(!formats){
+      // Pre-migration fallback, shouldn't normally happen since loadBooks migrates on read.
+      var unit = b.format === 'Audiobook' ? 'Chapters' : 'Pages';
+      rows += '<div class="detail-row"><span class="dl">Status</span><span class="dv">' + escapeHtml(statusLabelFor(b)) + '</span></div>';
+      if(b.format) rows += '<div class="detail-row"><span class="dl">Format</span><span class="dv">' + escapeHtml(b.format) + '</span></div>';
+      if(b.totalPages) rows += '<div class="detail-row"><span class="dl">' + unit + '</span><span class="dv">' + (b.currentPage||0) + ' / ' + b.totalPages + '</span></div>';
+    } else {
+      rows += formats.map(function(f){ return buildFormatDetailBlock(b, f); }).join('');
+    }
+
     if(b.genre) rows += '<div class="detail-row"><span class="dl">Genre</span><span class="dv">' + escapeHtml(b.genre) + '</span></div>';
     if(b.tropes && b.tropes.length) rows += '<div class="detail-row"><span class="dl">Tropes</span><span class="dv">' + escapeHtml(b.tropes.join(', ')) + '</span></div>';
     if(b.rating) rows += '<div class="detail-row"><span class="dl">Rating</span><span class="dv">' + starsHtml(b.rating, 15) + ' <span class="rating-num">' + b.rating.toFixed(1) + '</span></span></div>';
-    if(b.totalPages) rows += '<div class="detail-row"><span class="dl">' + unit + '</span><span class="dv">' + (b.currentPage||0) + ' / ' + b.totalPages + '</span></div>';
     if(b.isARC){
       rows += '<div class="detail-row"><span class="dl">ARC source</span><span class="dv">' + escapeHtml(b.arcSource || '—') + '</span></div>';
       if(b.dueDate) rows += '<div class="detail-row"><span class="dl">Review Due Date</span><span class="dv">' + fmtDate(b.dueDate) + '</span></div>';
@@ -3439,7 +3821,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var blurbHtml = b.blurb ? '<details class="blurb-toggle"><summary>Read Blurb</summary><div class="detail-blurb">' + escapeHtml(b.blurb) + '</div></details>' : '';
 
     return '<div class="view-header">' +
-      '<div class="view-cover' + (b.format === 'Audiobook' ? ' audiobook-cover' : '') + '">' + coverHtml + '</div>' +
+      '<div class="view-cover' + (anyAudiobook && (!formats || formats.length === 1) ? ' audiobook-cover' : '') + '">' + coverHtml + '</div>' +
       '<div>' +
         '<h2 style="margin-bottom:2px;">' + escapeHtml(b.title) + '</h2>' +
         (b.author ? '<p style="color:var(--muted);font-style:italic;margin:0 0 3px;">' + escapeHtml(b.author) + '</p>' : '') +
@@ -3449,6 +3831,38 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     '</div>' +
     blurbHtml +
     rows + buildLinksHtml(b);
+  }
+
+  // Renders one format's status/progress/ownership as its own block with its own
+  // cover thumbnail, so a book with 2-3 formats shows each one distinctly in detail view.
+  function buildFormatDetailBlock(b, f){
+    var unit = f.type === 'Audiobook' ? 'Chapters' : 'Pages';
+    var cover = f.cover || b.cover;
+    var coverHtml = cover ? '<img src="' + cover + '" alt="">' : '<span class="ph" style="font-size:9px;">No cover</span>';
+    var inner = '';
+    inner += '<div class="detail-row"><span class="dl">Status</span><span class="dv">' + escapeHtml(statusLabelForValue(f.status, f.type)) + '</span></div>';
+    if(f.status === 'dnf' && f.dnfReason) inner += '<div class="detail-row"><span class="dl">DNF reason</span><span class="dv">' + escapeHtml(f.dnfReason) + '</span></div>';
+    if(f.type === 'Paperback' && f.ownership) inner += '<div class="detail-row"><span class="dl">Ownership</span><span class="dv">' + escapeHtml(f.ownership) + '</span></div>';
+    if(f.type === 'Paperback' && f.ownership === 'Borrowed' && f.borrowDueDate) inner += '<div class="detail-row"><span class="dl">Return by</span><span class="dv">' + fmtDate(f.borrowDueDate) + '</span></div>';
+    if(f.totalPages) inner += '<div class="detail-row"><span class="dl">' + unit + '</span><span class="dv">' + (f.currentPage||0) + ' / ' + f.totalPages + '</span></div>';
+    return '<div class="detail-format-block">' +
+      '<div class="detail-format-top">' +
+        '<div class="detail-format-cover' + (f.type === 'Audiobook' ? ' audiobook-cover' : '') + '">' + coverHtml + '</div>' +
+        '<div style="flex:1;"><h4>' + escapeHtml(f.type || 'Format') + '</h4>' + inner + '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  // statusLabelFor() (existing helper) reads book-level status/format; this variant
+  // takes explicit values so it works for a single format-instance too.
+  function statusLabelForValue(status, type){
+    var isAudiobook = type === 'Audiobook';
+    var labels = {
+      requested: 'Requested', want: 'Want to read',
+      reading: isAudiobook ? 'Listening' : 'Reading',
+      hold: 'On Hold', finished: 'Finished', dnf: 'Did not finish'
+    };
+    return labels[status] || status || '—';
   }
 
   // Review form (from the main Add/Edit form) plus any extra links the
@@ -4929,7 +5343,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var itemsByDate = {};
     books.forEach(function(b){
       var due = effectiveDueDate(b);
-      if(!due || b.status === 'finished' || b.status === 'dnf' || b.status === 'hold' || b.status === 'requested') return;
+      if(!due) return;
       if(!itemsByDate[due]) itemsByDate[due] = [];
       itemsByDate[due].push(b);
     });
@@ -5365,6 +5779,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       return;
     }
 
+    newBooks = newBooks.map(migrateBookToFormats);
     books = books.concat(newBooks);
     saveGenreList();
     saveTropeList();
@@ -5396,6 +5811,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     init: function(){
       if(appInitialized) return;
       appInitialized = true;
+      updateNavDropdownHighlights();
       loadBooks();
     }
   };
