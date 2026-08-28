@@ -360,6 +360,24 @@ body[data-theme="velaris"] .reader-intro p{color:#D2C6F1;text-shadow:0 1px 6px r
 .detail-format-cover{width:56px;height:82px;border-radius:6px;overflow:hidden;flex:none;background:var(--line);}
 .detail-format-cover img{width:100%;height:100%;object-fit:cover;}
 .detail-format-top{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;}
+.platform-subtabs{display:flex;gap:8px;margin-bottom:16px;}
+.platform-logo-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));gap:14px;}
+.platform-logo-card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;transition:transform 0.15s, border-color 0.15s;text-decoration:none;color:var(--ink);}
+.platform-logo-card:hover{transform:translateY(-2px);border-color:var(--accent);background:var(--card-hover);}
+.platform-logo-img-wrap{width:72px;height:72px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;}
+.platform-logo-img-wrap img{width:100%;height:100%;object-fit:contain;}
+.platform-logo-title{font-weight:700;font-size:13px;}
+.platform-logo-sub{font-size:10.5px;color:var(--muted);margin-top:2px;}
+.btn-add-plus{background:var(--ink);color:var(--paper);border:none;border-radius:50%;width:34px;height:34px;font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;}
+.btn-add-plus:hover{background:var(--accent-deep);}
+.platform-table-wrap{margin-top:8px;}
+.platform-table-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;flex-wrap:wrap;}
+table.arc-table{width:100%;border-collapse:collapse;background:var(--card);border-radius:10px;overflow:hidden;border:1px solid var(--line-strong);}
+table.arc-table th, table.arc-table td{padding:9px 11px;text-align:left;border-bottom:1px solid var(--line);font-size:12.5px;}
+table.arc-table th{background:var(--card-hover);color:var(--muted);font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;}
+table.arc-table tr:last-child td{border-bottom:none;}
+.arc-table .title-link{color:var(--accent-deep);font-weight:600;cursor:pointer;background:none;border:none;padding:0;font-family:var(--font-body);font-size:12.5px;text-align:left;}
+.arc-table .title-link:hover{text-decoration:underline;}
 .pagination{display:flex;align-items:center;justify-content:center;gap:14px;margin:20px 0 4px;}
 .pagination button{background:var(--card);border:1px solid var(--line-strong);border-radius:8px;padding:7px 14px;font-family:var(--font-body);font-size:13px;color:var(--ink);cursor:pointer;}
 .pagination button:hover:not(:disabled){border-color:var(--accent);}
@@ -1091,6 +1109,28 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   </div>
 </div>
 
+<div class="overlay" id="platformAddOverlay" style="display:none;">
+  <div class="modal" style="max-width:420px;">
+    <h2 id="platformAddTitle">Add Platform</h2>
+    <div class="field">
+      <label>Platform name</label>
+      <input type="text" id="platformAddName" placeholder="e.g. BookSirens">
+    </div>
+    <div class="field">
+      <label>Logo image URL</label>
+      <input type="url" id="platformAddLogo" placeholder="https://...">
+    </div>
+    <div class="field" id="platformAddUrlField" style="display:none;">
+      <label>Website / profile URL</label>
+      <input type="url" id="platformAddUrl" placeholder="https://...">
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" id="platformAddCancelBtn">Cancel</button>
+      <button type="button" class="btn-primary" id="platformAddSaveBtn">Add</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="reviewPageOverlay" style="display:none;">
   <div class="modal review-page-modal">
     <div id="reviewPageContent"></div>
@@ -1349,7 +1389,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         seriesInfo: meta.seriesInfo || {},
         authorLinks: meta.authorLinks || {},
         sourceInfo: meta.sourceInfo || {},
-        customGenreColors: meta.customGenreColors || {}
+        customGenreColors: meta.customGenreColors || {},
+        arcTeams: meta.arcTeams || [],
+        reviewPlatforms: meta.reviewPlatforms || []
       };
     },
     async saveBook(book){
@@ -1519,6 +1561,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   var seriesInfo = {};
   var authorLinks = {};
   var sourceInfo = {};
+  var arcTeams = [];
+  var reviewPlatforms = [];
   var customGenreColors = {};
   var pendingCover = null;
   var activeStatus = 'all';
@@ -1545,6 +1589,39 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
   function fmtUid(){
     return 'fmt_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+  }
+
+  // --- ARC / platform ID suggestion (e.g. NetGalley -> NG001) --------------
+  // Derives a short prefix from a source name: initials of each word, or the
+  // first 2-3 letters if it's a single word. "NetGalley" -> "NG",
+  // "Love Notes PR" -> "LNP", "Edelweiss" -> "EDE".
+  function prefixFromSourceName(source){
+    var words = (source || '').trim().split(/\s+/).filter(Boolean);
+    if(!words.length) return '';
+    if(words.length === 1){
+      return words[0].slice(0, 3).toUpperCase();
+    }
+    return words.map(function(w){ return w[0]; }).join('').toUpperCase().slice(0, 4);
+  }
+
+  // Scans every format-instance across every book for IDs sharing this prefix
+  // and returns prefix + next number, zero-padded to 3 digits (grows past 999
+  // automatically). Looks at the *highest* number ever used, not just current
+  // count, so a deleted/renamed entry never causes a repeat.
+  function suggestNextPlatformId(source){
+    var prefix = prefixFromSourceName(source);
+    if(!prefix) return '';
+    var highest = 0;
+    books.forEach(function(b){
+      (b.formats || []).forEach(function(f){
+        if(!f.platformId) return;
+        var m = f.platformId.match(new RegExp('^' + prefix + '(\\d+)$', 'i'));
+        if(m){ highest = Math.max(highest, parseInt(m[1], 10)); }
+      });
+    });
+    var next = highest + 1;
+    var padded = next < 1000 ? String(next).padStart(3, '0') : String(next);
+    return prefix + padded;
   }
 
   // --- Multi-format migration -------------------------------------------
@@ -1660,6 +1737,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       authorLinks = data.authorLinks || {};
       sourceInfo = data.sourceInfo || {};
       customGenreColors = data.customGenreColors || {};
+      arcTeams = data.arcTeams || [];
+      reviewPlatforms = data.reviewPlatforms || [];
+      importLegacyPlatformDashboardData();
       setSync('idle');
       normalizeArcSourceNames();
     }catch(e){
@@ -1673,12 +1753,39 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       authorLinks = {};
       sourceInfo = {};
       customGenreColors = {};
+      arcTeams = [];
+      reviewPlatforms = [];
       setSync('error');
       showBanner("Couldn't load your library from the cloud. Check your connection and refresh.");
     }
     renderArcSourceList();
     renderLinks();
     render();
+  }
+
+  // One-time import: if this browser previously used the standalone
+  // platforms.html page, its team/review-site logos were saved to
+  // localStorage. Pull them into the cloud-synced list so they show up
+  // here too and stop being stuck on just this one device/browser.
+  function importLegacyPlatformDashboardData(){
+    try{
+      var imported = false;
+      var legacyTeams = JSON.parse(localStorage.getItem('lunaria_arc_teams') || 'null');
+      if(legacyTeams && legacyTeams.length && !arcTeams.length){
+        arcTeams = legacyTeams;
+        imported = true;
+      }
+      var legacyReview = JSON.parse(localStorage.getItem('lunaria_review_platforms') || 'null');
+      if(legacyReview && legacyReview.length && !reviewPlatforms.length){
+        reviewPlatforms = legacyReview;
+        imported = true;
+      }
+      if(imported) savePlatformDashboardMeta();
+    }catch(e){}
+  }
+
+  async function savePlatformDashboardMeta(){
+    try{ await window.cloudStore.saveMeta({arcTeams: arcTeams, reviewPlatforms: reviewPlatforms}); }catch(e){}
   }
 
   async function saveBookRemote(book){
@@ -2177,7 +2284,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var af = getActiveFormatInstance(b) || {
       type: b.format || '', status: b.status || 'want', cover: b.cover || '',
       totalPages: b.totalPages, currentPage: b.currentPage, ownership: b.ownership,
-      borrowDueDate: b.borrowDueDate, dnfReason: b.dnfReason, rating: b.rating || 0
+      borrowDueDate: b.borrowDueDate, dnfReason: b.dnfReason, rating: b.rating || 0, platformId: b.platformId || ''
     };
     var unit = af.type === 'Audiobook' ? 'chapters' : 'pages';
     var progressHtml = '';
@@ -2222,7 +2329,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var isConfirming = confirmingDelete === b.id;
 
     var coverHtml = af.cover ? '<img src="' + af.cover + '" alt="">' : (b.cover ? '<img src="' + b.cover + '" alt="">' : '<span class="ph">No cover</span>');
-    var formatLabelHtml = af.type ? '<div class="format-label">' + escapeHtml(af.type) + '</div>' : '';
+    var formatLabelHtml = af.type ? '<div class="format-label">' + escapeHtml(af.type) + (af.platformId ? ' · ' + escapeHtml(af.platformId) : '') + '</div>' : '';
     var genreTabHtml = b.genre ? '<div class="genre-tab" style="background:' + genreColorFor(b.genre) + ';">' + escapeHtml(b.genre) + '</div>' : '';
     var ribbonHtml = af.status === 'reading' ? '<div class="reading-ribbon" title="Currently reading"></div>' : '';
     var dupBadgeHtml = duplicateIds[b.id] ? '<div class="dup-banner" title="Another entry has the same title, author, and format">⚠ Possible Duplicate</div>' : '';
@@ -2717,6 +2824,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
               '<input type="text" class="fmtDnfReason" data-type="' + escapeHtml(type) + '" id="fmtDnfReason_' + key + '" value="' + escapeHtml(st.dnfReason || '') + '">' +
             '</div>' +
           '</div>' +
+          (type !== 'Paperback' ?
+            '<div class="field">' +
+              '<label>Platform ID <span style="font-weight:normal;color:var(--muted);">(auto-suggested from ARC source, editable)</span></label>' +
+              '<input type="text" class="fmtPlatformId" data-type="' + escapeHtml(type) + '" id="fmtPlatformId_' + key + '" placeholder="e.g. NG001" value="' + escapeHtml(st.platformId || '') + '">' +
+            '</div>'
+          : '') +
           '<div class="field-row">' +
             '<div class="field">' +
               '<label>' + (isAudiobook ? 'Total chapters' : 'Total pages') + '</label>' +
@@ -2778,6 +2891,13 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         formatPanelState[type].rating = v;
         document.getElementById('fmtStarPreview_' + key).textContent = starsPlain(v);
       });
+      var platformIdEl = document.getElementById('fmtPlatformId_' + key);
+      if(platformIdEl){
+        platformIdEl.addEventListener('input', function(){
+          formatPanelState[type] = formatPanelState[type] || {};
+          formatPanelState[type].platformId = this.value.trim();
+        });
+      }
       var coverInput = document.getElementById('fmtCoverInput_' + key);
       coverInput.addEventListener('change', function(e){
         var file = e.target.files[0];
@@ -2803,7 +2923,40 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
 
   document.querySelectorAll('.f_formatType').forEach(function(cb){
-    cb.addEventListener('change', renderFormatPanels);
+    cb.addEventListener('change', function(){
+      // Auto-suggest a platform ID the moment a qualifying format is freshly
+      // checked (only if it doesn't already have one, and we have a source to
+      // base the prefix on) — never overwrites something already typed.
+      if(cb.checked){
+        var type = cb.value;
+        var hasId = formatPanelState[type] && formatPanelState[type].platformId;
+        var isArc = document.getElementById('f_isArc').checked;
+        var source = document.getElementById('f_arcSource').value.trim();
+        if(type !== 'Paperback' && !hasId && isArc && source){
+          formatPanelState[type] = formatPanelState[type] || {};
+          formatPanelState[type].platformId = suggestNextPlatformId(source);
+        }
+      }
+      renderFormatPanels();
+    });
+  });
+
+  // If the ARC source is set/changed after a qualifying format is already
+  // checked, backfill its Platform ID — but only while that field is still
+  // empty, so it never clobbers something the user typed themselves.
+  document.getElementById('f_arcSource').addEventListener('change', function(){
+    var source = this.value.trim();
+    if(!document.getElementById('f_isArc').checked || !source) return;
+    checkedFormatTypes().forEach(function(type){
+      if(type === 'Paperback') return;
+      var hasId = formatPanelState[type] && formatPanelState[type].platformId;
+      if(hasId) return;
+      formatPanelState[type] = formatPanelState[type] || {};
+      formatPanelState[type].platformId = suggestNextPlatformId(source);
+      var key = fmtKey(type);
+      var el = document.getElementById('fmtPlatformId_' + key);
+      if(el) el.value = formatPanelState[type].platformId;
+    });
   });
 
   // Reads whatever is currently unsaved in each format panel's inputs back
@@ -2845,7 +2998,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         currentPage: (st.currentPage || st.currentPage === 0) ? st.currentPage : null,
         ownership: type === 'Paperback' ? (st.ownership || 'Owned') : '',
         borrowDueDate: (type === 'Paperback' && st.ownership === 'Borrowed') ? (st.borrowDueDate || '') : '',
-        rating: st.rating || 0
+        rating: st.rating || 0,
+        platformId: type !== 'Paperback' ? (st.platformId || '') : ''
       };
     });
   }
@@ -2868,7 +3022,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         ownership: f.ownership || 'Owned',
         borrowDueDate: f.borrowDueDate || '',
         cover: f.cover || '',
-        rating: f.rating || 0
+        rating: f.rating || 0,
+        platformId: f.platformId || ''
       };
     });
     renderFormatPanels();
@@ -3244,7 +3399,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   document.getElementById('exportBackupBtn').onclick = function(){
     document.getElementById('exportMenu').style.display = 'none';
-    var payload = {books: books, tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, authorPhotos: authorPhotos, seriesInfo: seriesInfo, authorLinks: authorLinks, sourceInfo: sourceInfo, customGenreColors: customGenreColors, exportedAt: new Date().toISOString()};
+    var payload = {books: books, tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, authorPhotos: authorPhotos, seriesInfo: seriesInfo, authorLinks: authorLinks, sourceInfo: sourceInfo, customGenreColors: customGenreColors, arcTeams: arcTeams, reviewPlatforms: reviewPlatforms, exportedAt: new Date().toISOString()};
     var blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
     var url = URL.createObjectURL(blob);
     var link = document.createElement('a');
@@ -3278,10 +3433,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       authorLinks = data.authorLinks || {};
       sourceInfo = data.sourceInfo || {};
       customGenreColors = data.customGenreColors || {};
+      arcTeams = data.arcTeams || [];
+      reviewPlatforms = data.reviewPlatforms || [];
       setSync('syncing');
       try{
         await window.cloudStore.replaceAllBooks(books);
-        await window.cloudStore.saveMeta({tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, authorPhotos: authorPhotos, seriesInfo: seriesInfo, authorLinks: authorLinks, sourceInfo: sourceInfo, customGenreColors: customGenreColors});
+        await window.cloudStore.saveMeta({tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, authorPhotos: authorPhotos, seriesInfo: seriesInfo, authorLinks: authorLinks, sourceInfo: sourceInfo, customGenreColors: customGenreColors, arcTeams: arcTeams, reviewPlatforms: reviewPlatforms});
         setSync('idle');
       }catch(e){
         setSync('error');
@@ -3853,6 +4010,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var inner = '';
     inner += '<div class="detail-row"><span class="dl">Status</span><span class="dv">' + escapeHtml(statusLabelForValue(f.status, f.type)) + '</span></div>';
     if(f.status === 'dnf' && f.dnfReason) inner += '<div class="detail-row"><span class="dl">DNF reason</span><span class="dv">' + escapeHtml(f.dnfReason) + '</span></div>';
+    if(f.platformId) inner += '<div class="detail-row"><span class="dl">ID</span><span class="dv">' + escapeHtml(f.platformId) + '</span></div>';
     if(f.rating) inner += '<div class="detail-row"><span class="dl">Rating</span><span class="dv">' + starsHtml(f.rating, 13) + ' <span class="rating-num">' + f.rating.toFixed(1) + '</span></span></div>';
     if(f.type === 'Paperback' && f.ownership) inner += '<div class="detail-row"><span class="dl">Ownership</span><span class="dv">' + escapeHtml(f.ownership) + '</span></div>';
     if(f.type === 'Paperback' && f.ownership === 'Borrowed' && f.borrowDueDate) inner += '<div class="detail-row"><span class="dl">Return by</span><span class="dv">' + fmtDate(f.borrowDueDate) + '</span></div>';
@@ -4834,157 +4992,183 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   // "Author/Publisher" (isAuthorDirect) shows a list of the authors you've
   // gotten books directly from instead of a book list, since one such
   // entry can span many different authors — click a name to peek at them.
-  var PLATFORM_LIST_PAGE_SIZE = 10;
-  var platformsExpanded = {};
+  var platformsSubTab = 'teams'; // 'teams' | 'review'
   var platformsSearchTerm = '';
+  var platformsDrilldownTeam = null; // team name currently drilled into, or null for grid view
+
+  // Finds which format-instance on a book should represent it in a team's
+  // ARC table row — prefers whichever format actually has a Platform ID set
+  // (since that's the one tied to this specific ARC copy), falling back to
+  // the book's overall (legacy-synced) status/pages if none do.
+  function formatInstanceForPlatformRow(b){
+    return formatInstancesOf(b).find(function(f){ return f.platformId; }) || null;
+  }
 
   function renderPlatformsView(){
     var wrap = document.getElementById('platformsView');
-    var groups = {};
-    books.forEach(function(b){
-      if(!b.arcSource) return;
-      if(!groups[b.arcSource]) groups[b.arcSource] = [];
-      groups[b.arcSource].push(b);
-    });
-    // Platforms marked "Author/Publisher" (direct-from-author sources)
-    // float to the top, since they behave differently from the rest;
-    // everything else stays alphabetical.
-    var allNames = Object.keys(groups).sort(function(a, b){
-      var aDirect = (sourceInfo[a] || {}).isAuthorDirect ? 0 : 1;
-      var bDirect = (sourceInfo[b] || {}).isAuthorDirect ? 0 : 1;
-      if(aDirect !== bDirect) return aDirect - bDirect;
-      return a.localeCompare(b);
-    });
-    if(!allNames.length){
-      wrap.innerHTML = '<div class="cal-empty-note">No ARC sources logged yet — set a source on a book to see it grouped here.</div>';
-      return;
-    }
-
-    var searchWrapHtml = '<div class="authors-search-wrap">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
-      '<input type="text" id="platformsSearchInput" placeholder="Search platforms or books..." value="' + escapeHtml(platformsSearchTerm) + '">' +
+    var subtabsHtml = '<div class="platform-subtabs">' +
+      '<button type="button" class="view-tab' + (platformsSubTab === 'teams' ? ' active' : '') + '" id="platformsTeamsTabBtn">ARC & PR Teams</button>' +
+      '<button type="button" class="view-tab' + (platformsSubTab === 'review' ? ' active' : '') + '" id="platformsReviewTabBtn">Review Platforms</button>' +
       '</div>';
 
+    var toolbarHtml = '<div class="authors-search-wrap" style="flex:1;">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
+      '<input type="text" id="platformsSearchInput" placeholder="Search platforms, title, author, series...'  + '" value="' + escapeHtml(platformsSearchTerm) + '">' +
+      '</div>' +
+      '<button type="button" class="btn-add-plus" id="platformAddOpenBtn" title="Add platform">+</button>';
+
+    var bodyHtml;
+    if(platformsSubTab === 'teams' && platformsDrilldownTeam){
+      bodyHtml = buildPlatformTeamTableHtml(platformsDrilldownTeam);
+    } else if(platformsSubTab === 'teams'){
+      bodyHtml = buildPlatformLogoGridHtml(arcTeams, 'team');
+    } else {
+      bodyHtml = buildPlatformLogoGridHtml(reviewPlatforms, 'review');
+    }
+
+    wrap.innerHTML = subtabsHtml + '<div class="toolbar" style="display:flex;gap:10px;align-items:center;">' + toolbarHtml + '</div>' + bodyHtml;
+    wirePlatformsViewHandlers();
+  }
+
+  // Renders the logo grid for either sub-tab. "kind" is 'team' (drills into
+  // the ARC table) or 'review' (opens the site externally). Search matches
+  // the platform name itself, plus — for teams — any book assigned to it.
+  function buildPlatformLogoGridHtml(list, kind){
     var query = platformsSearchTerm.trim().toLowerCase();
-    var names = query ? allNames.filter(function(n){
-      if(n.toLowerCase().indexOf(query) !== -1) return true;
-      return groups[n].some(function(b){
+    var filtered = list.filter(function(p){
+      if(!query) return true;
+      if(p.name.toLowerCase().indexOf(query) !== -1) return true;
+      if(kind !== 'team') return false;
+      return books.some(function(b){
+        if(!b.isARC || b.arcSource !== p.name) return false;
         var hay = [b.title, b.author, b.series, (b.tropes||[]).join(' '), b.review].join(' ').toLowerCase();
         return hay.indexOf(query) !== -1;
       });
-    }) : allNames;
-
-    if(!names.length){
-      wrap.innerHTML = searchWrapHtml + '<div class="cal-empty-note">No platforms match "' + escapeHtml(platformsSearchTerm) + '".</div>';
-      wirePlatformsSearchHandler();
-      return;
+    });
+    if(!filtered.length){
+      var emptyMsg = list.length ? ('No platforms match "' + escapeHtml(platformsSearchTerm) + '".') :
+        (kind === 'team' ? 'No ARC/PR teams added yet — tap + to add one.' : 'No review platforms added yet — tap + to add one.');
+      return '<div class="cal-empty-note">' + emptyMsg + '</div>';
     }
-
-    var cards = names.map(function(name){
-      var list = groups[name];
-      var info = sourceInfo[name] || {};
-      var linksHtml = buildEntityLinksHtml(info);
-      var safeNameAttr = escapeHtml(name);
-      var expanded = !!platformsExpanded[name];
-
-      var bodyHtml;
-      var totalEntries;
-      if(info.isAuthorDirect){
-        var authorCounts = {};
-        list.forEach(function(b){ if(b.author) authorCounts[b.author] = (authorCounts[b.author] || 0) + 1; });
-        var authorNames = Object.keys(authorCounts).sort(function(a, b){ return a.localeCompare(b); });
-        totalEntries = authorNames.length;
-        var shownAuthors = expanded ? authorNames : authorNames.slice(0, PLATFORM_LIST_PAGE_SIZE);
-        bodyHtml = shownAuthors.map(function(aName, idx){
-          return '<div class="author-series-row" data-platform-author="' + escapeHtml(aName) + '">' +
-            '<span><span class="author-series-num">' + (idx + 1) + '.</span>' + escapeHtml(aName) + '</span>' +
-            '<span class="author-series-count">' + authorCounts[aName] + ' book' + (authorCounts[aName] === 1 ? '' : 's') + ' ›</span>' +
-            '</div>';
-        }).join('');
-      } else {
-        var sortedList = list.slice().sort(function(a, b){ return (a.title || '').localeCompare(b.title || ''); });
-        totalEntries = sortedList.length;
-        var shownBooks = expanded ? sortedList : sortedList.slice(0, PLATFORM_LIST_PAGE_SIZE);
-        bodyHtml = shownBooks.map(function(b){
-          var color = bookStatusTextColor(b);
-          var colorStyle = color ? 'color:' + color + ';' : '';
-          var trailing = b.status === 'finished'
-            ? (b.author ? escapeHtml(b.author) : '')
-            : (b.totalPages ? (b.totalPages + ' pages') : '');
-          return '<div class="series-book-row platform-book-row" data-book-id="' + b.id + '">' +
-            '<div class="series-book-status" style="' + colorStyle + '">' + escapeHtml(statusLabelFor(b)) + '</div>' +
-            '<div class="series-book-title">' + escapeHtml(b.title) + '</div>' +
-            '<div class="platform-book-trailing">' + trailing + '</div>' +
-            '<button type="button" class="book-row-edit-btn" data-edit-book-id="' + b.id + '" title="Edit full book details">✎</button>' +
-            '</div>';
-        }).join('');
-      }
-
-      var seeMoreHtml = '';
-      if(totalEntries > PLATFORM_LIST_PAGE_SIZE){
-        seeMoreHtml = expanded
-          ? '<button type="button" class="see-more-btn" data-platform-toggle="' + safeNameAttr + '">Show fewer</button>'
-          : '<button type="button" class="see-more-btn" data-platform-toggle="' + safeNameAttr + '">See ' + (totalEntries - PLATFORM_LIST_PAGE_SIZE) + ' more</button>';
-      }
-
-      return '<div class="card platform-card">' +
-        '<div class="series-card-head">' +
-          '<div style="flex:1;min-width:0;">' +
-            '<h3>' + escapeHtml(name) + '</h3>' +
-            '<p style="font-size:11.5px;color:var(--muted);margin:2px 0 0;">' + list.length + ' book' + (list.length === 1 ? '' : 's') + '</p>' +
-            linksHtml +
-          '</div>' +
-          '<button type="button" class="entity-link-edit-btn" data-entity-kind="source" data-entity-name="' + safeNameAttr + '" title="Edit website &amp; social links">✎ Edit info</button>' +
-        '</div>' +
-        bodyHtml +
-        seeMoreHtml +
-        '</div>';
+    var cards = filtered.map(function(p){
+      var logoHtml = p.logo ? '<img src="' + escapeHtml(p.logo) + '" alt="">' : '<span class="ph">No logo</span>';
+      var count = kind === 'team' ? books.filter(function(b){ return b.isARC && b.arcSource === p.name; }).length : 0;
+      var subHtml = kind === 'team' ? '<div class="platform-logo-sub">' + count + ' book' + (count === 1 ? '' : 's') + '</div>' : '';
+      var tag = kind === 'review' ? 'a' : 'div';
+      var hrefAttr = kind === 'review' ? ' href="' + escapeHtml(p.url || '#') + '" target="_blank" rel="noopener"' : '';
+      return '<' + tag + ' class="platform-logo-card" data-platform-name="' + escapeHtml(p.name) + '"' + hrefAttr + '>' +
+        '<div class="platform-logo-img-wrap">' + logoHtml + '</div>' +
+        '<div class="platform-logo-title">' + escapeHtml(p.name) + '</div>' +
+        subHtml +
+        '</' + tag + '>';
     }).join('');
-
-    wrap.innerHTML = searchWrapHtml + '<div class="grid">' + cards + '</div>';
-    wirePlatformsSearchHandler();
+    return '<div class="platform-logo-grid">' + cards + '</div>';
   }
 
-  function wirePlatformsSearchHandler(){
+  // The drilled-down ARC table for one team: every ARC book assigned to that
+  // source, showing whichever format's Platform ID/status/pages apply (see
+  // formatInstanceForPlatformRow), falling back to the book's own synced
+  // status/pages for books that don't have a Platform ID set on any format.
+  function buildPlatformTeamTableHtml(teamName){
+    var query = platformsSearchTerm.trim().toLowerCase();
+    var matches = books.filter(function(b){ return b.isARC && b.arcSource === teamName; });
+    if(query){
+      matches = matches.filter(function(b){
+        var hay = [b.title, b.author, b.series, (b.tropes||[]).join(' '), b.review].join(' ').toLowerCase();
+        return hay.indexOf(query) !== -1;
+      });
+    }
+    var header = '<div class="platform-table-header">' +
+      '<button type="button" class="btn-secondary" id="platformBackToGridBtn">← Back to Teams</button>' +
+      '<h2 style="margin:0;font-size:19px;">' + escapeHtml(teamName) + '</h2>' +
+      '</div>';
+    if(!matches.length){
+      return header + '<div class="cal-empty-note">No books assigned to ' + escapeHtml(teamName) + ' yet.</div>';
+    }
+    var rows = matches.map(function(b, idx){
+      var fi = formatInstanceForPlatformRow(b);
+      var idText = fi ? fi.platformId : String(idx + 1).padStart(3, '0');
+      var status = fi ? fi.status : b.status;
+      var totalPages = fi ? fi.totalPages : b.totalPages;
+      var currentPage = fi ? fi.currentPage : b.currentPage;
+      var statusText;
+      if(status === 'finished'){
+        statusText = b.dateFinished ? ('Finished ' + fmtDate(b.dateFinished)) : 'Finished';
+      } else if(totalPages){
+        statusText = (currentPage || 0) + ' / ' + totalPages;
+      } else {
+        statusText = statusLabelForValue(status, fi ? fi.type : b.format);
+      }
+      return '<tr>' +
+        '<td><strong>' + escapeHtml(idText) + '</strong></td>' +
+        '<td><button type="button" class="title-link" data-open-book-id="' + b.id + '">' + escapeHtml(b.title || 'Untitled') + '</button></td>' +
+        '<td>' + escapeHtml(b.author || '—') + '</td>' +
+        '<td>' + escapeHtml(statusText) + '</td>' +
+        '</tr>';
+    }).join('');
+    return header + '<div class="platform-table-wrap"><table class="arc-table"><thead><tr><th>ID</th><th>Title</th><th>Author</th><th>Status / Progress</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+
+  function wirePlatformsViewHandlers(){
     var input = document.getElementById('platformsSearchInput');
-    if(!input) return;
-    input.addEventListener('input', function(){
-      platformsSearchTerm = input.value;
-      renderPlatformsView();
-      var el = document.getElementById('platformsSearchInput');
-      if(el){ el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+    if(input){
+      input.addEventListener('input', function(){
+        platformsSearchTerm = input.value;
+        renderPlatformsView();
+        var el = document.getElementById('platformsSearchInput');
+        if(el){ el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+      });
+    }
+    var teamsBtn = document.getElementById('platformsTeamsTabBtn');
+    if(teamsBtn) teamsBtn.onclick = function(){ platformsSubTab = 'teams'; platformsDrilldownTeam = null; platformsSearchTerm = ''; renderPlatformsView(); };
+    var reviewBtn = document.getElementById('platformsReviewTabBtn');
+    if(reviewBtn) reviewBtn.onclick = function(){ platformsSubTab = 'review'; platformsDrilldownTeam = null; platformsSearchTerm = ''; renderPlatformsView(); };
+    var addBtn = document.getElementById('platformAddOpenBtn');
+    if(addBtn) addBtn.onclick = openPlatformAddModal;
+    var backBtn = document.getElementById('platformBackToGridBtn');
+    if(backBtn) backBtn.onclick = function(){ platformsDrilldownTeam = null; platformsSearchTerm = ''; renderPlatformsView(); };
+    document.querySelectorAll('.platform-logo-card[data-platform-name]').forEach(function(card){
+      if(card.tagName === 'A') return; // review-site cards navigate externally, no extra handler needed
+      card.addEventListener('click', function(){
+        platformsDrilldownTeam = card.getAttribute('data-platform-name');
+        platformsSearchTerm = '';
+        renderPlatformsView();
+      });
+    });
+    document.querySelectorAll('.arc-table [data-open-book-id]').forEach(function(btn){
+      btn.addEventListener('click', function(){ openModal(btn.getAttribute('data-open-book-id'), 'full'); });
     });
   }
 
-  document.getElementById('platformsView').addEventListener('click', function(e){
-    var editRowBtn = e.target.closest('.book-row-edit-btn');
-    if(editRowBtn){
-      openModal(editRowBtn.getAttribute('data-edit-book-id'), 'full');
-      return;
+  function openPlatformAddModal(){
+    document.getElementById('platformAddTitle').textContent = platformsSubTab === 'teams' ? 'Add ARC/PR Team' : 'Add Review Platform';
+    document.getElementById('platformAddUrlField').style.display = platformsSubTab === 'review' ? 'block' : 'none';
+    document.getElementById('platformAddName').value = '';
+    document.getElementById('platformAddLogo').value = '';
+    document.getElementById('platformAddUrl').value = '';
+    document.getElementById('platformAddOverlay').style.display = 'flex';
+    document.getElementById('platformAddName').focus();
+  }
+  function closePlatformAddModal(){
+    document.getElementById('platformAddOverlay').style.display = 'none';
+  }
+  document.getElementById('platformAddCancelBtn').addEventListener('click', closePlatformAddModal);
+  document.getElementById('platformAddOverlay').addEventListener('click', function(e){
+    if(e.target.id === 'platformAddOverlay') closePlatformAddModal();
+  });
+  document.getElementById('platformAddSaveBtn').addEventListener('click', function(){
+    var name = document.getElementById('platformAddName').value.trim();
+    if(!name) return;
+    var logo = document.getElementById('platformAddLogo').value.trim();
+    if(platformsSubTab === 'teams'){
+      arcTeams.push({name: name, logo: logo});
+    } else {
+      var url = document.getElementById('platformAddUrl').value.trim();
+      reviewPlatforms.push({name: name, logo: logo, url: url});
     }
-    var toggleBtn = e.target.closest('.see-more-btn');
-    if(toggleBtn){
-      var pName = toggleBtn.getAttribute('data-platform-toggle');
-      platformsExpanded[pName] = !platformsExpanded[pName];
-      renderPlatformsView();
-      return;
-    }
-    var editBtn = e.target.closest('.entity-link-edit-btn');
-    if(editBtn){
-      openEntityLinksEditModal(editBtn.getAttribute('data-entity-kind'), editBtn.getAttribute('data-entity-name'));
-      return;
-    }
-    var authorRow = e.target.closest('[data-platform-author]');
-    if(authorRow){
-      openAuthorPeek(authorRow.getAttribute('data-platform-author'));
-      return;
-    }
-    var bookRow = e.target.closest('.series-book-row');
-    if(bookRow){
-      var id = bookRow.getAttribute('data-book-id');
-      if(id) openBookView(id);
-      return;
-    }
+    savePlatformDashboardMeta();
+    closePlatformAddModal();
+    renderPlatformsView();
   });
 
   // ===================== Reviews shelf =====================
