@@ -44,10 +44,9 @@
 }
 body[data-theme="winter"]{
   --ink:#2F3E52;
- /* Turned these into transparent overlays so the image shines through */
-  --paper: rgba(220, 228, 238, 0.55);      /* frosted tint for the page background — bumped from 0.25 so text stays readable over it */
-  --card: rgba(247, 250, 253, 0.94);       /* frosted white for your cards — bumped from 0.65 so modals (like the review editor) stay legible */
-  --card-hover: rgba(237, 242, 248, 0.85); /* Slightly less transparent when hovering */
+  --paper: rgba(220, 228, 238, 0.55);
+  --card: rgba(247, 250, 253, 0.94);
+  --card-hover: rgba(237, 242, 248, 0.85);
   --muted:#748AA3;
   --line:rgba(47,62,82,0.14);
   --line-strong:rgba(47,62,82,0.28);
@@ -183,7 +182,7 @@ body[data-theme="velaris"]{
 
   background-size: cover; 
   background-attachment: fixed; 
-  background-position: center center; /* Perfect center placement for your mermaid art */
+  background-position: center center;
   background-repeat: no-repeat;
 }
 body[data-theme="wisteria"]{
@@ -229,10 +228,7 @@ body[data-theme="fall"]{background-image:linear-gradient(rgba(239,223,201,0),rgb
 body[data-theme="under-the-sea"]{background-image:linear-gradient(rgba(215,238,240,0),rgba(215,238,240,0)),url("./theme-under-the-sea.jpg");background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:fixed;}
 body[data-theme="velaris"]{background-image:linear-gradient(rgba(46,35,80,0),rgba(46,35,80,0.0)),url("./theme-velaris.jpg");background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:fixed;}
 body[data-theme="wisteria"]{background-image:linear-gradient(rgba(233,223,247,0),rgba(233,223,247,0)),url("./theme-wisteria.jpg");background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:fixed;}
-/* Velaris' art is a dark night sky, so text colors tuned for light "paper"
-   backgrounds go unreadable wherever they sit directly on the image instead
-   of on a solid card. Brighten just those spots and darken the app's overlay
-   a bit more so there's real contrast to read against. */
+
 body[data-theme="velaris"] .app{background-color:rgba(18,12,40,0.42);}
 body[data-theme="velaris"] .header h1{color:#EFE7FF;text-shadow:0 2px 10px rgba(8,4,26,0.65);}
 body[data-theme="velaris"] .header p{color:#D2C6F1;text-shadow:0 1px 6px rgba(8,4,26,0.6);}
@@ -243,7 +239,7 @@ body[data-theme="velaris"] .cal-header h2,
 body[data-theme="velaris"] .shelf-heading{color:#EFE7FF;text-shadow:0 2px 8px rgba(8,4,26,0.6);}
 body[data-theme="velaris"] .reader-intro p{color:#D2C6F1;text-shadow:0 1px 6px rgba(8,4,26,0.55);}
 .app{max-width:1080px;margin:0 auto;padding:28px 20px 80px;
-      background-color: rgba(255, 255, 255, 0.15); 
+  background-color: rgba(255, 255, 255, 0.15); 
   backdrop-filter: blur(8px); 
   -webkit-backdrop-filter: blur(8px);
   border-radius: 16px;}
@@ -352,9 +348,12 @@ body[data-theme="velaris"] .reader-intro p{color:#D2C6F1;text-shadow:0 1px 6px r
 .stat-scope-toggle{display:flex;font-family:var(--font-mono);font-size:10px;border:1px solid var(--line-strong);border-radius:20px;overflow:hidden;flex:none;}
 .stat-scope-toggle button{border:none;background:none;padding:3px 8px;cursor:pointer;color:var(--muted);font-family:var(--font-mono);font-size:10px;}
 .stat-scope-toggle button.active{background:var(--accent);color:var(--card);}
-.format-tabs{display:flex;font-family:var(--font-mono);font-size:9.5px;border:1px solid var(--line-strong);border-radius:20px;overflow:hidden;margin-top:5px;}
-.format-tabs button{border:none;background:none;padding:2px 7px;cursor:pointer;color:var(--muted);font-family:var(--font-mono);font-size:9.5px;flex:1;white-space:nowrap;}
-.format-tabs button.active{background:var(--accent);color:var(--card);}
+
+.format-tabs{display:flex;flex-wrap:wrap;gap:4px;font-family:var(--font-mono);font-size:9.5px;margin-top:6px;width:100%;}
+.format-tabs button{border:1px solid var(--line-strong);background:var(--card);border-radius:12px;padding:3px 8px;cursor:pointer;color:var(--muted);font-family:var(--font-mono);font-size:9.5px;white-space:nowrap;transition:all 0.15s;}
+.format-tabs button:hover{border-color:var(--accent);color:var(--ink);}
+.format-tabs button.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+
 .detail-format-block{border:1px solid var(--line-strong);border-radius:10px;padding:12px;margin:10px 0;background:var(--card-hover);}
 .detail-format-block h4{margin:0 0 8px;font-size:13px;}
 .detail-format-cover{width:56px;height:82px;border-radius:6px;overflow:hidden;flex:none;background:var(--line);}
@@ -398,9 +397,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .tab.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
 
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
-.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 16px 14px;overflow:hidden;transition:border-color .15s;}
+.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 16px 14px;overflow:visible;transition:border-color .15s;}
 .card:hover{border-color:var(--line-strong);}
-.status-tab{position:absolute;top:0;left:0;right:0;height:4px;}
+.status-tab{position:absolute;top:0;left:0;right:0;height:4px;border-radius:12px 12px 0 0;}
 .status-tab.want{background:var(--want);}
 .status-tab.reading{background:var(--reading);}
 .status-tab.finished{background:var(--finished);}
@@ -410,9 +409,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
 .genre-tab{display:inline-block;font-family:var(--font-body);font-size:10px;font-weight:600;color:var(--ink);padding:4px 12px;border-radius:6px 6px 0 0;margin:-16px 0 10px 0;letter-spacing:0.02em;}
 .card-top{display:flex;gap:12px;align-items:flex-start;}
-.cover-col{flex:none;display:flex;flex-direction:column;align-items:center;width:70px;position:relative;}
+.cover-col{flex:none;display:flex;flex-direction:column;align-items:stretch;width:80px;position:relative;}
 .reading-ribbon{position:absolute;top:-4px;right:11px;width:13px;height:24px;background:var(--reading-deep);clip-path:polygon(0 0,100% 0,100% 100%,50% 75%,0 100%);box-shadow:1px 1px 2px rgba(59,42,85,0.3);z-index:2;}
-.cover-thumb{flex:none;width:70px;height:105px;border-radius:5px;overflow:hidden;background:radial-gradient(circle at 30% 20%, #E4D2F2, transparent 65%), radial-gradient(circle at 70% 80%, #F0DCEA, transparent 65%), var(--card-hover);border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;}
+.cover-thumb{flex:none;width:80px;height:120px;border-radius:5px;overflow:hidden;background:radial-gradient(circle at 30% 20%, #E4D2F2, transparent 65%), radial-gradient(circle at 70% 80%, #F0DCEA, transparent 65%), var(--card-hover);border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;}
 .cover-thumb img{width:100%;height:100%;object-fit:cover;}
 .cover-thumb .ph{font-size:9px;color:var(--muted);text-align:center;padding:2px;font-family:var(--font-mono);}
 .format-label{font-size:9.5px;color:var(--muted);text-align:center;margin-top:5px;line-height:1.25;font-family:var(--font-mono);}
@@ -513,7 +512,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .small-btn{background:var(--card);border:1px solid var(--line-strong);border-radius:7px;padding:7px 12px;font-size:12px;font-family:var(--font-body);cursor:pointer;color:var(--ink);}
 .small-btn:hover{border-color:var(--accent);}
 
-
 .trope-chips{display:flex;flex-wrap:wrap;gap:6px;min-height:26px;margin-bottom:8px;}
 .trope-chip{background:var(--accent);color:var(--card);border-radius:12px;padding:4px 8px 4px 12px;font-size:12px;display:flex;align-items:center;gap:6px;}
 .trope-chip button{background:none;border:none;color:var(--card);cursor:pointer;font-size:14px;line-height:1;padding:0;opacity:0.85;}
@@ -581,7 +579,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .hbook-row{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 8px;-webkit-overflow-scrolling:touch;}
 .hbook-item{flex:none;width:78px;cursor:pointer;}
 .hbook-cover{width:78px;height:117px;border-radius:5px;overflow:hidden;border:1px solid var(--line);background:var(--card-hover);display:flex;align-items:center;justify-content:center;}
-.cover-thumb.audiobook-cover{height:70px;}
+.cover-thumb.audiobook-cover{height:80px;}
 .cover-preview.audiobook-cover{height:64px;}
 .flat-shelf-cover.audiobook-cover{height:96px;}
 .hbook-cover.audiobook-cover{height:78px;}
@@ -682,10 +680,10 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 <div id="loginScreen" class="login-screen">
   <div class="login-card">
     <h1>Hiraya Manawari</h1>
-<p style="font-size: 13px;">The next adventure is just a page away.</p>
+    <p style="font-size: 13px;">The next adventure is just a page away.</p>
     <button class="google-btn" id="googleSignInBtn">
       <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6 29.6 4 24 4c-7.4 0-13.8 4.2-17.1 10.4z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.6C29.6 35.1 27 36 24 36c-5.2 0-9.6-3.3-11.2-8l-6.6 5.1C9.5 39.7 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.3-4.1 5.7l6.6 5.6C39.9 37 44 31.1 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
-<span style="font-size: 13px;">Sign in to continue your journey</
+      <span style="font-size: 13px;">Sign in to continue your journey</span>
     </button>
     <div class="login-loading" id="loginLoading" style="display:none;">Signing in...</div>
     <div class="login-error" id="loginError"></div>
@@ -884,7 +882,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       </div>
 
       <div class="field" style="margin-top:6px;">
-        <label>Formats <span style="font-weight:normal;color:var(--muted);">(select every format you have — each gets its own cover, status, and progress)</span></label>
+        <label>Formats <span style="font-weight:normal;color:var(--muted);">(select every format you have — each gets its own cover, status, progress, and rating)</span></label>
         <div class="checkbox-row" style="gap:16px;flex-wrap:wrap;">
           <span><input type="checkbox" class="f_formatType" value="Paperback" id="f_fmt_paperback"> <label for="f_fmt_paperback" style="display:inline;">Paperback</label></span>
           <span><input type="checkbox" class="f_formatType" value="eBook / ePub" id="f_fmt_ebook"> <label for="f_fmt_ebook" style="display:inline;">eBook / ePub</label></span>
@@ -904,13 +902,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
           <input type="date" id="f_dateFinished" lang="en-US">
         </div>
       </div>
-      </div>
-      <div class="field" id="field-rating">
-        <label>Rating</label>
-        <div class="rating-input-row">
-          <input type="number" id="f_rating" min="0" max="5" step="0.25" placeholder="0.0">
-          <span class="star-preview" id="starPreview"></span>
-        </div>
       </div>
       <div class="field" id="field-review">
         <label>Your review (optional)</label>
@@ -1139,28 +1130,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   </div>
 </div>
 
-<!-- ============================================================
-     GOOGLE CALENDAR AUTOSYNC — SETUP REQUIRED
-     This won't work until you fill in GCAL_CLIENT_ID below with your
-     own Google OAuth Client ID. Steps:
-       1. Go to https://console.cloud.google.com and select (or create)
-          a project — you can reuse your existing Firebase project
-          "lunaria-app-21a35", since Firebase projects are Google Cloud
-          projects too.
-       2. In "APIs & Services" > "Library", search for "Google Calendar
-          API" and click Enable.
-       3. In "APIs & Services" > "Credentials", click "Create
-          Credentials" > "OAuth client ID" > Application type "Web
-          application". Add your site's URL (e.g.
-          https://lib.pagesofyue.com) under "Authorized JavaScript
-          origins".
-       4. In "APIs & Services" > "OAuth consent screen", add your own
-          Google account under "Test users" (this keeps the app in
-          Testing mode, which is fine for personal/single-user use and
-          skips Google's verification review).
-       5. Copy the generated Client ID (ends in
-          .apps.googleusercontent.com) and paste it below.
-     ============================================================ -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
   var GCAL_CLIENT_ID = 'YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com';
@@ -1256,7 +1225,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
           if(window.lunariaSaveBookRemote) window.lunariaSaveBookRemote(book);
         }
       } else if(res.status === 404 && book.gcalEventId){
-        // Event was deleted on the Google Calendar side — clear the stale id and retry as a fresh insert next save.
         book.gcalEventId = null;
         if(window.lunariaSaveBookRemote) window.lunariaSaveBookRemote(book);
       }
@@ -1294,11 +1262,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   };
 </script>
 
-<!-- ============================================================
-     FIREBASE SETUP — this is already configured with your project
-     (lunaria-app-21a35). If you ever create a new Firebase project,
-     swap the values below. See SETUP.md for background.
-     ============================================================ -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import {
@@ -1368,7 +1331,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       await deleteDoc(doc(booksCol(), id));
     },
     async saveMeta(partial){
-      // merge:true so saving one list (e.g. readerLinks) never wipes out the others
       await setDoc(metaDoc(), partial, {merge: true});
     },
     async replaceAllBooks(arr){
@@ -1476,24 +1438,21 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       gcalBtn.textContent = '📅 Connecting…';
       window.gcal.connect().then(function(){
         updateGcalBtn();
-        // Push every book that currently has a due date, so existing
-        // deadlines show up on the calendar right away.
         books.forEach(function(b){
           if(window.lunariaEffectiveDueDate(b)) window.gcal.syncBook(b);
         });
         showBanner('Connected — due dates will keep syncing to your Google Calendar as you add or edit books.');
       }).catch(function(){
         updateGcalBtn();
-        showBanner("Couldn't connect to Google Calendar. Make sure the Calendar API is enabled and your OAuth Client ID is set up correctly (see the comment near the top of the file).");
+        showBanner("Couldn't connect to Google Calendar. Make sure the Calendar API is enabled and your OAuth Client ID is set up correctly.");
       });
     });
   }
 
   var books = [];
   var duplicateIds = {};
-  // Which format-tab is currently shown per book card / detail view, keyed by book id.
-  // In-memory only (resets on reload) — defaults to the "reading" format, else the first one.
   var cardActiveFormat = {};
+
   function getActiveFormatInstance(b){
     if(!b.formats || !b.formats.length) return null;
     var chosenId = cardActiveFormat[b.id];
@@ -1503,12 +1462,14 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     }
     return primaryFormatFor(b.formats);
   }
+
   function formatTabsHtml(b, af){
     if(!b.formats || b.formats.length < 2) return '';
     return '<div class="format-tabs">' + b.formats.map(function(f){
       return '<button type="button" data-fmtid="' + f.id + '" class="' + (f.id === af.id ? 'active' : '') + '">' + escapeHtml(f.type) + '</button>';
     }).join('') + '</div>';
   }
+
   var readerLinks = [];
   var customStampDataUrl = '';
   var currentPostcardBook = null;
@@ -1549,20 +1510,18 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     return 'fmt_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
   }
 
-  // --- Multi-format migration -------------------------------------------
-  // Old shape: book.format (single string) + book.cover/status/progress/etc at the book level.
-  // New shape: book.formats = [ {id, type, cover, status, progress, ownership, borrowDueDate, dnfReason} ]
-  // This runs once per book (whenever a book with no formats array is encountered) and is
-  // non-destructive: the legacy fields are left in place untouched, so nothing else that
-  // still reads book.format directly breaks while we migrate the rest of the app over.
   function migrateBookToFormats(b){
-    if(b.formats && Array.isArray(b.formats) && b.formats.length){ return b; }
+    if(b.formats && Array.isArray(b.formats) && b.formats.length){ 
+      b.formats.forEach(function(f){ if(f.rating === undefined) f.rating = b.rating || 0; });
+      return b; 
+    }
     var legacyType = b.format || '';
     var inst = {
       id: fmtUid(),
       type: legacyType,
       cover: b.cover || '',
       status: b.status || 'want',
+      rating: b.rating || 0,
       totalPages: (b.totalPages || b.totalPages === 0) ? b.totalPages : null,
       currentPage: (b.currentPage || b.currentPage === 0) ? b.currentPage : null,
       ownership: b.ownership || '',
@@ -1572,6 +1531,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     b.formats = legacyType ? [inst] : [];
     return b;
   }
+
   function migrateAllBooks(list){
     var touched = false;
     var out = (list || []).map(function(b){
@@ -1579,12 +1539,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         touched = true;
         return migrateBookToFormats(b);
       }
+      b.formats.forEach(function(f){ if(f.rating === undefined) f.rating = b.rating || 0; });
       return b;
     });
     return { books: out, touched: touched };
   }
-  // Convenience accessors used throughout the app so we can gradually move call sites
-  // over to the multi-format model without breaking everything in one pass.
+
   function primaryFormat(b){
     if(b.formats && b.formats.length){ return b.formats[0]; }
     return null;
@@ -1612,10 +1572,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   var appInitialized = false;
 
-  // One-time cleanup: corrects any casing/spacing variant of "Love Notes
-  // PR" (an ARC source) to the canonical form, both in the saved source
-  // list and on any book that has it set — runs automatically each load,
-  // silently, and only writes back the ones that actually needed fixing.
   function normalizeArcSourceNames(){
     var CANONICAL = 'Love Notes PR';
     function isVariant(s){
@@ -1645,7 +1601,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       var migration = migrateAllBooks(books);
       books = migration.books;
       if(migration.touched){
-        // Persist the migrated shape so this doesn't re-run (and re-save) on every load.
         books.forEach(function(b){ saveBookRemote(b); });
       }
       if(data.tropeList && data.tropeList.length){ tropeList = data.tropeList; }
@@ -1814,12 +1769,10 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     return s;
   }
 
-  var booksReadScope = 'year'; // 'year' | 'month' — which timeframe the "Books read" card shows
-  var pagesReadScope = 'year'; // 'year' | 'month' — which timeframe the "Pages read" card shows
+  var booksReadScope = 'year';
+  var pagesReadScope = 'year';
 
   function renderStats(){
-    // "Currently reading" counts active format-instances, not books — reading the
-    // paperback and listening to the audiobook of two different titles is 2, accurately.
     var reading = books.reduce(function(sum, b){
       return sum + formatInstancesOf(b).filter(function(f){ return f.status === 'reading'; }).length;
     }, 0);
@@ -1828,9 +1781,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var now = new Date();
     var thisYear = now.getFullYear();
 
-    // "Books read" is naturally per-book (not per-format): dateFinished/rating/review
-    // are shared across a book's formats, so finishing the same title in two formats
-    // still only counts once here.
     var finishedThisYearList = books.filter(function(b){
       return bookHasAnyFinished(b) && b.dateFinished && new Date(b.dateFinished + 'T00:00:00').getFullYear() === thisYear;
     });
@@ -1963,34 +1913,24 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     });
   }
 
-  // Returns a book's format-instances, falling back to a synthetic single instance
-  // built from legacy fields for the rare case a book still hasn't been migrated.
   function formatInstancesOf(b){
     if(b.formats && b.formats.length) return b.formats;
     return b.format ? [{
-      type: b.format, status: b.status, totalPages: b.totalPages, currentPage: b.currentPage,
+      type: b.format, status: b.status, rating: b.rating || 0, totalPages: b.totalPages, currentPage: b.currentPage,
       ownership: b.ownership, borrowDueDate: b.borrowDueDate, dnfReason: b.dnfReason, cover: b.cover
     }] : [];
   }
 
-  // True once every format the person owns is either finished or DNF'd — used to
-  // decide whether a book-level ARC due date should still count as "due soon".
   function bookIsFullyDone(b){
     var instances = formatInstancesOf(b);
     if(!instances.length) return false;
     return instances.every(function(f){ return f.status === 'finished' || f.status === 'dnf'; });
   }
 
-  // True if ANY format is marked finished — used for "books read"/"needs review"
-  // stats, which are naturally per-book already since rating/review/dateFinished
-  // are shared fields across a book's formats.
   function bookHasAnyFinished(b){
     return formatInstancesOf(b).some(function(f){ return f.status === 'finished'; });
   }
 
-  // The finished format instance to credit for "pages read" — prefers one that
-  // actually has a page/chapter count, so a book finished in two formats is only
-  // counted once (using whichever finished instance has pages recorded).
   function finishedInstanceWithPages(b){
     var finished = formatInstancesOf(b).filter(function(f){ return f.status === 'finished'; });
     var withPages = finished.find(function(f){ return f.totalPages; });
@@ -2060,7 +2000,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       var ra = a.review ? 1 : 0, rb = b.review ? 1 : 0;
       return ra - rb;
     }},
-    rating: {label: 'Rating: Highest to Lowest', cmp: function(a, b){ return (b.rating || 0) - (a.rating || 0); }}
+    rating: {label: 'Rating: Highest to Lowest', cmp: function(a, b){ 
+      var ra = (getActiveFormatInstance(a) || {}).rating || a.rating || 0;
+      var rb = (getActiveFormatInstance(b) || {}).rating || b.rating || 0;
+      return rb - ra; 
+    }}
   };
 
   var activeSortCriteria = ['due'];
@@ -2107,18 +2051,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       filtered.sort(buildSortComparator());
     }
 
-    // Cards are always grouped in a fixed order on top of whichever sort
-    // is selected above — see statusGroupWeight below for the exact order.
     filtered.sort(function(a,b){ return statusGroupWeight(a) - statusGroupWeight(b); });
 
     return filtered;
   }
 
-  // Cards are grouped in this fixed order on top of whichever sort is
-  // selected above: active books with a due date first, then active books
-  // without one, then Requested, then Finished, then On Hold, then DNF
-  // last. Array.sort is stable, so within the first group the existing
-  // nearest-due-date ordering from compareDue is preserved.
   function statusGroupWeight(b){
     if(b.status === 'dnf') return 5;
     if(b.status === 'hold') return 4;
@@ -2128,8 +2065,10 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
 
   function statusLabelFor(b){
+    var af = getActiveFormatInstance(b);
+    if(af && af.status === 'reading' && af.type === 'Audiobook') return 'Listening';
     if(b.status === 'reading' && b.format === 'Audiobook') return 'Listening';
-    return statusMeta[b.status] ? statusMeta[b.status].label : b.status;
+    return statusMeta[af ? af.status : b.status] ? statusMeta[af ? af.status : b.status].label : (af ? af.status : b.status);
   }
 
   function dnfStampSpan(){
@@ -2175,7 +2114,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   function bookCard(b){
     var af = getActiveFormatInstance(b) || {
-      type: b.format || '', status: b.status || 'want', cover: b.cover || '',
+      type: b.format || '', status: b.status || 'want', rating: b.rating || 0, cover: b.cover || '',
       totalPages: b.totalPages, currentPage: b.currentPage, ownership: b.ownership,
       borrowDueDate: b.borrowDueDate, dnfReason: b.dnfReason
     };
@@ -2217,7 +2156,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
     var seriesHtml = b.series ? '<p class="series series-line">' + escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '') + '</p>' : '';
 
-    var ratingHtml = (b.rating || b.rating === 0) && b.rating > 0 ? '<div class="rating-row">' + starsHtml(b.rating) + '<span class="rating-num">' + b.rating.toFixed(1) + '</span></div>' : '';
+    var fmtRating = (af.rating !== undefined && af.rating !== null) ? af.rating : (b.rating || 0);
+    var ratingHtml = fmtRating > 0 ? '<div class="rating-row">' + starsHtml(fmtRating) + '<span class="rating-num">' + fmtRating.toFixed(1) + '</span></div>' : '';
 
     var isConfirming = confirmingDelete === b.id;
 
@@ -2262,7 +2202,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     });
 
     card.querySelector('.postcard-btn').onclick = function(){ openPostcardModal(b.id); };
-
     card.querySelector('.edit-btn').onclick = function(){ openModal(b.id); };
     card.querySelector('.duplicate-btn').onclick = function(){ duplicateBook(b.id); };
     card.querySelector('.del-btn').onclick = function(){
@@ -2473,7 +2412,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       if(field === 'tropes'){
         if(!b.tropes || b.tropes.indexOf(oldVal) === -1) return b;
         var newTropes = b.tropes.map(function(t){ return t === oldVal ? newVal : t; });
-        // dedupe in case newVal was already present
         newTropes = newTropes.filter(function(t, i){ return newTropes.indexOf(t) === i; });
         var updated = Object.assign({}, b, {tropes: newTropes});
         affected.push(updated);
@@ -2622,9 +2560,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     });
   }
 
-  // Same as resizeImage, but exports PNG so transparency survives — JPEG
-  // has no alpha channel, so a transparent stamp/logo would otherwise come
-  // out with a solid black background once flattened.
   function resizeImagePreserveAlpha(file, maxW){
     return new Promise(function(resolve, reject){
       var reader = new FileReader();
@@ -2664,17 +2599,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     document.getElementById('f_cover').value = '';
   };
 
-  document.getElementById('f_rating').addEventListener('input', function(e){
-    var v = parseFloat(e.target.value) || 0;
-    document.getElementById('starPreview').textContent = starsPlain(v);
-  });
-
-  // --- Multi-format panel builder ------------------------------------------
-  // formatPanelState holds in-progress values for each checked format type
-  // while the modal is open, keyed by type string. Kept separate from the DOM
-  // so switching a checkbox off and back on doesn't lose what was typed.
   var formatPanelState = {};
-  var formatPendingCovers = {}; // type -> dataUrl, for covers picked but not yet saved
+  var formatPendingCovers = {};
 
   function fmtKey(type){ return type.replace(/[^a-z0-9]/gi, ''); }
 
@@ -2716,10 +2642,14 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
                 '<option value="dnf">Did not finish</option>' +
               '</select>' +
             '</div>' +
-            '<div class="field fmtDnfField" id="fmtDnfField_' + key + '" style="display:' + (st.status === 'dnf' ? 'block' : 'none') + ';">' +
-              '<label>DNF reason (optional)</label>' +
-              '<input type="text" class="fmtDnfReason" data-type="' + escapeHtml(type) + '" id="fmtDnfReason_' + key + '" value="' + escapeHtml(st.dnfReason || '') + '">' +
+            '<div class="field">' +
+              '<label>Rating</label>' +
+              '<input type="number" min="0" max="5" step="0.25" class="fmtRating" data-type="' + escapeHtml(type) + '" id="fmtRating_' + key + '" placeholder="0.0" value="' + (st.rating || '') + '">' +
             '</div>' +
+          '</div>' +
+          '<div class="field fmtDnfField" id="fmtDnfField_' + key + '" style="display:' + (st.status === 'dnf' ? 'block' : 'none') + ';margin-bottom:12px;">' +
+            '<label>DNF reason (optional)</label>' +
+            '<input type="text" class="fmtDnfReason" data-type="' + escapeHtml(type) + '" id="fmtDnfReason_' + key + '" value="' + escapeHtml(st.dnfReason || '') + '">' +
           '</div>' +
           '<div class="field-row">' +
             '<div class="field">' +
@@ -2749,7 +2679,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         '</div>';
     }).join('');
 
-    // Wire up per-panel listeners now that the DOM exists
     types.forEach(function(type){
       var key = fmtKey(type);
       var statusEl = document.getElementById('fmtStatus_' + key);
@@ -2774,7 +2703,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         if(!file) return;
         resizeImage(file, 200, 0.82).then(function(dataUrl){
           formatPendingCovers[type] = dataUrl;
-          var isAudiobook = type === 'Audiobook';
           document.getElementById('fmtCoverPreview_' + key).innerHTML = '<img src="' + dataUrl + '" alt="">';
         });
       });
@@ -2796,17 +2724,18 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     cb.addEventListener('change', renderFormatPanels);
   });
 
-  // Reads whatever is currently unsaved in each format panel's inputs back
-  // into formatPanelState (in case the user typed something and didn't
-  // trigger a change/blur event on totalPages/currentPage/dnfReason before submit).
   function syncFormatPanelStateFromDom(){
     checkedFormatTypes().forEach(function(type){
       var key = fmtKey(type);
       formatPanelState[type] = formatPanelState[type] || {};
+      var statusEl = document.getElementById('fmtStatus_' + key);
+      var ratingEl = document.getElementById('fmtRating_' + key);
       var totalEl = document.getElementById('fmtTotal_' + key);
       var currentEl = document.getElementById('fmtCurrent_' + key);
       var dnfEl = document.getElementById('fmtDnfReason_' + key);
       var borrowEl = document.getElementById('fmtBorrowDue_' + key);
+      if(statusEl) formatPanelState[type].status = statusEl.value;
+      if(ratingEl) formatPanelState[type].rating = ratingEl.value ? Math.round(parseFloat(ratingEl.value) * 4) / 4 : 0;
       if(totalEl) formatPanelState[type].totalPages = totalEl.value ? Number(totalEl.value) : null;
       if(currentEl) formatPanelState[type].currentPage = currentEl.value ? Number(currentEl.value) : null;
       if(dnfEl) formatPanelState[type].dnfReason = dnfEl.value.trim();
@@ -2814,7 +2743,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     });
   }
 
-  // Builds the formats[] array to save, preserving existing format ids where possible.
   function collectFormats(existingFormats){
     syncFormatPanelStateFromDom();
     var existingById = {};
@@ -2828,6 +2756,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         type: type,
         cover: cover || '',
         status: st.status || 'want',
+        rating: (st.rating !== undefined && st.rating !== null) ? st.rating : 0,
         dnfReason: st.status === 'dnf' ? (st.dnfReason || '') : '',
         totalPages: (st.totalPages || st.totalPages === 0) ? st.totalPages : null,
         currentPage: (st.currentPage || st.currentPage === 0) ? st.currentPage : null,
@@ -2837,8 +2766,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     });
   }
 
-  // Populates the checkboxes + panel state from a book's existing formats
-  // (used when opening the edit modal). Resets state for "Add a book".
   function populateFormatUI(book){
     formatPanelState = {};
     formatPendingCovers = {};
@@ -2849,6 +2776,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       if(cb) cb.checked = true;
       formatPanelState[f.type] = {
         status: f.status || 'want',
+        rating: (f.rating !== undefined && f.rating !== null) ? f.rating : (book.rating || 0),
         dnfReason: f.dnfReason || '',
         totalPages: f.totalPages,
         currentPage: f.currentPage,
@@ -2860,15 +2788,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     renderFormatPanels();
   }
 
-  // Derives the legacy top-level fields (format/status/cover/etc) from the
-  // first format-instance, so older code paths that haven't been updated yet
-  // to read book.formats directly (library grid, stats, exports — coming in
-  // later phases) keep working off a sensible value in the meantime.
-  // Picks which format-instance represents the book everywhere that still only
-  // shows one status/cover (postcard, bookshelf spine, series/platform lists,
-  // reviews list, calendar). Priority: actively being read > on hold > queued >
-  // requested > finished > dnf — so a book you're mid-audiobook on shows as
-  // "Reading" even if you also own an unstarted paperback.
   var STATUS_PRIORITY = {reading: 0, hold: 1, want: 2, requested: 3, finished: 4, dnf: 5};
   function primaryFormatFor(formats){
     if(!formats || !formats.length) return null;
@@ -2884,6 +2803,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var primary = primaryFormatFor(data.formats);
     data.format = primary ? primary.type : '';
     data.status = primary ? primary.status : 'want';
+    data.rating = primary ? primary.rating : 0;
     data.dnfReason = primary ? primary.dnfReason : '';
     data.totalPages = primary ? primary.totalPages : null;
     data.currentPage = primary ? primary.currentPage : null;
@@ -2895,24 +2815,17 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   var modalMode = 'full';
 
-  // "Smart" duplicate: carries over the fields that are genuinely shared
-  // across a series (author, series, genre, tropes, format, ownership, ARC
-  // source), resets everything specific to an individual copy (title,
-  // status, rating, review, dates, pages, cover), and bumps the series
-  // number by one if the original had one — then opens it straight into
-  // edit mode so the only thing left to do is type the new title.
   function duplicateBook(id){
     var b = books.find(function(x){ return x.id === id; });
     if(!b) return;
     var newSeriesNumber = (b.seriesNumber || b.seriesNumber === 0) ? b.seriesNumber + 1 : null;
-    // Carry over which formats the series is typically read in (type + ownership),
-    // but reset everything specific to an individual copy: status, progress, cover.
     var dupFormats = (b.formats || []).map(function(f){
       return {
         id: fmtUid(),
         type: f.type,
         cover: '',
         status: 'want',
+        rating: 0,
         dnfReason: '',
         totalPages: null,
         currentPage: null,
@@ -2972,8 +2885,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     document.getElementById('f_dateStarted').value = b ? b.dateStarted || '' : '';
     document.getElementById('f_dateFinished').value = b ? b.dateFinished || '' : '';
     renderGenreSelect(b ? b.genre || '' : '');
-    document.getElementById('f_rating').value = b && b.rating ? b.rating : '';
-    document.getElementById('starPreview').textContent = starsPlain(b ? b.rating : 0);
     document.getElementById('f_review').value = b ? b.review || '' : '';
     document.getElementById('f_nowPlaying').value = b ? b.nowPlaying || '' : '';
     var blurbVal = b ? (b.blurb || '') : '';
@@ -3038,7 +2949,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       dateStarted: document.getElementById('f_dateStarted').value,
       dateFinished: document.getElementById('f_dateFinished').value,
       genre: document.getElementById('f_genre').value,
-      rating: document.getElementById('f_rating').value ? Math.round(parseFloat(document.getElementById('f_rating').value) * 4) / 4 : 0,
       review: document.getElementById('f_review').value.trim(),
       nowPlaying: document.getElementById('f_nowPlaying').value.trim(),
       blurb: document.getElementById('f_blurb').value.trim(),
@@ -3145,11 +3055,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   function buildLibraryCardHtml(list){
     var rows = list.map(function(b){
+      var r = (getActiveFormatInstance(b) || {}).rating || b.rating || 0;
       return '<tr style="border-bottom:1px solid rgba(59,42,85,0.15);">' +
         '<td style="padding:6px 4px;max-width:150px;">' + escapeHtml(b.title) + '</td>' +
         '<td style="padding:6px 4px;color:#7C6D94;">' + escapeHtml(b.author||'—') + '</td>' +
         '<td style="padding:6px 4px;">' + exportStatusCell(b) + '</td>' +
-        '<td style="padding:6px 4px;text-align:right;">' + (b.rating ? b.rating.toFixed(1) : '—') + '</td>' +
+        '<td style="padding:6px 4px;text-align:right;">' + (r ? r.toFixed(1) : '—') + '</td>' +
         '</tr>';
     }).join('');
     return '<div style="width:440px;padding:26px;background:#FBF7FF;border:2px solid #3B2A55;font-family:\'Courier Prime\',monospace;color:#3B2A55;">' +
@@ -3168,7 +3079,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   function buildReceiptHtml(list){
     var lines = list.map(function(b){
-      var r = b.rating ? starsPlain(b.rating) : '';
+      var rVal = (getActiveFormatInstance(b) || {}).rating || b.rating || 0;
+      var r = rVal ? starsPlain(rVal) : '';
       return '<div style="display:flex;justify-content:space-between;font-size:10.5px;padding:4px 0;border-bottom:1px dashed rgba(59,42,85,0.2);">' +
         '<span style="max-width:170px;">' + escapeHtml(b.title) + (b.author ? '<br><span style="color:#7C6D94;font-size:9px;">' + escapeHtml(b.author) + '</span>' : '') + '</span>' +
         '<span style="text-align:right;white-space:nowrap;">' + exportStatusCell(b) + (r ? '<br>' + r : '') + '</span>' +
@@ -3329,10 +3241,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     updateNavDropdownHighlights();
   }
 
-  // The Browse/Profile groups replace what used to be individual top-level tabs
-  // (Series/Authors/Platforms/Calendar and Reader Page/Social Post). This keeps
-  // their trigger button highlighted whenever one of their items is the active view,
-  // and auto-closes the menu once a destination is picked.
   var NAV_DROPDOWN_GROUPS = {
     navBrowseDropdown: {trigger: 'navBrowseTrigger', items: ['navSeries', 'navAuthors', 'navPlatforms', 'navCalendar']},
     navProfileDropdown: {trigger: 'navProfileTrigger', items: ['navReader']}
@@ -3486,13 +3394,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
 
   function buildPostcardLandscape(b, reviewText){
+    var af = getActiveFormatInstance(b);
+    var ratingVal = (af && af.rating) ? af.rating : b.rating;
     var coverHtml = b.cover ? '<img src="' + b.cover + '" style="width:100%;height:100%;object-fit:cover;">' : '<span style="font-size:10px;color:#7C6D94;font-family:\'Courier Prime\',monospace;text-align:center;padding:8px;">No cover</span>';
-    var ratingHtml = b.rating ? '<div style="margin-top:8px;font-size:16px;letter-spacing:2px;color:#6B4E93;">' + starsPlain(b.rating) + '</div>' : '';
+    var ratingHtml = ratingVal ? '<div style="margin-top:8px;font-size:16px;letter-spacing:2px;color:#6B4E93;">' + starsPlain(ratingVal) + '</div>' : '';
     var seriesHtml = b.series ? '<div style="font-size:10.5px;color:#7C6D94;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '') + '</div>' : '';
     var authorHtml = b.author ? '<div style="font-size:12px;font-style:italic;color:#7C6D94;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(b.author) + '</div>' : '';
-    // Fixed landscape dimensions (559×397) — the card keeps its wide,
-    // short shape no matter how long the review is; the review text
-    // shrinks (via fitPostcardReviewText) to fit the fixed box instead.
     return '<div style="width:559px;height:397px;position:relative;overflow:hidden;background:#FBF7FF;border:2px solid #3B2A55;border-radius:8px;font-family:\'Courier Prime\',monospace;color:#3B2A55;box-sizing:border-box;">' +
       '<div style="float:left;width:180px;height:397px;background:radial-gradient(circle at 30% 20%,#E4D2F2,transparent 65%),radial-gradient(circle at 70% 80%,#F0DCEA,transparent 65%),#F5EEFC;display:table;">' +
         '<div style="display:table-cell;vertical-align:middle;text-align:center;">' +
@@ -3515,13 +3422,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
 
   function buildPostcardPortrait(b, reviewText){
+    var af = getActiveFormatInstance(b);
+    var ratingVal = (af && af.rating) ? af.rating : b.rating;
     var coverHtml = b.cover ? '<img src="' + b.cover + '" style="width:100%;height:100%;object-fit:cover;">' : '<span style="font-size:10px;color:#7C6D94;font-family:\'Courier Prime\',monospace;text-align:center;padding:8px;">No cover</span>';
-    var ratingHtml = b.rating ? '<div style="margin-top:7px;font-size:16px;letter-spacing:2px;color:#6B4E93;">' + starsPlain(b.rating) + '</div>' : '';
+    var ratingHtml = ratingVal ? '<div style="margin-top:7px;font-size:16px;letter-spacing:2px;color:#6B4E93;">' + starsPlain(ratingVal) + '</div>' : '';
     var seriesHtml = b.series ? '<div style="font-size:10.5px;color:#7C6D94;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '') + '</div>' : '';
     var authorHtml = b.author ? '<div style="font-size:12px;font-style:italic;color:#7C6D94;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(b.author) + '</div>' : '';
-    // Fixed portrait dimensions (397×559) — same idea, tall-and-narrow
-    // shape stays fixed, review text shrinks to fit instead of the card
-    // growing taller.
     return '<div style="width:397px;height:559px;position:relative;overflow:hidden;background:#FBF7FF;border:2px solid #3B2A55;border-radius:8px;font-family:\'Courier Prime\',monospace;color:#3B2A55;box-sizing:border-box;">' +
       '<div style="height:230px;position:relative;background:radial-gradient(circle at 30% 20%,#E4D2F2,transparent 65%),radial-gradient(circle at 70% 80%,#F0DCEA,transparent 65%),#F5EEFC;display:table;width:100%;">' +
       '<div style="display:table-cell;vertical-align:middle;text-align:center;">' +
@@ -3542,10 +3448,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       '</div>';
   }
 
-  // Shrinks a block of text's font-size, in whole steps, until it actually
-  // fits inside its container's real rendered height — a genuine measure-
-  // and-adjust loop rather than a length-based guess, so it works for any
-  // review length without overflowing or getting clipped.
   function fitPostcardReviewText(){
     var box = document.getElementById('pcReviewBox');
     var textEl = document.getElementById('pcReviewText');
@@ -3558,9 +3460,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     }
   }
 
-  // Same idea, but for keeping the title on one line: shrinks until the
-  // text's natural single-line width fits the column, falling back to an
-  // ellipsis only if it's still too long even at the smallest readable size.
   function fitPostcardTitle(){
     var titleEl = document.getElementById('pcTitle');
     if(!titleEl) return;
@@ -3588,9 +3487,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       '</div>';
   }
 
-  // Shrinks a single-line footer element until it actually fits its
-  // parent's width — same measure-and-adjust approach as the title, so a
-  // long handle/URL combo never gets clipped at the card's edges.
   function fitPostcardFooterLine(id){
     var el = document.getElementById(id);
     if(!el) return;
@@ -3610,17 +3506,13 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
 
   function buildPostcardSquare(b, reviewText){
+    var af = getActiveFormatInstance(b);
+    var ratingVal = (af && af.rating) ? af.rating : b.rating;
     var coverHtml = b.cover ? '<img src="' + b.cover + '" style="width:100%;height:100%;object-fit:cover;">' : '<span style="font-size:11px;color:#7C6D94;font-family:\'Courier Prime\',monospace;">No cover</span>';
-    var ratingHtml = b.rating ? '<div style="margin-top:8px;font-size:17px;letter-spacing:2px;color:#6B4E93;">' + starsPlain(b.rating) + '</div>' : '';
+    var ratingHtml = ratingVal ? '<div style="margin-top:8px;font-size:17px;letter-spacing:2px;color:#6B4E93;">' + starsPlain(ratingVal) + '</div>' : '';
     var seriesHtml = b.series ? '<div style="font-size:12px;color:#7C6D94;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '') + '</div>' : '';
     var authorHtml = b.author ? '<div style="font-size:13px;font-style:italic;color:#7C6D94;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(b.author) + '</div>' : '';
     var reviewHtml = reviewText ? escapeHtml(reviewText) : '<span style="color:#B8ABCB;">— your review —</span>';
-    // Float-based header row (not flexbox) — html2canvas can badly
-    // miscalculate a flex:1 text column's width next to a fixed-width
-    // cover box, which is what caused the "one word per line" bug.
-    // 1080×1350 (4:5 — Instagram's portrait post ratio, more room than
-    // a square) with a float-based header row for the same html2canvas-
-    // safety reasons as the other templates.
     return '<div style="width:1080px;height:1350px;position:relative;box-sizing:border-box;padding:56px 64px;background:#FBF7FF;border:3px solid #3B2A55;font-family:\'Courier Prime\',monospace;color:#3B2A55;">' +
       postcardStampHtml('ig_post') +
       '<div style="overflow:hidden;">' +
@@ -3641,8 +3533,10 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
 
   function buildPostcardStory(b, reviewText){
+    var af = getActiveFormatInstance(b);
+    var ratingVal = (af && af.rating) ? af.rating : b.rating;
     var coverHtml = b.cover ? '<img src="' + b.cover + '" style="width:100%;height:100%;object-fit:cover;">' : '<span style="font-size:12px;color:#7C6D94;font-family:\'Courier Prime\',monospace;">No cover</span>';
-    var ratingHtml = b.rating ? '<div style="margin-top:9px;font-size:19px;letter-spacing:2px;color:#6B4E93;">' + starsPlain(b.rating) + '</div>' : '';
+    var ratingHtml = ratingVal ? '<div style="margin-top:9px;font-size:19px;letter-spacing:2px;color:#6B4E93;">' + starsPlain(ratingVal) + '</div>' : '';
     var seriesHtml = b.series ? '<div style="font-size:13px;color:#7C6D94;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '') + '</div>' : '';
     var authorHtml = b.author ? '<div style="font-size:14px;font-style:italic;color:#7C6D94;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(b.author) + '</div>' : '';
     var reviewHtml = reviewText ? escapeHtml(reviewText) : '<span style="color:#B8ABCB;">— your review —</span>';
@@ -3679,9 +3573,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     requestAnimationFrame(fitPostcardText);
   }
 
-  // Decides which text shows on the postcard: the book's saved review, or
-  // the one-off caption typed just for this postcard — whichever the
-  // person has selected via the radio toggle.
   function getActivePostcardReviewText(){
     var useSaved = document.getElementById('postcardUseSavedReview').checked;
     if(useSaved) return (currentPostcardBook && currentPostcardBook.review) || '';
@@ -3693,8 +3584,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     if(!b) return;
     currentPostcardBook = b;
     document.getElementById('postcardReview').value = b.postcardCaption || '';
-    // Default to whichever mode already has content: a saved review wins
-    // unless there's already a one-off caption stored for this book.
     var defaultToSaved = !!(b.review && b.review.trim()) && !(b.postcardCaption && b.postcardCaption.trim());
     document.getElementById('postcardUseSavedReview').checked = defaultToSaved;
     document.getElementById('postcardUseCustomCaption').checked = !defaultToSaved;
@@ -3795,7 +3684,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
     var rows = '';
     if(!formats){
-      // Pre-migration fallback, shouldn't normally happen since loadBooks migrates on read.
       var unit = b.format === 'Audiobook' ? 'Chapters' : 'Pages';
       rows += '<div class="detail-row"><span class="dl">Status</span><span class="dv">' + escapeHtml(statusLabelFor(b)) + '</span></div>';
       if(b.format) rows += '<div class="detail-row"><span class="dl">Format</span><span class="dv">' + escapeHtml(b.format) + '</span></div>';
@@ -3806,7 +3694,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
     if(b.genre) rows += '<div class="detail-row"><span class="dl">Genre</span><span class="dv">' + escapeHtml(b.genre) + '</span></div>';
     if(b.tropes && b.tropes.length) rows += '<div class="detail-row"><span class="dl">Tropes</span><span class="dv">' + escapeHtml(b.tropes.join(', ')) + '</span></div>';
-    if(b.rating) rows += '<div class="detail-row"><span class="dl">Rating</span><span class="dv">' + starsHtml(b.rating, 15) + ' <span class="rating-num">' + b.rating.toFixed(1) + '</span></span></div>';
     if(b.isARC){
       rows += '<div class="detail-row"><span class="dl">ARC source</span><span class="dv">' + escapeHtml(b.arcSource || '—') + '</span></div>';
       if(b.dueDate) rows += '<div class="detail-row"><span class="dl">Review Due Date</span><span class="dv">' + fmtDate(b.dueDate) + '</span></div>';
@@ -3833,14 +3720,13 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     rows + buildLinksHtml(b);
   }
 
-  // Renders one format's status/progress/ownership as its own block with its own
-  // cover thumbnail, so a book with 2-3 formats shows each one distinctly in detail view.
   function buildFormatDetailBlock(b, f){
     var unit = f.type === 'Audiobook' ? 'Chapters' : 'Pages';
     var cover = f.cover || b.cover;
     var coverHtml = cover ? '<img src="' + cover + '" alt="">' : '<span class="ph" style="font-size:9px;">No cover</span>';
     var inner = '';
     inner += '<div class="detail-row"><span class="dl">Status</span><span class="dv">' + escapeHtml(statusLabelForValue(f.status, f.type)) + '</span></div>';
+    if(f.rating) inner += '<div class="detail-row"><span class="dl">Rating</span><span class="dv">' + starsHtml(f.rating, 15) + ' <span class="rating-num">' + f.rating.toFixed(1) + '</span></span></div>';
     if(f.status === 'dnf' && f.dnfReason) inner += '<div class="detail-row"><span class="dl">DNF reason</span><span class="dv">' + escapeHtml(f.dnfReason) + '</span></div>';
     if(f.type === 'Paperback' && f.ownership) inner += '<div class="detail-row"><span class="dl">Ownership</span><span class="dv">' + escapeHtml(f.ownership) + '</span></div>';
     if(f.type === 'Paperback' && f.ownership === 'Borrowed' && f.borrowDueDate) inner += '<div class="detail-row"><span class="dl">Return by</span><span class="dv">' + fmtDate(f.borrowDueDate) + '</span></div>';
@@ -3853,8 +3739,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     '</div>';
   }
 
-  // statusLabelFor() (existing helper) reads book-level status/format; this variant
-  // takes explicit values so it works for a single format-instance too.
   function statusLabelForValue(status, type){
     var isAudiobook = type === 'Audiobook';
     var labels = {
@@ -3865,10 +3749,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     return labels[status] || status || '—';
   }
 
-  // Review form (from the main Add/Edit form) plus any extra links the
-  // person adds right here in this panel — Goodreads, StoryGraph, whatever.
-  // Extra links only ever live on the book itself; they don't touch the
-  // main Add/Edit form.
   function buildLinksHtml(b){
     var extra = b.customLinks || [];
     if(!b.arcFormLink && !extra.length) {
@@ -3927,7 +3807,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     wireLinksHandlers();
   }
 
-
   function openViewModal(id){
     var b = books.find(function(x){ return x.id === id; });
     if(!b) return;
@@ -3943,1880 +3822,4 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   document.getElementById('viewOverlay').addEventListener('click', function(e){
     if(e.target.id === 'viewOverlay') document.getElementById('viewOverlay').style.display = 'none';
   });
-  document.getElementById('viewEditBtn').onclick = function(){
-    document.getElementById('viewOverlay').style.display = 'none';
-    if(currentViewBookId) openModal(currentViewBookId);
-  };
-
-  function buildReviewPageHtml(b){
-    var coverHtml = b.cover ? '<img src="' + b.cover + '" alt="">' : '<span class="ph">No cover</span>';
-    var stampSrc = customStampDataUrl || './stamp.jpg';
-    var ratingHtml = b.rating ? '<div class="review-page-rating">' + heartsHtml(b.rating, 22) + '</div>' : '';
-    var reviewHtml = b.review ? escapeHtml(b.review) : '<span style="color:var(--muted);">No review written yet.</span>';
-    return '<div class="review-page">' +
-      '<div class="review-page-stamp"><img src="' + stampSrc + '" alt=""></div>' +
-      '<div class="review-page-cover">' + coverHtml + '</div>' +
-      '<h2 class="review-page-title">' + escapeHtml(b.title) + '</h2>' +
-      ratingHtml +
-      '<div class="review-page-text">' + reviewHtml + '</div>' +
-      '</div>';
-  }
-
-  var currentReviewBookId = null;
-
-  function openReviewPage(id){
-    var b = books.find(function(x){ return x.id === id; });
-    if(!b) return;
-    currentReviewBookId = id;
-    document.getElementById('reviewPageContent').innerHTML = buildReviewPageHtml(b);
-    document.getElementById('reviewPageOverlay').style.display = 'flex';
-  }
-
-  document.getElementById('reviewPageEditBtn').onclick = function(){
-    document.getElementById('reviewPageOverlay').style.display = 'none';
-    if(currentReviewBookId) openModal(currentReviewBookId, 'reviewOnly');
-  };
-  document.getElementById('reviewPageCloseBtn').onclick = function(){
-    document.getElementById('reviewPageOverlay').style.display = 'none';
-  };
-  document.getElementById('reviewPageOverlay').addEventListener('click', function(e){
-    if(e.target.id === 'reviewPageOverlay') document.getElementById('reviewPageOverlay').style.display = 'none';
-  });
-
-  // ===================== Series tracker =====================
-  // Renders a horizontal, scrollable strip of book covers — used by both
-  // the Series tab and each series group inside the Authors tab, so a
-  // series always looks the same wherever it shows up.
-  function buildHorizontalBooksHtml(list, nextUpId){
-    return '<div class="hbook-row">' + list.map(function(b){
-      var isNext = nextUpId && b.id === nextUpId;
-      var label = isNext ? 'Next up' : statusLabelFor(b);
-      var coverHtml = b.cover ? '<img src="' + b.cover + '" alt="">' : '<span class="ph">No cover</span>';
-      var numHtml = (b.seriesNumber || b.seriesNumber === 0) ? ('Book ' + b.seriesNumber + ' · ') : '';
-      return '<div class="hbook-item" data-book-id="' + b.id + '" title="' + escapeHtml(b.title) + '">' +
-        '<div class="hbook-cover">' + coverHtml + '</div>' +
-        '<p class="hbook-title">' + numHtml + escapeHtml(b.title) + '</p>' +
-        '<p class="hbook-status">' + escapeHtml(label) + '</p>' +
-        '</div>';
-    }).join('') + '</div>';
-  }
-
-  // Cover thumbnail + edit-pencil button shared by the Series tab card
-  // header and each series group heading in the Authors tab.
-  // Shared row markup for a book inside a plain list (Series View, an
-  // author's Standalone list, a Platforms card) — includes a small edit
-  // pencil so the full Add/Edit form is reachable without detouring
-  // through Book View first.
-  // Not-finished statuses read as red (a "still owe this one attention"
-  // cue), except On Hold, which gets its own navy color instead.
-  function bookStatusTextColor(b){
-    if(b.status === 'hold') return '#1F3A6B';
-    if(b.status !== 'finished') return '#B03A3A';
-    return '';
-  }
-
-  // Shared row markup for a book inside a plain list (Series View, an
-  // author's Standalone list, a Platforms card) — includes a small edit
-  // pencil so the full Add/Edit form is reachable without detouring
-  // through Book View first.
-  function buildSeriesBookRowHtml(b, isNext){
-    var label = isNext ? 'Next up' : statusLabelFor(b);
-    var showPages = !isNext && b.status !== 'finished' && b.status !== 'requested' && b.totalPages;
-    if(showPages) label += ' · ' + b.totalPages + 'p';
-    var color = isNext ? '' : bookStatusTextColor(b);
-    var colorStyle = color ? 'color:' + color + ';' : '';
-    return '<div class="series-book-row" data-book-id="' + b.id + '">' +
-      '<div class="series-book-num">' + ((b.seriesNumber || b.seriesNumber === 0) ? b.seriesNumber : '–') + '</div>' +
-      '<div class="series-book-title">' + escapeHtml(b.title) + '</div>' +
-      '<div class="series-book-status' + (isNext ? ' next-up' : '') + '" style="' + colorStyle + '">' + escapeHtml(label) + '</div>' +
-      '<button type="button" class="book-row-edit-btn" data-edit-book-id="' + b.id + '" title="Edit full book details">✎</button>' +
-      '</div>';
-  }
-
-  function buildSeriesThumbHtml(name){
-    var info = seriesInfo[name];
-    return info && info.cover
-      ? '<img class="series-cover-thumb" src="' + info.cover + '" alt="">'
-      : '<div class="series-cover-thumb-ph"></div>';
-  }
-
-  function buildSeriesEditBtnHtml(name){
-    return '<button type="button" class="series-edit-btn" data-series="' + escapeHtml(name) + '" title="Edit series cover &amp; description">✎ Edit series</button>';
-  }
-
-  // Builds one series card's full markup (cover, name, author, book count,
-  // description, plain numbered book list) from the live `books` array —
-  // shared by the Series View grid and the single-series popup opened from
-  // the Author tab, so both always look identical.
-  var SERIES_LIST_PAGE_SIZE = 5;
-  var seriesListExpanded = {};
-
-  function toggleSeriesListExpanded(name){
-    seriesListExpanded[name] = !seriesListExpanded[name];
-    if(currentActiveNav === 'navSeries') renderSeriesView();
-    if(document.getElementById('seriesPeekOverlay').style.display === 'flex'){
-      document.getElementById('seriesPeekContent').innerHTML = buildSeriesCardHtml(name);
-    }
-  }
-
-  function buildSeriesCardHtml(name){
-    var list = books.filter(function(b){ return b.series === name; }).sort(function(a, b){
-      var na = (a.seriesNumber === null || a.seriesNumber === undefined) ? 999 : a.seriesNumber;
-      var nb = (b.seriesNumber === null || b.seriesNumber === undefined) ? 999 : b.seriesNumber;
-      return na - nb;
-    });
-
-    var authorCounts = {};
-    list.forEach(function(b){ if(b.author) authorCounts[b.author] = (authorCounts[b.author] || 0) + 1; });
-    var author = Object.keys(authorCounts).sort(function(a, b){ return authorCounts[b] - authorCounts[a]; })[0] || '';
-
-    var nextUpId = null;
-    for(var i = 0; i < list.length; i++){
-      if(list[i].status === 'want'){ nextUpId = list[i].id; break; }
-    }
-
-    var info = seriesInfo[name];
-    var descHtml = (info && info.description) ? '<p class="series-desc">' + escapeHtml(info.description) + '</p>' : '';
-
-    var expanded = !!seriesListExpanded[name];
-    var shownList = expanded ? list : list.slice(0, SERIES_LIST_PAGE_SIZE);
-    var rows = shownList.map(function(b){
-      var isNext = b.id === nextUpId;
-      return buildSeriesBookRowHtml(b, isNext);
-    }).join('');
-    var seeMoreHtml = '';
-    if(list.length > SERIES_LIST_PAGE_SIZE){
-      seeMoreHtml = expanded
-        ? '<button type="button" class="see-more-btn" data-series-toggle="' + escapeHtml(name) + '">Show fewer</button>'
-        : '<button type="button" class="see-more-btn" data-series-toggle="' + escapeHtml(name) + '">See ' + (list.length - SERIES_LIST_PAGE_SIZE) + ' more</button>';
-    }
-
-    return '<div class="card series-card" data-series-card="' + escapeHtml(name) + '">' +
-      '<div class="series-card-head">' +
-        buildSeriesThumbHtml(name) +
-        '<div style="flex:1;min-width:0;">' +
-          '<h3>' + escapeHtml(name) + '</h3>' +
-          (author ? '<p class="byline">' + escapeHtml(author) + '</p>' : '') +
-          '<p style="font-size:11.5px;color:var(--muted);margin:2px 0 0;">' + list.length + ' book' + (list.length === 1 ? '' : 's') + '</p>' +
-        '</div>' +
-        buildSeriesEditBtnHtml(name) +
-      '</div>' +
-      descHtml +
-      rows +
-      seeMoreHtml +
-      '</div>';
-  }
-
-  var seriesSearchTerm = '';
-  var seriesSortKey = 'name';
-
-  var SERIES_SORT_OPTIONS = {
-    name: 'Name A–Z',
-    books: 'Most Books',
-    author: 'Author A–Z',
-    recent: 'Most Recently Added'
-  };
-
-  function buildSeriesToolbarHtml(){
-    var options = Object.keys(SERIES_SORT_OPTIONS).map(function(key){
-      return '<option value="' + key + '"' + (key === seriesSortKey ? ' selected' : '') + '>' + escapeHtml(SERIES_SORT_OPTIONS[key]) + '</option>';
-    }).join('');
-    return '<div class="toolbar-search-sort">' +
-      '<div class="authors-search-wrap" style="margin-bottom:0;">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
-        '<input type="text" id="seriesSearchInput" placeholder="Search series or author..." value="' + escapeHtml(seriesSearchTerm) + '">' +
-      '</div>' +
-      '<select id="seriesSortSelect">' + options + '</select>' +
-      '</div>';
-  }
-
-  function wireSeriesToolbarHandlers(){
-    var input = document.getElementById('seriesSearchInput');
-    if(input){
-      input.focus();
-      var val = input.value;
-      input.setSelectionRange(val.length, val.length);
-      input.oninput = function(){
-        seriesSearchTerm = input.value;
-        renderSeriesView();
-      };
-    }
-    var select = document.getElementById('seriesSortSelect');
-    if(select){
-      select.onchange = function(){
-        seriesSortKey = select.value;
-        renderSeriesView();
-      };
-    }
-  }
-
-  function renderSeriesView(){
-    var groups = {};
-    books.forEach(function(b){
-      if(!b.series) return;
-      if(!groups[b.series]) groups[b.series] = [];
-      groups[b.series].push(b);
-    });
-    var toolbarHtml = buildSeriesToolbarHtml();
-    var wrap = document.getElementById('seriesView');
-    var allNames = Object.keys(groups);
-    if(!allNames.length){
-      wrap.innerHTML = '<div class="cal-empty-note">No series yet — add a series name to a book to see it grouped here.</div>';
-      return;
-    }
-
-    var query = seriesSearchTerm.trim().toLowerCase();
-    var seriesNames = allNames.filter(function(name){
-      if(!query) return true;
-      if(name.toLowerCase().indexOf(query) !== -1) return true;
-      return groups[name].some(function(b){ return (b.author || '').toLowerCase().indexOf(query) !== -1; });
-    });
-
-    if(!seriesNames.length){
-      wrap.innerHTML = toolbarHtml + '<div class="cal-empty-note">No series match "' + escapeHtml(seriesSearchTerm) + '".</div>';
-      wireSeriesToolbarHandlers();
-      return;
-    }
-
-    function primaryAuthorFor(list){
-      var authorCounts = {};
-      list.forEach(function(b){ if(b.author) authorCounts[b.author] = (authorCounts[b.author] || 0) + 1; });
-      return Object.keys(authorCounts).sort(function(a, b){ return authorCounts[b] - authorCounts[a]; })[0] || '';
-    }
-
-    seriesNames.sort(function(nameA, nameB){
-      if(seriesSortKey === 'books') return groups[nameB].length - groups[nameA].length;
-      if(seriesSortKey === 'author') return primaryAuthorFor(groups[nameA]).localeCompare(primaryAuthorFor(groups[nameB]));
-      if(seriesSortKey === 'recent'){
-        var maxA = Math.max.apply(null, groups[nameA].map(function(b){ return b.createdAt || 0; }));
-        var maxB = Math.max.apply(null, groups[nameB].map(function(b){ return b.createdAt || 0; }));
-        return maxB - maxA;
-      }
-      return nameA.localeCompare(nameB);
-    });
-
-    var cards = seriesNames.map(buildSeriesCardHtml).join('');
-    wrap.innerHTML = toolbarHtml + '<div class="grid">' + cards + '</div>';
-    wireSeriesToolbarHandlers();
-  }
-
-  document.getElementById('seriesView').addEventListener('click', function(e){
-    var editRowBtn = e.target.closest('.book-row-edit-btn');
-    if(editRowBtn){
-      openModal(editRowBtn.getAttribute('data-edit-book-id'), 'full');
-      return;
-    }
-    var toggleBtn = e.target.closest('.see-more-btn[data-series-toggle]');
-    if(toggleBtn){
-      toggleSeriesListExpanded(toggleBtn.getAttribute('data-series-toggle'));
-      return;
-    }
-    var editBtn = e.target.closest('.series-edit-btn');
-    if(editBtn){
-      openSeriesEditModal(editBtn.getAttribute('data-series'));
-      return;
-    }
-    var row = e.target.closest('.series-book-row');
-    if(!row) return;
-    var id = row.getAttribute('data-book-id');
-    if(id) openBookView(id);
-  });
-
-  // ===================== Series cover & description edit modal =====================
-  var editingSeriesName = null;
-  var pendingSeriesCover = null;
-
-  function openSeriesEditModal(name){
-    if(!name) return;
-    editingSeriesName = name;
-    var info = seriesInfo[name] || {};
-    pendingSeriesCover = info.cover || null;
-    document.getElementById('seriesEditTitle').textContent = 'Edit "' + name + '"';
-    document.getElementById('seriesCoverPreview').innerHTML = pendingSeriesCover ? '<img src="' + pendingSeriesCover + '" alt="">' : '<span class="ph">No cover</span>';
-    document.getElementById('seriesDescInput').value = info.description || '';
-    document.getElementById('seriesCoverInput').value = '';
-    document.getElementById('seriesEditOverlay').style.display = 'flex';
-  }
-
-  document.getElementById('seriesCoverPickBtn').onclick = function(){
-    document.getElementById('seriesCoverInput').click();
-  };
-  document.getElementById('seriesCoverInput').addEventListener('change', function(e){
-    var file = e.target.files[0];
-    if(!file) return;
-    resizeImage(file, 300, 0.82).then(function(dataUrl){
-      pendingSeriesCover = dataUrl;
-      document.getElementById('seriesCoverPreview').innerHTML = '<img src="' + dataUrl + '" alt="">';
-    });
-  });
-  document.getElementById('seriesCoverRemoveBtn').onclick = function(){
-    pendingSeriesCover = null;
-    document.getElementById('seriesCoverPreview').innerHTML = '<span class="ph">No cover</span>';
-    document.getElementById('seriesCoverInput').value = '';
-  };
-  document.getElementById('seriesEditCancelBtn').onclick = function(){
-    document.getElementById('seriesEditOverlay').style.display = 'none';
-  };
-  document.getElementById('seriesEditOverlay').addEventListener('click', function(e){
-    if(e.target.id === 'seriesEditOverlay') document.getElementById('seriesEditOverlay').style.display = 'none';
-  });
-  document.getElementById('seriesEditSaveBtn').onclick = function(){
-    if(!editingSeriesName) return;
-    var descVal = document.getElementById('seriesDescInput').value.trim();
-    seriesInfo[editingSeriesName] = {cover: pendingSeriesCover || '', description: descVal};
-    saveSeriesInfo();
-    document.getElementById('seriesEditOverlay').style.display = 'none';
-    if(currentActiveNav === 'navSeries') renderSeriesView();
-    if(currentActiveNav === 'navAuthors') renderAuthorsView();
-    if(document.getElementById('seriesPeekOverlay').style.display === 'flex'){
-      document.getElementById('seriesPeekContent').innerHTML = buildSeriesCardHtml(editingSeriesName);
-    }
-  };
-
-  // ===================== Website & social links edit modal (authors + platforms) =====================
-  var editingEntityKind = null;
-  var editingEntityName = null;
-  var pendingEntitySocials = [];
-
-  function entityInfoStoreFor(kind){
-    return kind === 'author' ? authorLinks : sourceInfo;
-  }
-
-  function renderEntitySocialsList(){
-    var wrap = document.getElementById('entitySocialsList');
-    if(!pendingEntitySocials.length){
-      wrap.innerHTML = '<p class="book-links-empty">No social links added yet.</p>';
-      return;
-    }
-    wrap.innerHTML = pendingEntitySocials.map(function(s, idx){
-      return '<div class="book-link-row"><span>' + escapeHtml(s.label) + '</span>' +
-        '<button type="button" class="link-remove" data-idx="' + idx + '" title="Remove">×</button></div>';
-    }).join('');
-  }
-
-  function openEntityLinksEditModal(kind, name){
-    if(!kind || !name) return;
-    editingEntityKind = kind;
-    editingEntityName = name;
-    var store = entityInfoStoreFor(kind);
-    var info = store[name] || {};
-    pendingEntitySocials = (info.socials || []).slice();
-    document.getElementById('entityLinksEditTitle').textContent = 'Edit info for "' + name + '"';
-    document.getElementById('entityWebsiteInput').value = info.website || '';
-    document.getElementById('entityAuthorDirectField').style.display = kind === 'source' ? 'block' : 'none';
-    document.getElementById('entityAuthorDirectInput').checked = !!info.isAuthorDirect;
-    document.getElementById('entitySocialNewLabel').value = '';
-    document.getElementById('entitySocialNewUrl').value = '';
-    renderEntitySocialsList();
-    document.getElementById('entityLinksEditOverlay').style.display = 'flex';
-  }
-
-  document.getElementById('entitySocialAddBtn').onclick = function(){
-    var labelVal = document.getElementById('entitySocialNewLabel').value.trim();
-    var urlVal = document.getElementById('entitySocialNewUrl').value.trim();
-    if(!labelVal || !urlVal){ showBanner('Add both a label and a link first.'); return; }
-    if(!/^https?:\/\//i.test(urlVal)) urlVal = 'https://' + urlVal;
-    pendingEntitySocials.push({label: labelVal, url: urlVal});
-    document.getElementById('entitySocialNewLabel').value = '';
-    document.getElementById('entitySocialNewUrl').value = '';
-    renderEntitySocialsList();
-  };
-  document.getElementById('entitySocialsList').addEventListener('click', function(e){
-    var btn = e.target.closest('.link-remove');
-    if(!btn) return;
-    pendingEntitySocials.splice(parseInt(btn.getAttribute('data-idx'), 10), 1);
-    renderEntitySocialsList();
-  });
-  document.getElementById('entityLinksCancelBtn').onclick = function(){
-    document.getElementById('entityLinksEditOverlay').style.display = 'none';
-  };
-  document.getElementById('entityLinksEditOverlay').addEventListener('click', function(e){
-    if(e.target.id === 'entityLinksEditOverlay') document.getElementById('entityLinksEditOverlay').style.display = 'none';
-  });
-  document.getElementById('entityLinksSaveBtn').onclick = function(){
-    if(!editingEntityKind || !editingEntityName) return;
-    var websiteVal = document.getElementById('entityWebsiteInput').value.trim();
-    if(websiteVal && !/^https?:\/\//i.test(websiteVal)) websiteVal = 'https://' + websiteVal;
-    var store = entityInfoStoreFor(editingEntityKind);
-    var entry = {website: websiteVal, socials: pendingEntitySocials};
-    if(editingEntityKind === 'source') entry.isAuthorDirect = document.getElementById('entityAuthorDirectInput').checked;
-    store[editingEntityName] = entry;
-    if(editingEntityKind === 'author') saveAuthorLinks(); else saveSourceInfo();
-    document.getElementById('entityLinksEditOverlay').style.display = 'none';
-
-    if(editingEntityKind === 'author'){
-      if(currentActiveNav === 'navAuthors') renderAuthorsView();
-      if(document.getElementById('authorPeekOverlay').style.display === 'flex'){
-        document.getElementById('authorPeekContent').innerHTML = buildAuthorCardHtml(editingEntityName);
-      }
-    } else {
-      if(currentActiveNav === 'navPlatforms') renderPlatformsView();
-    }
-  };
-
-  // ===================== Book View (Series / Author tabs only) =====================
-  var currentBookViewId = null;
-  var bvEditingField = null;
-
-  function bvValueOrEmpty(html, isEmpty, emptyLabel){
-    return isEmpty ? '<span class="bv-field-value empty">' + escapeHtml(emptyLabel) + '</span>' : '<span class="bv-field-value">' + html + '</span>';
-  }
-
-  function bvEditBtnHtml(key){
-    return '<button type="button" class="bv-edit-btn" data-field="' + key + '">✎ Edit</button>';
-  }
-
-  function buildBookViewHtml(b){
-    var coverHtml = b.cover ? '<img src="' + b.cover + '" alt="">' : '<span class="ph">No cover</span>';
-
-    function field(key, label, editControlHtml, displayHtml){
-      var isEditing = bvEditingField === key;
-      var body = isEditing
-        ? '<div class="bv-edit-row">' + editControlHtml + '</div><div class="bv-edit-actions"><button type="button" class="small-btn bv-save-btn" data-field="' + key + '">Save</button><button type="button" class="small-btn bv-cancel-btn">Cancel</button></div>'
-        : displayHtml;
-      return '<div class="bv-field">' +
-        '<p class="bv-field-label"><span>' + escapeHtml(label) + '</span>' + (isEditing ? '' : bvEditBtnHtml(key)) + '</p>' +
-        body +
-        '</div>';
-    }
-
-    var authorField = field('author', 'Author',
-      '<input type="text" id="bvInput_author" value="' + escapeHtml(b.author || '') + '">',
-      bvValueOrEmpty(escapeHtml(b.author || ''), !b.author, '—'));
-
-    var seriesLabel = b.series ? (escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '')) : '';
-    var seriesField = field('series', 'Series',
-      '<input type="text" id="bvInput_series" placeholder="Series name" value="' + escapeHtml(b.series || '') + '">' +
-      '<input type="number" id="bvInput_seriesNumber" placeholder="#" style="max-width:70px;" value="' + ((b.seriesNumber || b.seriesNumber === 0) ? b.seriesNumber : '') + '">',
-      bvValueOrEmpty(seriesLabel, !b.series, '—'));
-
-    var linkDisplay = b.arcFormLink ? '<a href="' + escapeHtml(b.arcFormLink) + '" target="_blank" rel="noopener">Review form</a>' : '';
-    var linkField = field('arcFormLink', 'Review Link',
-      '<input type="url" id="bvInput_arcFormLink" placeholder="https://..." value="' + escapeHtml(b.arcFormLink || '') + '">',
-      bvValueOrEmpty(linkDisplay, !b.arcFormLink, 'No link added'));
-
-    var genreOptions = genreList.map(function(g){ return '<option value="' + escapeHtml(g) + '"' + (g === b.genre ? ' selected' : '') + '>' + escapeHtml(g) + '</option>'; }).join('');
-    var genreField = field('genre', 'Genre',
-      '<select id="bvInput_genre"><option value="">—</option>' + genreOptions + '</select>',
-      bvValueOrEmpty(escapeHtml(b.genre || ''), !b.genre, '—'));
-
-    var tropesDisplay = (b.tropes || []).map(escapeHtml).join(', ');
-    var tropesField = field('tropes', 'Tropes',
-      '<input type="text" id="bvInput_tropes" placeholder="Comma-separated" value="' + escapeHtml((b.tropes || []).join(', ')) + '">',
-      bvValueOrEmpty(tropesDisplay, !(b.tropes && b.tropes.length), 'None added'));
-
-    var arcRows = '';
-    if(b.isARC || bvEditingField === 'arcSource'){
-      arcRows += field('arcSource', 'Source',
-        '<input type="text" id="bvInput_arcSource" list="arcSourceOptions" value="' + escapeHtml(b.arcSource || '') + '">',
-        bvValueOrEmpty(escapeHtml(b.arcSource || ''), !b.arcSource, '—'));
-    }
-    if(b.isARC || bvEditingField === 'dueDate'){
-      arcRows += field('dueDate', 'Due Date',
-        '<input type="date" id="bvInput_dueDate" value="' + (b.dueDate || '') + '">',
-        bvValueOrEmpty(b.dueDate ? fmtDate(b.dueDate) : '', !b.dueDate, '—'));
-    }
-
-    var blurbBody;
-    if(bvEditingField === 'blurb'){
-      blurbBody = '<div class="bv-edit-row"><textarea id="bvInput_blurb" rows="7" placeholder="Paste the publisher\'s synopsis here...">' + escapeHtml(b.blurb || '') + '</textarea></div>' +
-        '<div class="bv-edit-actions"><button type="button" class="small-btn bv-save-btn" data-field="blurb">Save</button><button type="button" class="small-btn bv-cancel-btn">Cancel</button></div>';
-    } else if(b.blurb){
-      blurbBody = '<div class="bv-blurb-box">' + escapeHtml(b.blurb) + '</div>';
-    } else {
-      blurbBody = '<p class="bv-field-value empty">No Blurb Available</p><button type="button" class="small-btn bv-add-blurb-btn">+ Add blurb</button>';
-    }
-    var blurbField = '<div class="bv-field">' +
-      '<p class="bv-field-label"><span>Blurb</span>' + (bvEditingField === 'blurb' || (!b.blurb) ? '' : bvEditBtnHtml('blurb')) + '</p>' +
-      blurbBody +
-      '</div>';
-
-    return '<div class="bv-top">' +
-        '<div class="bv-cover' + (b.format === 'Audiobook' ? ' audiobook-cover' : '') + '">' + coverHtml + '</div>' +
-        '<div class="bv-top-fields">' + authorField + seriesField + linkField + '</div>' +
-      '</div>' +
-      '<div class="bv-divider"></div>' +
-      '<div class="bv-meta-row">' + genreField + tropesField + arcRows + '</div>' +
-      blurbField;
-  }
-
-  function openBookView(id){
-    var b = books.find(function(x){ return x.id === id; });
-    if(!b) return;
-    currentBookViewId = id;
-    bvEditingField = null;
-    document.getElementById('bookViewContent').innerHTML = buildBookViewHtml(b);
-    document.getElementById('bookViewOverlay').style.display = 'flex';
-  }
-
-  function bvSaveField(key){
-    var b = books.find(function(x){ return x.id === currentBookViewId; });
-    if(!b) return;
-    if(key === 'author'){
-      b.author = document.getElementById('bvInput_author').value.trim();
-    } else if(key === 'series'){
-      b.series = document.getElementById('bvInput_series').value.trim();
-      var numVal = document.getElementById('bvInput_seriesNumber').value;
-      b.seriesNumber = numVal === '' ? null : Number(numVal);
-    } else if(key === 'arcFormLink'){
-      var lv = document.getElementById('bvInput_arcFormLink').value.trim();
-      if(lv && !/^https?:\/\//i.test(lv)) lv = 'https://' + lv;
-      b.arcFormLink = lv;
-    } else if(key === 'genre'){
-      b.genre = document.getElementById('bvInput_genre').value;
-      if(b.genre && genreList.indexOf(b.genre) === -1){ genreList.push(b.genre); saveGenreList(); }
-    } else if(key === 'tropes'){
-      var raw = document.getElementById('bvInput_tropes').value;
-      b.tropes = raw.split(',').map(function(t){ return t.trim(); }).filter(Boolean);
-    } else if(key === 'arcSource'){
-      b.arcSource = document.getElementById('bvInput_arcSource').value.trim();
-    } else if(key === 'dueDate'){
-      b.dueDate = document.getElementById('bvInput_dueDate').value;
-    } else if(key === 'blurb'){
-      b.blurb = document.getElementById('bvInput_blurb').value;
-    }
-    books = books.map(function(x){ return x.id === b.id ? b : x; });
-    saveBookRemote(b);
-    bvEditingField = null;
-    document.getElementById('bookViewContent').innerHTML = buildBookViewHtml(b);
-    render();
-    if(currentActiveNav === 'navSeries') renderSeriesView();
-    if(currentActiveNav === 'navAuthors') renderAuthorsView();
-  }
-
-  document.getElementById('bookViewContent').addEventListener('click', function(e){
-    var editBtn = e.target.closest('.bv-edit-btn');
-    if(editBtn){
-      bvEditingField = editBtn.getAttribute('data-field');
-      var b = books.find(function(x){ return x.id === currentBookViewId; });
-      if(b) document.getElementById('bookViewContent').innerHTML = buildBookViewHtml(b);
-      return;
-    }
-    var addBlurbBtn = e.target.closest('.bv-add-blurb-btn');
-    if(addBlurbBtn){
-      bvEditingField = 'blurb';
-      var b2 = books.find(function(x){ return x.id === currentBookViewId; });
-      if(b2) document.getElementById('bookViewContent').innerHTML = buildBookViewHtml(b2);
-      return;
-    }
-    var saveBtn = e.target.closest('.bv-save-btn');
-    if(saveBtn){
-      bvSaveField(saveBtn.getAttribute('data-field'));
-      return;
-    }
-    var cancelBtn = e.target.closest('.bv-cancel-btn');
-    if(cancelBtn){
-      bvEditingField = null;
-      var b3 = books.find(function(x){ return x.id === currentBookViewId; });
-      if(b3) document.getElementById('bookViewContent').innerHTML = buildBookViewHtml(b3);
-      return;
-    }
-  });
-
-  document.getElementById('bookViewCloseBtn').onclick = function(){
-    document.getElementById('bookViewOverlay').style.display = 'none';
-    bvEditingField = null;
-    currentBookViewId = null;
-  };
-  document.getElementById('bookViewOverlay').addEventListener('click', function(e){
-    if(e.target.id === 'bookViewOverlay'){
-      document.getElementById('bookViewOverlay').style.display = 'none';
-      bvEditingField = null;
-      currentBookViewId = null;
-    }
-  });
-
-  // ===================== Authors tab =====================
-  var authorStandaloneExpanded = {};
-
-  function authorInitial(name){
-    return (name || '?').trim().charAt(0).toUpperCase() || '?';
-  }
-
-  // Small "website · Instagram · TikTok..." link row shared by author
-  // cards and platform cards — reads from whichever info store is passed
-  // in (authorLinks or sourceInfo), both shaped {website, socials:[{label,url}]}.
-  function buildEntityLinksHtml(info){
-    if(!info) return '';
-    var parts = [];
-    if(info.website) parts.push('<a href="' + escapeHtml(info.website) + '" target="_blank" rel="noopener">Website</a>');
-    (info.socials || []).forEach(function(s){
-      parts.push('<a href="' + escapeHtml(s.url) + '" target="_blank" rel="noopener">' + escapeHtml(s.label) + '</a>');
-    });
-    if(!parts.length) return '';
-    return '<p class="entity-links">' + parts.join(' · ') + '</p>';
-  }
-
-  // Builds one author card's full markup (photo, name, series/standalone
-  // list, website & socials) from the live `books` array — shared by the
-  // Authors tab grid and the single-author popup opened from elsewhere
-  // (e.g. an "Author/Publisher" platform card), so both stay identical.
-  function buildAuthorCardHtml(name){
-    var list = books.filter(function(b){ return b.author === name; }).sort(function(a, b){ return (a.title || '').localeCompare(b.title || ''); });
-    var photo = authorPhotos[name];
-    var photoHtml = photo
-      ? '<img class="author-photo" src="' + photo + '" alt="">'
-      : '<div class="author-photo-ph">' + escapeHtml(authorInitial(name)) + '</div>';
-
-    var seriesGroups = {};
-    var seriesOrder = [];
-    var standalone = [];
-    list.forEach(function(b){
-      if(b.series){
-        if(!seriesGroups[b.series]){ seriesGroups[b.series] = []; seriesOrder.push(b.series); }
-        seriesGroups[b.series].push(b);
-      } else {
-        standalone.push(b);
-      }
-    });
-    seriesOrder.sort(function(a, b){ return a.localeCompare(b); });
-
-    var entryNum = 0;
-    var seriesRows = seriesOrder.map(function(sName){
-      entryNum++;
-      var count = seriesGroups[sName].length;
-      return '<div class="author-series-row" data-series="' + escapeHtml(sName) + '">' +
-        '<span><span class="author-series-num">' + entryNum + '.</span>' + escapeHtml(sName) + '</span>' +
-        '<span class="author-series-count">' + count + ' book' + (count === 1 ? '' : 's') + ' ›</span>' +
-        '</div>';
-    }).join('');
-
-    var standaloneRow = '';
-    if(standalone.length){
-      entryNum++;
-      var standaloneExpanded = !!authorStandaloneExpanded[name];
-      var shownStandalone = standaloneExpanded ? standalone : standalone.slice(0, SERIES_LIST_PAGE_SIZE);
-      var standaloneSeeMoreHtml = '';
-      if(standalone.length > SERIES_LIST_PAGE_SIZE){
-        standaloneSeeMoreHtml = standaloneExpanded
-          ? '<button type="button" class="see-more-btn" data-standalone-toggle="' + escapeHtml(name) + '">Show fewer</button>'
-          : '<button type="button" class="see-more-btn" data-standalone-toggle="' + escapeHtml(name) + '">See ' + (standalone.length - SERIES_LIST_PAGE_SIZE) + ' more</button>';
-      }
-      standaloneRow = '<details class="author-standalone-toggle">' +
-        '<summary class="author-series-row"><span><span class="author-series-num">' + entryNum + '.</span>Standalone</span>' +
-        '<span class="author-series-count">' + standalone.length + ' book' + (standalone.length === 1 ? '' : 's') + '</span></summary>' +
-        '<div class="author-standalone-list">' + shownStandalone.map(function(b){
-          return buildSeriesBookRowHtml(b, false);
-        }).join('') + standaloneSeeMoreHtml + '</div>' +
-        '</details>';
-    }
-
-    var seriesCountLabel = seriesOrder.length ? (' · ' + seriesOrder.length + ' series') : '';
-    var safeNameAttr = escapeHtml(name);
-    var linksHtml = buildEntityLinksHtml(authorLinks[name]);
-    return '<div class="card author-card" data-author="' + safeNameAttr + '">' +
-      '<div class="author-card-top">' +
-        '<div class="author-photo-wrap">' +
-          photoHtml +
-          '<label class="author-photo-edit" title="Add/change photo">✎<input type="file" class="author-photo-input" accept="image/*"></label>' +
-        '</div>' +
-        '<div style="flex:1;min-width:0;">' +
-          '<p class="author-name">' + escapeHtml(name) + '</p>' +
-          '<p class="author-book-count">' + list.length + ' book' + (list.length === 1 ? '' : 's') + seriesCountLabel + '</p>' +
-          linksHtml +
-        '</div>' +
-        '<button type="button" class="entity-link-edit-btn" data-entity-kind="author" data-entity-name="' + safeNameAttr + '" title="Edit website &amp; social links">✎ Edit info</button>' +
-      '</div>' +
-      '<div class="author-series-list">' + seriesRows + standaloneRow + '</div>' +
-      '</div>';
-  }
-
-  function renderAuthorsView(){
-    var wrap = document.getElementById('authorsView');
-    var groups = {};
-    books.forEach(function(b){
-      if(!b.author) return;
-      if(!groups[b.author]) groups[b.author] = [];
-      groups[b.author].push(b);
-    });
-    var allNames = Object.keys(groups).sort(function(a, b){ return a.localeCompare(b); });
-    if(!allNames.length){
-      wrap.innerHTML = '<div class="cal-empty-note">No authors yet — add an author to a book to see them here.</div>';
-      return;
-    }
-
-    var searchWrapHtml = '<div class="authors-search-wrap">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
-      '<input type="text" id="authorsSearchInput" placeholder="Search authors..." value="' + escapeHtml(authorsSearchTerm) + '">' +
-      '</div>';
-
-    var query = authorsSearchTerm.trim().toLowerCase();
-    var names = query ? allNames.filter(function(n){ return n.toLowerCase().indexOf(query) !== -1; }) : allNames;
-
-    if(!names.length){
-      wrap.innerHTML = searchWrapHtml + '<div class="cal-empty-note">No authors match "' + escapeHtml(authorsSearchTerm) + '".</div>';
-      wireAuthorsSearchInput();
-      return;
-    }
-
-    var cards = names.map(buildAuthorCardHtml).join('');
-    wrap.innerHTML = searchWrapHtml + '<div class="grid">' + cards + '</div>';
-    wireAuthorsSearchInput();
-  }
-
-  var authorsSearchTerm = '';
-
-  function wireAuthorsSearchInput(){
-    var input = document.getElementById('authorsSearchInput');
-    if(!input) return;
-    input.focus();
-    var val = input.value;
-    input.setSelectionRange(val.length, val.length);
-    input.oninput = function(){
-      authorsSearchTerm = input.value;
-      renderAuthorsView();
-    };
-  }
-
-  // Pops open just that one author's card on top of wherever you are —
-  // used by "Author/Publisher" platform cards, so picking a name doesn't
-  // yank you out of the Platforms tab.
-  function openAuthorPeek(name){
-    document.getElementById('authorPeekContent').innerHTML = buildAuthorCardHtml(name);
-    document.getElementById('authorPeekOverlay').style.display = 'flex';
-  }
-  function closeAuthorPeek(){
-    document.getElementById('authorPeekOverlay').style.display = 'none';
-  }
-  document.getElementById('authorPeekCloseBtn').onclick = closeAuthorPeek;
-  document.getElementById('authorPeekOverlay').addEventListener('click', function(e){
-    if(e.target.id === 'authorPeekOverlay') closeAuthorPeek();
-  });
-  document.getElementById('authorPeekContent').addEventListener('click', function(e){
-    var editRowBtn = e.target.closest('.book-row-edit-btn');
-    if(editRowBtn){
-      openModal(editRowBtn.getAttribute('data-edit-book-id'), 'full');
-      return;
-    }
-    var standaloneToggleBtn = e.target.closest('.see-more-btn[data-standalone-toggle]');
-    if(standaloneToggleBtn){
-      toggleAuthorStandaloneExpanded(standaloneToggleBtn.getAttribute('data-standalone-toggle'));
-      return;
-    }
-    var editBtn = e.target.closest('.entity-link-edit-btn');
-    if(editBtn){
-      openEntityLinksEditModal(editBtn.getAttribute('data-entity-kind'), editBtn.getAttribute('data-entity-name'));
-      return;
-    }
-    var seriesRow = e.target.closest('.author-series-row');
-    if(seriesRow && seriesRow.hasAttribute('data-series')){
-      openSeriesPeek(seriesRow.getAttribute('data-series'));
-      return;
-    }
-    var bookRow = e.target.closest('.series-book-row');
-    if(bookRow){
-      var id = bookRow.getAttribute('data-book-id');
-      if(id){ closeAuthorPeek(); openBookView(id); }
-      return;
-    }
-  });
-
-  function toggleAuthorStandaloneExpanded(name){
-    authorStandaloneExpanded[name] = !authorStandaloneExpanded[name];
-    if(currentActiveNav === 'navAuthors') renderAuthorsView();
-    if(document.getElementById('authorPeekOverlay').style.display === 'flex'){
-      document.getElementById('authorPeekContent').innerHTML = buildAuthorCardHtml(name);
-    }
-  }
-
-  // Pops open just that one series' card on top of wherever you are —
-  // Author tab, Series View, anywhere — so you can peek at it and close
-  // it without losing your place.
-  function openSeriesPeek(name){
-    document.getElementById('seriesPeekContent').innerHTML = buildSeriesCardHtml(name);
-    document.getElementById('seriesPeekOverlay').style.display = 'flex';
-  }
-
-  function closeSeriesPeek(){
-    document.getElementById('seriesPeekOverlay').style.display = 'none';
-  }
-
-  document.getElementById('seriesPeekCloseBtn').onclick = closeSeriesPeek;
-  document.getElementById('seriesPeekOverlay').addEventListener('click', function(e){
-    if(e.target.id === 'seriesPeekOverlay') closeSeriesPeek();
-  });
-  document.getElementById('seriesPeekContent').addEventListener('click', function(e){
-    var editRowBtn = e.target.closest('.book-row-edit-btn');
-    if(editRowBtn){
-      openModal(editRowBtn.getAttribute('data-edit-book-id'), 'full');
-      return;
-    }
-    var toggleBtn = e.target.closest('.see-more-btn[data-series-toggle]');
-    if(toggleBtn){
-      toggleSeriesListExpanded(toggleBtn.getAttribute('data-series-toggle'));
-      return;
-    }
-    var editBtn = e.target.closest('.series-edit-btn');
-    if(editBtn){
-      openSeriesEditModal(editBtn.getAttribute('data-series'));
-      return;
-    }
-    var row = e.target.closest('.series-book-row');
-    if(row){
-      var id = row.getAttribute('data-book-id');
-      if(id){
-        closeSeriesPeek();
-        openBookView(id);
-      }
-      return;
-    }
-  });
-
-  document.getElementById('authorsView').addEventListener('click', function(e){
-    var editRowBtn = e.target.closest('.book-row-edit-btn');
-    if(editRowBtn){
-      openModal(editRowBtn.getAttribute('data-edit-book-id'), 'full');
-      return;
-    }
-    var standaloneToggleBtn = e.target.closest('.see-more-btn[data-standalone-toggle]');
-    if(standaloneToggleBtn){
-      toggleAuthorStandaloneExpanded(standaloneToggleBtn.getAttribute('data-standalone-toggle'));
-      return;
-    }
-    var linkEditBtn = e.target.closest('.entity-link-edit-btn');
-    if(linkEditBtn){
-      openEntityLinksEditModal(linkEditBtn.getAttribute('data-entity-kind'), linkEditBtn.getAttribute('data-entity-name'));
-      return;
-    }
-    var seriesRow = e.target.closest('.author-series-row');
-    if(seriesRow && seriesRow.hasAttribute('data-series')){
-      openSeriesPeek(seriesRow.getAttribute('data-series'));
-      return;
-    }
-    var bookRow = e.target.closest('.series-book-row');
-    if(bookRow){
-      var id = bookRow.getAttribute('data-book-id');
-      if(id) openBookView(id);
-      return;
-    }
-  });
-
-  document.getElementById('authorsView').addEventListener('change', function(e){
-    var input = e.target.closest('.author-photo-input');
-    if(!input) return;
-    var file = input.files[0];
-    if(!file) return;
-    var card = input.closest('.author-card');
-    var name = card ? card.getAttribute('data-author') : null;
-    if(!name) return;
-    resizeImage(file, 200, 0.82).then(function(dataUrl){
-      authorPhotos[name] = dataUrl;
-      saveAuthorPhotos();
-      renderAuthorsView();
-    }).catch(function(){
-      showBanner("Couldn't process that photo. Try a different image.");
-    });
-  });
-
-  // ===================== Platforms tab =====================
-  // Groups every ARC'd book by its arcSource. A platform marked
-  // "Author/Publisher" (isAuthorDirect) shows a list of the authors you've
-  // gotten books directly from instead of a book list, since one such
-  // entry can span many different authors — click a name to peek at them.
-  var PLATFORM_LIST_PAGE_SIZE = 10;
-  var platformsExpanded = {};
-
-  function renderPlatformsView(){
-    var wrap = document.getElementById('platformsView');
-    var groups = {};
-    books.forEach(function(b){
-      if(!b.arcSource) return;
-      if(!groups[b.arcSource]) groups[b.arcSource] = [];
-      groups[b.arcSource].push(b);
-    });
-    // Platforms marked "Author/Publisher" (direct-from-author sources)
-    // float to the top, since they behave differently from the rest;
-    // everything else stays alphabetical.
-    var names = Object.keys(groups).sort(function(a, b){
-      var aDirect = (sourceInfo[a] || {}).isAuthorDirect ? 0 : 1;
-      var bDirect = (sourceInfo[b] || {}).isAuthorDirect ? 0 : 1;
-      if(aDirect !== bDirect) return aDirect - bDirect;
-      return a.localeCompare(b);
-    });
-    if(!names.length){
-      wrap.innerHTML = '<div class="cal-empty-note">No ARC sources logged yet — set a source on a book to see it grouped here.</div>';
-      return;
-    }
-
-    var cards = names.map(function(name){
-      var list = groups[name];
-      var info = sourceInfo[name] || {};
-      var linksHtml = buildEntityLinksHtml(info);
-      var safeNameAttr = escapeHtml(name);
-      var expanded = !!platformsExpanded[name];
-
-      var bodyHtml;
-      var totalEntries;
-      if(info.isAuthorDirect){
-        var authorCounts = {};
-        list.forEach(function(b){ if(b.author) authorCounts[b.author] = (authorCounts[b.author] || 0) + 1; });
-        var authorNames = Object.keys(authorCounts).sort(function(a, b){ return a.localeCompare(b); });
-        totalEntries = authorNames.length;
-        var shownAuthors = expanded ? authorNames : authorNames.slice(0, PLATFORM_LIST_PAGE_SIZE);
-        bodyHtml = shownAuthors.map(function(aName, idx){
-          return '<div class="author-series-row" data-platform-author="' + escapeHtml(aName) + '">' +
-            '<span><span class="author-series-num">' + (idx + 1) + '.</span>' + escapeHtml(aName) + '</span>' +
-            '<span class="author-series-count">' + authorCounts[aName] + ' book' + (authorCounts[aName] === 1 ? '' : 's') + ' ›</span>' +
-            '</div>';
-        }).join('');
-      } else {
-        var sortedList = list.slice().sort(function(a, b){ return (a.title || '').localeCompare(b.title || ''); });
-        totalEntries = sortedList.length;
-        var shownBooks = expanded ? sortedList : sortedList.slice(0, PLATFORM_LIST_PAGE_SIZE);
-        bodyHtml = shownBooks.map(function(b){
-          var color = bookStatusTextColor(b);
-          var colorStyle = color ? 'color:' + color + ';' : '';
-          var trailing = b.status === 'finished'
-            ? (b.author ? escapeHtml(b.author) : '')
-            : (b.totalPages ? (b.totalPages + ' pages') : '');
-          return '<div class="series-book-row platform-book-row" data-book-id="' + b.id + '">' +
-            '<div class="series-book-status" style="' + colorStyle + '">' + escapeHtml(statusLabelFor(b)) + '</div>' +
-            '<div class="series-book-title">' + escapeHtml(b.title) + '</div>' +
-            '<div class="platform-book-trailing">' + trailing + '</div>' +
-            '<button type="button" class="book-row-edit-btn" data-edit-book-id="' + b.id + '" title="Edit full book details">✎</button>' +
-            '</div>';
-        }).join('');
-      }
-
-      var seeMoreHtml = '';
-      if(totalEntries > PLATFORM_LIST_PAGE_SIZE){
-        seeMoreHtml = expanded
-          ? '<button type="button" class="see-more-btn" data-platform-toggle="' + safeNameAttr + '">Show fewer</button>'
-          : '<button type="button" class="see-more-btn" data-platform-toggle="' + safeNameAttr + '">See ' + (totalEntries - PLATFORM_LIST_PAGE_SIZE) + ' more</button>';
-      }
-
-      return '<div class="card platform-card">' +
-        '<div class="series-card-head">' +
-          '<div style="flex:1;min-width:0;">' +
-            '<h3>' + escapeHtml(name) + '</h3>' +
-            '<p style="font-size:11.5px;color:var(--muted);margin:2px 0 0;">' + list.length + ' book' + (list.length === 1 ? '' : 's') + '</p>' +
-            linksHtml +
-          '</div>' +
-          '<button type="button" class="entity-link-edit-btn" data-entity-kind="source" data-entity-name="' + safeNameAttr + '" title="Edit website &amp; social links">✎ Edit info</button>' +
-        '</div>' +
-        bodyHtml +
-        seeMoreHtml +
-        '</div>';
-    }).join('');
-
-    wrap.innerHTML = '<div class="grid">' + cards + '</div>';
-  }
-
-  document.getElementById('platformsView').addEventListener('click', function(e){
-    var editRowBtn = e.target.closest('.book-row-edit-btn');
-    if(editRowBtn){
-      openModal(editRowBtn.getAttribute('data-edit-book-id'), 'full');
-      return;
-    }
-    var toggleBtn = e.target.closest('.see-more-btn');
-    if(toggleBtn){
-      var pName = toggleBtn.getAttribute('data-platform-toggle');
-      platformsExpanded[pName] = !platformsExpanded[pName];
-      renderPlatformsView();
-      return;
-    }
-    var editBtn = e.target.closest('.entity-link-edit-btn');
-    if(editBtn){
-      openEntityLinksEditModal(editBtn.getAttribute('data-entity-kind'), editBtn.getAttribute('data-entity-name'));
-      return;
-    }
-    var authorRow = e.target.closest('[data-platform-author]');
-    if(authorRow){
-      openAuthorPeek(authorRow.getAttribute('data-platform-author'));
-      return;
-    }
-    var bookRow = e.target.closest('.series-book-row');
-    if(bookRow){
-      var id = bookRow.getAttribute('data-book-id');
-      if(id) openBookView(id);
-      return;
-    }
-  });
-
-  // ===================== Reviews shelf =====================
-  var reviewsSearchTerm = '';
-  var reviewsSortKey = '';
-
-  var REVIEWS_SORT_OPTIONS = {
-    '': 'Shelf (default)',
-    title: 'Title A–Z',
-    rating: 'Rating: Highest to Lowest',
-    added: 'Recently Added',
-    finished: 'Date Finished'
-  };
-
-  var REVIEWS_STATUS_TAG_COLORS = {
-    want: 'var(--accent)',
-    reading: 'var(--accent-deep)',
-    hold: 'var(--hold-deep)',
-    finished: 'var(--ink)',
-    dnf: 'var(--dnf-deep)',
-    requested: 'var(--requested-deep)'
-  };
-
-  function buildReviewsToolbarHtml(){
-    var options = Object.keys(REVIEWS_SORT_OPTIONS).map(function(key){
-      return '<option value="' + key + '"' + (key === reviewsSortKey ? ' selected' : '') + '>' + escapeHtml(REVIEWS_SORT_OPTIONS[key]) + '</option>';
-    }).join('');
-    return '<div class="toolbar-search-sort">' +
-      '<div class="authors-search-wrap" style="margin-bottom:0;">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
-        '<input type="text" id="reviewsSearchInput" placeholder="Search your shelf..." value="' + escapeHtml(reviewsSearchTerm) + '">' +
-      '</div>' +
-      '<select id="reviewsSortSelect">' + options + '</select>' +
-      '</div>';
-  }
-
-  function wireReviewsToolbarHandlers(){
-    var input = document.getElementById('reviewsSearchInput');
-    if(input){
-      input.focus();
-      var val = input.value;
-      input.setSelectionRange(val.length, val.length);
-      input.oninput = function(){
-        reviewsSearchTerm = input.value;
-        renderReviewsView();
-      };
-    }
-    var select = document.getElementById('reviewsSortSelect');
-    if(select){
-      select.onchange = function(){
-        reviewsSortKey = select.value;
-        renderReviewsView();
-      };
-    }
-  }
-
-  var REVIEWS_SORT_COMPARATORS = {
-    title: function(a, b){ return (a.title || '').localeCompare(b.title || ''); },
-    rating: function(a, b){ return (b.rating || 0) - (a.rating || 0); },
-    added: function(a, b){ return (b.createdAt || 0) - (a.createdAt || 0); },
-    finished: function(a, b){
-      if(!a.dateFinished && !b.dateFinished) return 0;
-      if(!a.dateFinished) return 1;
-      if(!b.dateFinished) return -1;
-      return b.dateFinished.localeCompare(a.dateFinished);
-    }
-  };
-
-  // Flattens every matching book into one sorted grid — piles and series
-  // clusters disappear while a sort is active, with a small colored status
-  // tag on each cover so status is still visible at a glance.
-  function buildFlatSortedShelfHtml(list){
-    if(!list.length) return '<div class="cal-empty-note">No books to show.</div>';
-    var cmp = REVIEWS_SORT_COMPARATORS[reviewsSortKey] || REVIEWS_SORT_COMPARATORS.title;
-    var sorted = list.slice().sort(cmp);
-    var items = sorted.map(function(b){
-      var coverHtml = b.cover ? '<img src="' + b.cover + '" alt="">' : '<span class="ph">' + escapeHtml((b.title || '?').charAt(0)) + '</span>';
-      var tagColor = REVIEWS_STATUS_TAG_COLORS[b.status] || 'var(--muted)';
-      return '<div class="shelf-book flat-shelf-item" data-book-id="' + b.id + '" title="' + escapeHtml(b.title) + '">' +
-        '<div class="flat-shelf-cover' + (b.format === 'Audiobook' ? ' audiobook-cover' : '') + '">' + coverHtml + '</div>' +
-        '<span class="flat-shelf-status-tag" style="background:' + tagColor + ';">' + escapeHtml(statusLabelFor(b)) + '</span>' +
-        '<p class="flat-shelf-title">' + escapeHtml(b.title) + '</p>' +
-        '</div>';
-    }).join('');
-    return '<div class="grid flat-shelf-grid">' + items + '</div>';
-  }
-
-  function renderReviewsView(){
-    var outerWrap = document.getElementById('reviewsView');
-    if(!books.length){
-      outerWrap.innerHTML = '<div class="cal-empty-note">Your shelf is empty — add a book and it\'ll land here.</div>';
-      return;
-    }
-
-    var query = reviewsSearchTerm.trim().toLowerCase();
-    var searchedBooks = books.filter(function(b){
-      if(!query) return true;
-      var hay = ((b.title || '') + ' ' + (b.author || '')).toLowerCase();
-      return hay.indexOf(query) !== -1;
-    });
-    var toolbarHtml = buildReviewsToolbarHtml();
-
-    if(query && !searchedBooks.length){
-      outerWrap.innerHTML = toolbarHtml + '<div class="cal-empty-note">No books match "' + escapeHtml(reviewsSearchTerm) + '".</div>';
-      wireReviewsToolbarHandlers();
-      return;
-    }
-
-    // A sort turns the shelf into one flat, sorted grid (with a small
-    // status tag per book so status is still visible) instead of the
-    // usual series/status piles — see the Option A mockup this was based on.
-    if(reviewsSortKey){
-      outerWrap.innerHTML = toolbarHtml + buildFlatSortedShelfHtml(searchedBooks);
-      wireReviewsToolbarHandlers();
-      return;
-    }
-
-    outerWrap.innerHTML = toolbarHtml + '<div id="reviewsShelfContent"></div>';
-    wireReviewsToolbarHandlers();
-    var wrap = document.getElementById('reviewsShelfContent');
-
-    // Requested books (applied for / not out yet) haven't arrived, so they
-    // never join the main shelf clusters — they get their own small shelf
-    // off to the side, rendered after the main bookcase.
-    var requestedBooks = searchedBooks.filter(function(b){ return b.status === 'requested'; });
-    var reviewed = searchedBooks.filter(function(b){ return b.status !== 'requested'; });
-
-    if(!reviewed.length){
-      wrap.innerHTML = '<div class="cal-empty-note">Your shelf is empty — add a book and it\'ll land here.</div>' +
-        renderRequestedShelfHtml(requestedBooks);
-      return;
-    }
-
-    // Group into series clusters (kept adjacent, in series order) and standalone books,
-    // but everything renders on one unified shelf/plank.
-    var groups = {};
-    var order = [];
-    reviewed.forEach(function(b){
-      var key = b.series ? b.series : '\u0000standalone-' + b.id;
-      if(!groups[key]){ groups[key] = []; order.push(key); }
-      groups[key].push(b);
-    });
-    order.sort(function(a, b){
-      var aStand = a.indexOf('\u0000standalone-') === 0;
-      var bStand = b.indexOf('\u0000standalone-') === 0;
-      if(aStand && bStand) return 0;
-      if(aStand) return 1;
-      if(bStand) return -1;
-      return a.localeCompare(b);
-    });
-
-    // Spine color is purely genre-based — except Formula 1 books get a
-    // fixed racing red with white text, since that reads better than any
-    // genre's pastel against that trope.
-    var FORMULA_1_BG = '#932322', FORMULA_1_TEXT = '#FFFFFF';
-    function spineStyleFor(b){
-      var isF1 = (b.tropes || []).indexOf('Formula 1') !== -1;
-      return {
-        bg: 'background:' + (isF1 ? FORMULA_1_BG : genreColorFor(b.genre)) + ';',
-        textColor: isF1 ? FORMULA_1_TEXT : null
-      };
-    }
-
-    // Books waiting in the TBR pile haven't been read yet, so their spine
-    // stays uncolored — a plain white/outlined look, like an unfilled page
-    // in a coloring book — rather than jumping ahead with a genre color.
-    // Formula 1 still gets its fixed red, same as everywhere else.
-    function pileSpineStyleFor(b){
-      var isF1 = (b.tropes || []).indexOf('Formula 1') !== -1;
-      if(isF1) return {bg: 'background:' + FORMULA_1_BG + ';', textColor: FORMULA_1_TEXT};
-      return {bg: 'background:#FFFFFF;border:1.5px solid var(--ink);', textColor: 'var(--ink)'};
-    }
-
-    // DNF books get one fixed muted, faded color regardless of genre — a
-    // deliberate "this one didn't work out" visual, distinct from the
-    // vibrant genre colors used on active/finished books. Formula 1 still
-    // takes priority over even this, same override order as everywhere else.
-    var DNF_MUTED_BG = '#A79999', DNF_MUTED_TEXT = 'var(--ink)';
-    function dnfPileSpineStyleFor(b){
-      var isF1 = (b.tropes || []).indexOf('Formula 1') !== -1;
-      if(isF1) return {bg: 'background:' + FORMULA_1_BG + ';', textColor: FORMULA_1_TEXT};
-      return {bg: 'background:' + DNF_MUTED_BG + ';', textColor: DNF_MUTED_TEXT};
-    }
-
-    // Requested books aren't in hand yet — applied for as an ARC, or just
-    // not out in the world yet — so they still get a solid genre-color
-    // fill just like every other pile; the dashed border (a fixed color,
-    // not genre-tied) is what marks them as "not arrived", on their own
-    // little mini shelf off to the side (see renderRequestedShelfHtml below).
-    function requestedPileSpineStyleFor(b){
-      var isF1 = (b.tropes || []).indexOf('Formula 1') !== -1;
-      return {
-        bg: 'background:' + (isF1 ? FORMULA_1_BG : genreColorFor(b.genre)) + ';border:1.5px dashed var(--requested-deep);',
-        textColor: isF1 ? FORMULA_1_TEXT : null
-      };
-    }
-
-    // Renders one or more pile stacks (capped at 5 books per stack) from a
-    // list of books, sharing the same stacking mechanic for both the TBR
-    // pile and the DNF pile — just with a different style function and an
-    // optional badge per item.
-    function buildPileStacksHtml(pileList, styleFn, extraClass, badgeText){
-      if(!pileList.length) return '';
-      var PILE_MAX_PER_STACK = 5;
-      var sorted = pileList.slice().sort(function(a, b){ return (a.title || '').localeCompare(b.title || ''); });
-      var chunks = [];
-      for(var pc = 0; pc < sorted.length; pc += PILE_MAX_PER_STACK){
-        chunks.push(sorted.slice(pc, pc + PILE_MAX_PER_STACK));
-      }
-      return chunks.map(function(chunk){
-        var items = chunk.map(function(b){
-          var hash = 0;
-          for(var i = 0; i < b.id.length; i++){ hash = (hash * 31 + b.id.charCodeAt(i)) & 0xffffffff; }
-          var pileHeight = 26 + (Math.abs(hash) % 10);
-          var pileWidth = 190;
-          var style = styleFn(b);
-          var colorCss = 'color:' + style.textColor + ';';
-          var label = b.title + (b.seriesNumber || b.seriesNumber === 0 ? ' · ' + String(b.seriesNumber) : '');
-          var titleAttr = escapeHtml(b.title) + (b.series ? ' (' + escapeHtml(b.series) + ')' : '');
-          var size = hTitleFontSize(label, pileWidth);
-          var badgeHtml = badgeText ? '<span class="spine-review-badge pile-text-badge">' + badgeText + '</span>' : '';
-          return '<div class="shelf-book tbr-pile-item' + (extraClass ? ' ' + extraClass : '') + '" data-book-id="' + b.id + '" title="' + titleAttr + '" style="height:' + pileHeight + 'px;' + style.bg + '">' +
-            badgeHtml +
-            '<span class="spine-title-h" style="font-size:' + size + 'px;' + colorCss + '">' + escapeHtml(label) + '</span>' +
-            '</div>';
-        }).join('');
-        return '<div class="shelf-cluster tbr-pile-cluster"><div class="tbr-pile-stack" style="width:190px;">' + items + '</div></div>';
-      }).join('');
-    }
-
-    // Builds the small standalone "Requested" shelf — its own heading and
-    // plank, separate from the main bookcase above. Returns '' if there's
-    // nothing requested yet, so it just doesn't show up.
-    function renderRequestedShelfHtml(list){
-      if(!list.length) return '';
-      var pileHtml = buildPileStacksHtml(list, requestedPileSpineStyleFor, 'requested-pile-item', 'REQ');
-      return '<h2 class="shelf-heading requested-shelf-heading">Requested</h2>' +
-        '<div class="shelf-wrap requested-shelf-wrap"><div class="shelf-tier"><div class="shelf-row">' + pileHtml + '</div><div class="shelf-plank"></div></div></div>';
-    }
-
-    // Status decides how a book sits on the shelf: currently-relevant books
-    // (Reading/Finished) stand up normally, Want-to-Read books lie flat like
-    // a stack you haven't gotten to yet, On Hold leans right ("paused"), and
-    // DNF books join their own separate pile (see dnfPileBooks below).
-    function spineOrientation(status){
-      if(status === 'want') return 'horizontal';
-      if(status === 'hold') return 'diagonal-right';
-      if(status === 'dnf') return 'dnf-pile';
-      return 'vertical';
-    }
-
-    // Fit the title to the available vertical run of the spine: short titles
-    // scale up (capped), long titles scale down — but only down to a size
-    // that's still comfortably readable. Titles too long to fit even at the
-    // minimum size truncate with an ellipsis (via the CSS max-height rule on
-    // .spine-title) rather than shrinking further.
-    var SPINE_HEIGHT = 180, SPINE_PAD = 20, NUMBER_SPACE = 18;
-    var TITLE_MIN_SIZE = 10, TITLE_MAX_SIZE = 16, CHAR_HEIGHT_FACTOR = 1.1;
-    function spineTitleFontSize(title, hasNumber){
-      var available = SPINE_HEIGHT - SPINE_PAD - (hasNumber ? NUMBER_SPACE : 0);
-      var len = Math.max(1, title.length);
-      var raw = available / (len * CHAR_HEIGHT_FACTOR);
-      return Math.max(TITLE_MIN_SIZE, Math.min(TITLE_MAX_SIZE, Math.round(raw * 10) / 10));
-    }
-
-    // Same idea, but for books lying flat: fit the title along the spine's
-    // horizontal run instead of its vertical one.
-    var H_TITLE_MIN_SIZE = 9, H_TITLE_MAX_SIZE = 13, CHAR_WIDTH_FACTOR = 0.58, H_PAD = 16;
-    function hTitleFontSize(text, width){
-      var available = width - H_PAD;
-      var len = Math.max(1, text.length);
-      var raw = available / (len * CHAR_WIDTH_FACTOR);
-      return Math.max(H_TITLE_MIN_SIZE, Math.min(H_TITLE_MAX_SIZE, Math.round(raw * 10) / 10));
-    }
-
-    var pileBooks = [];
-    var dnfPileBooks = [];
-
-    var clusters = order.map(function(key){
-      var list = groups[key].slice().sort(function(a, b){
-        var na = (a.seriesNumber === null || a.seriesNumber === undefined) ? 999 : a.seriesNumber;
-        var nb = (b.seriesNumber === null || b.seriesNumber === undefined) ? 999 : b.seriesNumber;
-        return na - nb;
-      });
-      // A series you've only added one unfinished book of reads as "still
-      // waiting on the rest" — treat it as a TBR book too, so it joins the
-      // shared pile rather than standing alone. (DNF books always go to
-      // their own pile regardless of this, handled separately below.)
-      var isStandalone = key.indexOf('\u0000standalone-') === 0;
-      var soloIncompleteSeries = !isStandalone && list.length === 1 && list[0].status !== 'finished';
-
-      var spines = list.map(function(b){
-        var orientation = b.status === 'dnf' ? 'dnf-pile' : (soloIncompleteSeries ? 'horizontal' : spineOrientation(b.status));
-
-        if(orientation === 'dnf-pile'){
-          dnfPileBooks.push(b);
-          return '';
-        }
-
-        // Every book that would lie flat joins one shared "to be read" pile
-        // instead of rendering in its own cluster — collected here, rendered
-        // together after all clusters are built.
-        if(orientation === 'horizontal'){
-          pileBooks.push(b);
-          return '';
-        }
-
-        var hash = 0;
-        for(var i = 0; i < b.id.length; i++){ hash = (hash * 31 + b.id.charCodeAt(i)) & 0xffffffff; }
-        var titleAttr = escapeHtml(b.title) + (b.series ? ' (' + escapeHtml(b.series) + ')' : '');
-        var style = spineStyleFor(b);
-        var colorCss = style.textColor ? 'color:' + style.textColor + ';' : '';
-
-        var widthVariant = 40 + (Math.abs(hash) % 17);
-        var hasNumber = !!(b.seriesNumber || b.seriesNumber === 0);
-        var numHtml = hasNumber ? '<span class="spine-number" style="' + colorCss + '">' + escapeHtml(String(b.seriesNumber)) + '</span>' : '';
-        var titleSize = spineTitleFontSize(b.title || '', hasNumber);
-        var targetHeight = SPINE_HEIGHT - SPINE_PAD - (hasNumber ? NUMBER_SPACE : 0);
-        var needsReview = b.status === 'finished' && !(b.review && b.review.trim());
-        var badgeHtml = needsReview ? '<span class="spine-review-badge" title="No review yet">?</span>' : '';
-        var textHtml = '<span class="spine-title" data-target-h="' + targetHeight + '" style="font-size:' + titleSize + 'px;' + colorCss + '">' + escapeHtml(b.title) + '</span>' + numHtml;
-        return '<div class="shelf-book orient-' + orientation + '" data-book-id="' + b.id + '" title="' + titleAttr + '">' +
-          '<div class="shelf-spine" style="width:' + widthVariant + 'px;' + style.bg + '">' +
-          badgeHtml +
-          textHtml +
-          '</div>' +
-          '</div>';
-      }).join('');
-      return spines ? ('<div class="shelf-cluster">' + spines + '</div>') : '';
-    }).filter(Boolean).join('');
-
-    clusters += buildPileStacksHtml(pileBooks, pileSpineStyleFor, '', null);
-    clusters += buildPileStacksHtml(dnfPileBooks, dnfPileSpineStyleFor, 'dnf-pile-item', 'DNF');
-
-    // Lay everything out on one long measuring row first (at the container's
-    // real current width), then split it into separate shelf "tiers" — a row
-    // of books plus its own plank — wherever the flex-wrap actually breaks a
-    // line. That gives a real multi-shelf bookcase instead of one giant plank
-    // sitting under a wall of wrapped books.
-    wrap.innerHTML = '<div class="shelf-wrap"><div class="shelf-row" id="shelfMeasureRow">' + clusters + '</div></div>';
-
-    var measureRow = document.getElementById('shelfMeasureRow');
-
-    // The font-size above is a starting guess based on character count, which
-    // is only ever approximate — actual rendered text height depends on the
-    // real font metrics. Now that the titles are live in the DOM, measure how
-    // tall each one actually rendered and scale it by the ratio needed to
-    // exactly fill its spine's available space, so there's no leftover gap
-    // (or overflow) between the title and the number below it.
-    Array.prototype.slice.call(measureRow.querySelectorAll('.spine-title')).forEach(function(el){
-      var target = parseFloat(el.getAttribute('data-target-h'));
-      if(!target) return;
-      var measured = el.scrollHeight;
-      if(!measured) return;
-      var currentSize = parseFloat(el.style.fontSize) || TITLE_MIN_SIZE;
-      var scale = target / measured;
-      var corrected = Math.max(TITLE_MIN_SIZE, Math.min(TITLE_MAX_SIZE, Math.round(currentSize * scale * 10) / 10));
-      el.style.fontSize = corrected + 'px';
-    });
-
-    var clusterEls = Array.prototype.slice.call(measureRow.children);
-    var rows = [];
-    clusterEls.forEach(function(el){
-      var bottom = Math.round(el.offsetTop + el.offsetHeight);
-      var row = rows.length ? rows[rows.length - 1] : null;
-      if(!row || Math.abs(row.bottom - bottom) > 3){
-        row = { bottom: bottom, els: [] };
-        rows.push(row);
-      }
-      row.els.push(el);
-    });
-
-    var tiersHtml = rows.map(function(row){
-      var rowHtml = row.els.map(function(el){ return el.outerHTML; }).join('');
-      return '<div class="shelf-tier"><div class="shelf-row">' + rowHtml + '</div><div class="shelf-plank"></div></div>';
-    }).join('');
-
-    wrap.innerHTML = '<div class="shelf-wrap">' + tiersHtml + '</div>' + renderRequestedShelfHtml(requestedBooks);
-  }
-
-  // Re-tier the shelf if the window is resized while the Reviews tab is open,
-  // since a new width can change where each row naturally wraps.
-  var reviewsResizeTimer = null;
-  window.addEventListener('resize', function(){
-    if(typeof currentActiveNav !== 'undefined' && currentActiveNav !== 'navReviews') return;
-    clearTimeout(reviewsResizeTimer);
-    reviewsResizeTimer = setTimeout(renderReviewsView, 150);
-  });
-
-  document.getElementById('reviewsView').addEventListener('click', function(e){
-    var item = e.target.closest('.shelf-book');
-    if(!item) return;
-    var id = item.getAttribute('data-book-id');
-    if(id) openReviewPage(id);
-  });
-
-  // ===================== Calendar view =====================
-  var calYear = new Date().getFullYear();
-  var calMonth = new Date().getMonth();
-
-  function pad2(n){ return n < 10 ? '0' + n : '' + n; }
-
-  function renderCalendarView(){
-    var wrap = document.getElementById('calendarView');
-    var firstDay = new Date(calYear, calMonth, 1);
-    var startWeekday = firstDay.getDay();
-    var daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
-    var today = new Date(); today.setHours(0, 0, 0, 0);
-
-    var itemsByDate = {};
-    books.forEach(function(b){
-      var due = effectiveDueDate(b);
-      if(!due) return;
-      if(!itemsByDate[due]) itemsByDate[due] = [];
-      itemsByDate[due].push(b);
-    });
-
-    var dowHtml = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(function(d){
-      return '<div class="cal-dow">' + d + '</div>';
-    }).join('');
-
-    var cells = '';
-    for(var i = 0; i < startWeekday; i++){ cells += '<div class="cal-cell empty-cell"></div>'; }
-    for(var day = 1; day <= daysInMonth; day++){
-      var dateObj = new Date(calYear, calMonth, day);
-      var dateKey = calYear + '-' + pad2(calMonth + 1) + '-' + pad2(day);
-      var isToday = dateObj.getTime() === today.getTime();
-      var dayItems = itemsByDate[dateKey] || [];
-      var overdue = dateObj < today;
-      var itemsHtml = dayItems.map(function(b){
-        return '<div class="cal-item' + (overdue ? ' overdue' : '') + '" data-book-id="' + b.id + '" title="' + escapeHtml(b.title) + '">' + escapeHtml(b.title) + '</div>';
-      }).join('');
-      cells += '<div class="cal-cell' + (isToday ? ' today' : '') + '"><div class="cal-date-num">' + day + '</div>' + itemsHtml + '</div>';
-    }
-
-    wrap.innerHTML = '<div class="cal-header"><button class="cal-nav-btn" id="calPrevBtn">‹</button><h2>' + monthName(calMonth) + ' ' + calYear + '</h2><button class="cal-nav-btn" id="calNextBtn">›</button></div>' +
-      '<div class="cal-grid">' + dowHtml + cells + '</div>';
-
-    document.getElementById('calPrevBtn').onclick = function(){
-      calMonth--; if(calMonth < 0){ calMonth = 11; calYear--; }
-      renderCalendarView();
-    };
-    document.getElementById('calNextBtn').onclick = function(){
-      calMonth++; if(calMonth > 11){ calMonth = 0; calYear++; }
-      renderCalendarView();
-    };
-  }
-
-  document.getElementById('calendarView').addEventListener('click', function(e){
-    var item = e.target.closest('.cal-item');
-    if(!item) return;
-    var id = item.getAttribute('data-book-id');
-    if(id) openViewModal(id);
-  });
-
-  // ===================== Year/Month wrapped export =====================
-  var WRAPPED_PAGE_W = 559;  // ~A5 width at 96dpi
-  var WRAPPED_PAGE_H = 794;  // ~A5 height at 96dpi
-  var WRAPPED_BOOKS_PER_PAGE = 20; // 5 columns x 4 rows
-
-  function wrappedPageChrome(innerHtml, pageNum, totalPageCount){
-    return '<div style="width:' + WRAPPED_PAGE_W + 'px;height:' + WRAPPED_PAGE_H + 'px;box-sizing:border-box;padding:28px 26px;display:flex;flex-direction:column;background:#FBF7FF;border:3px solid #3B2A55;font-family:\'Courier Prime\',monospace;color:#3B2A55;">' +
-      innerHtml +
-      '<div style="text-align:center;font-size:9px;color:#7C6D94;letter-spacing:0.08em;margin-top:10px;">PAGE ' + pageNum + ' OF ' + totalPageCount + '</div>' +
-      '</div>';
-  }
-
-  function buildWrappedStatsPage(list, periodLabel, pageNum, totalPageCount){
-    var totalBooks = list.length;
-    var totalPages = list.reduce(function(sum, b){ return sum + (b.totalPages || 0); }, 0);
-    var rated = list.filter(function(b){ return b.rating > 0; });
-    var avgRating = rated.length ? (rated.reduce(function(sum, b){ return sum + b.rating; }, 0) / rated.length) : 0;
-    var genreCounts = {};
-    list.forEach(function(b){ if(b.genre) genreCounts[b.genre] = (genreCounts[b.genre] || 0) + 1; });
-    var topGenre = Object.keys(genreCounts).sort(function(a, b){ return genreCounts[b] - genreCounts[a]; })[0] || '—';
-
-    var inner = '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">' +
-      postcardWordmark(30) +
-      '<div style="font-size:11px;letter-spacing:0.18em;color:#7C6D94;margin-top:8px;margin-bottom:4px;">' + escapeHtml(periodLabel.toUpperCase()) + ' IN BOOKS</div>' +
-      '<div style="font-size:9px;letter-spacing:0.12em;color:#B39ED0;margin-bottom:36px;">EXPLORE EVERY WORLD · ONE PAGE AT A TIME</div>' +
-      '<div style="display:flex;gap:34px;margin-bottom:28px;">' +
-      '<div><div style="font-size:42px;font-weight:700;">' + totalBooks + '</div><div style="font-size:10px;color:#7C6D94;letter-spacing:0.08em;">BOOKS READ</div></div>' +
-      '<div><div style="font-size:42px;font-weight:700;">' + totalPages.toLocaleString() + '</div><div style="font-size:10px;color:#7C6D94;letter-spacing:0.08em;">PAGES TURNED</div></div>' +
-      '</div>' +
-      '<div style="display:flex;gap:34px;">' +
-      '<div><div style="font-size:22px;font-weight:700;">' + (avgRating ? avgRating.toFixed(1) + ' ★' : '—') + '</div><div style="font-size:9px;color:#7C6D94;letter-spacing:0.08em;">AVG RATING</div></div>' +
-      '<div><div style="font-size:22px;font-weight:700;max-width:220px;">' + escapeHtml(topGenre) + '</div><div style="font-size:9px;color:#7C6D94;letter-spacing:0.08em;">TOP GENRE</div></div>' +
-      '</div>' +
-      (totalBooks === 0 ? '<div style="color:#B8ABCB;font-size:12px;margin-top:26px;">No finished books in this period yet.</div>' : '') +
-      '</div>';
-    return wrappedPageChrome(inner, pageNum, totalPageCount);
-  }
-
-  function buildWrappedBookPage(pageBooks, periodLabel, pageNum, totalPageCount){
-    var items = pageBooks.map(function(b){
-      var coverHtml = b.cover
-        ? '<img src="' + b.cover + '" style="width:100%;height:100%;object-fit:cover;">'
-        : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:4px;text-align:center;font-size:8px;color:#7C6D94;">' + escapeHtml(b.title) + '</div>';
-      return '<div style="width:84px;">' +
-        '<div style="width:84px;height:124px;border-radius:5px;overflow:hidden;box-shadow:0 2px 6px rgba(59,42,85,0.2);background:#F5EEFC;">' + coverHtml + '</div>' +
-        '<div style="font-size:8px;font-weight:700;margin-top:4px;max-width:84px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(b.title) + '</div>' +
-        '</div>';
-    }).join('');
-
-    var inner = '<div style="text-align:center;margin-bottom:16px;flex:none;">' +
-      '<div style="font-family:\'Dancing Script\',cursive;font-weight:700;color:#6B4E93;font-size:19px;">Hiraya Manawari</div>' +
-      '<div style="font-size:9px;letter-spacing:0.14em;color:#7C6D94;">' + escapeHtml(periodLabel.toUpperCase()) + ' IN BOOKS</div>' +
-      '</div>' +
-      '<div style="flex:1;display:flex;flex-wrap:wrap;gap:12px 8px;justify-content:center;align-content:flex-start;">' + items + '</div>';
-    return wrappedPageChrome(inner, pageNum, totalPageCount);
-  }
-
-  function getSelectedWrappedStatuses(){
-    return Array.prototype.slice.call(document.querySelectorAll('.wrappedStatusCb:checked')).map(function(cb){ return cb.value; });
-  }
-
-  function getWrappedBooks(year, monthVal, statuses){
-    return books.filter(function(b){
-      if(statuses.indexOf(b.status) === -1) return false;
-      if(!b.dateFinished) return false;
-      var d = new Date(b.dateFinished + 'T00:00:00');
-      if(d.getFullYear() !== year) return false;
-      if(monthVal !== '' && d.getMonth() !== parseInt(monthVal, 10)) return false;
-      return true;
-    });
-  }
-
-  function getWrappedSelection(){
-    var year = parseInt(document.getElementById('wrappedYear').value, 10);
-    var monthVal = document.getElementById('wrappedMonth').value;
-    var statuses = getSelectedWrappedStatuses();
-    var list = getWrappedBooks(year, monthVal, statuses);
-    var label = monthVal === '' ? String(year) : (monthName(parseInt(monthVal, 10)) + ' ' + year);
-    return {list: list, label: label, year: year, monthVal: monthVal, statuses: statuses};
-  }
-
-  function populateWrappedYearOptions(){
-    var years = {};
-    books.forEach(function(b){
-      if(b.dateFinished){ years[new Date(b.dateFinished + 'T00:00:00').getFullYear()] = true; }
-    });
-    var yearList = Object.keys(years).map(Number).sort(function(a, b){ return b - a; });
-    var currentYear = new Date().getFullYear();
-    if(yearList.indexOf(currentYear) === -1) yearList.unshift(currentYear);
-    document.getElementById('wrappedYear').innerHTML = yearList.map(function(y){ return '<option value="' + y + '">' + y + '</option>'; }).join('');
-  }
-
-  function populateWrappedMonthOptions(){
-    var opts = '<option value="">Whole year</option>';
-    for(var m = 0; m < 12; m++){ opts += '<option value="' + m + '">' + monthName(m) + '</option>'; }
-    document.getElementById('wrappedMonth').innerHTML = opts;
-  }
-
-  function renderWrappedSummary(){
-    var sel = getWrappedSelection();
-    var bookPageCount = Math.ceil(sel.list.length / WRAPPED_BOOKS_PER_PAGE) || 0;
-    var totalPageCount = 1 + bookPageCount;
-    if(!sel.statuses.length){
-      document.getElementById('wrappedPreviewWrap').innerHTML =
-        '<div style="text-align:center;padding:24px 10px;background:var(--card);border:1px solid var(--line);border-radius:10px;color:var(--dnf-deep);font-size:13px;">Pick at least one status to include.</div>';
-      return;
-    }
-    document.getElementById('wrappedPreviewWrap').innerHTML =
-      '<div style="text-align:center;padding:24px 10px;background:var(--card);border:1px solid var(--line);border-radius:10px;">' +
-      '<div style="font-size:16px;color:var(--ink);font-weight:600;margin-bottom:6px;">' + sel.list.length + ' book' + (sel.list.length === 1 ? '' : 's') + ' matched for ' + escapeHtml(sel.label) + '</div>' +
-      '<div style="font-size:13px;color:var(--muted);">This will generate a ' + totalPageCount + '-page A5 PDF — a summary page' + (bookPageCount ? ' plus ' + bookPageCount + ' page' + (bookPageCount === 1 ? '' : 's') + ' of covers (up to ' + WRAPPED_BOOKS_PER_PAGE + ' per page)' : '') + '.</div>' +
-      '</div>';
-  }
-
-  document.getElementById('exportWrappedBtn').onclick = function(){
-    document.getElementById('exportMenu').style.display = 'none';
-    populateWrappedYearOptions();
-    populateWrappedMonthOptions();
-    document.getElementById('wrappedMonth').value = '';
-    document.querySelectorAll('.wrappedStatusCb').forEach(function(cb){ cb.checked = cb.value === 'finished'; });
-    renderWrappedSummary();
-    document.getElementById('wrappedOverlay').style.display = 'flex';
-  };
-  document.getElementById('wrappedYear').addEventListener('change', renderWrappedSummary);
-  document.getElementById('wrappedMonth').addEventListener('change', renderWrappedSummary);
-  document.querySelectorAll('.wrappedStatusCb').forEach(function(cb){
-    cb.addEventListener('change', renderWrappedSummary);
-  });
-  document.getElementById('wrappedCancelBtn').onclick = function(){ document.getElementById('wrappedOverlay').style.display = 'none'; };
-  document.getElementById('wrappedOverlay').addEventListener('click', function(e){
-    if(e.target.id === 'wrappedOverlay') document.getElementById('wrappedOverlay').style.display = 'none';
-  });
-
-  document.getElementById('wrappedDownloadBtn').onclick = function(){
-    var sel = getWrappedSelection();
-    if(!sel.statuses.length){
-      showBanner('Pick at least one status to include before downloading.');
-      return;
-    }
-    var bookPages = [];
-    for(var i = 0; i < sel.list.length; i += WRAPPED_BOOKS_PER_PAGE){
-      bookPages.push(sel.list.slice(i, i + WRAPPED_BOOKS_PER_PAGE));
-    }
-    var totalPageCount = 1 + bookPages.length;
-
-    var btn = document.getElementById('wrappedDownloadBtn');
-    var originalText = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = 'Generating PDF...';
-
-    function finish(){ btn.disabled = false; btn.textContent = originalText; }
-
-    function doGenerate(){
-      var host = document.createElement('div');
-      host.style.position = 'fixed';
-      host.style.left = '-9999px';
-      host.style.top = '0';
-      document.body.appendChild(host);
-
-      var pdf = new window.jspdf.jsPDF({unit: 'mm', format: 'a5', orientation: 'portrait'});
-
-      function renderPage(html){
-        host.innerHTML = html;
-        return window.html2canvas(host.firstChild, {scale: 2, backgroundColor: null, useCORS: true});
-      }
-
-      renderPage(buildWrappedStatsPage(sel.list, sel.label, 1, totalPageCount))
-        .then(function(canvas){
-          pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 148, 210);
-          var chain = Promise.resolve();
-          bookPages.forEach(function(pageBooks, idx){
-            chain = chain.then(function(){
-              return renderPage(buildWrappedBookPage(pageBooks, sel.label, idx + 2, totalPageCount)).then(function(canvas2){
-                pdf.addPage('a5', 'portrait');
-                pdf.addImage(canvas2.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 148, 210);
-              });
-            });
-          });
-          return chain;
-        })
-        .then(function(){
-          document.body.removeChild(host);
-          var suffix = sel.monthVal === '' ? sel.year : (monthName(parseInt(sel.monthVal, 10)).toLowerCase() + '-' + sel.year);
-          pdf.save('hiraya-manawari-wrapped-' + suffix + '.pdf');
-          finish();
-          document.getElementById('wrappedOverlay').style.display = 'none';
-        })
-        .catch(function(){
-          if(host.parentNode) document.body.removeChild(host);
-          showBanner("Couldn't generate the PDF. Try again.");
-          finish();
-        });
-    }
-
-    if(document.fonts && document.fonts.ready){
-      document.fonts.ready.then(doGenerate);
-    } else {
-      setTimeout(doGenerate, 300);
-    }
-  };
-
-  // ===================== CSV import (Goodreads / StoryGraph) =====================
-  function parseCsv(text){
-    var rows = [];
-    var i = 0, field = '', row = [], inQuotes = false;
-    while(i < text.length){
-      var c = text[i];
-      if(inQuotes){
-        if(c === '"'){
-          if(text[i + 1] === '"'){ field += '"'; i += 2; continue; }
-          inQuotes = false; i++; continue;
-        }
-        field += c; i++; continue;
-      } else {
-        if(c === '"'){ inQuotes = true; i++; continue; }
-        if(c === ','){ row.push(field); field = ''; i++; continue; }
-        if(c === '\r'){ i++; continue; }
-        if(c === '\n'){ row.push(field); rows.push(row); row = []; field = ''; i++; continue; }
-        field += c; i++; continue;
-      }
-    }
-    if(field.length || row.length){ row.push(field); rows.push(row); }
-    return rows;
-  }
-
-  function findCol(headers, candidates){
-    for(var c = 0; c < candidates.length; c++){
-      var idx = headers.findIndex(function(h){ return h.toLowerCase().trim() === candidates[c]; });
-      if(idx !== -1) return idx;
-    }
-    for(var c2 = 0; c2 < candidates.length; c2++){
-      var idx2 = headers.findIndex(function(h){ return h.toLowerCase().indexOf(candidates[c2]) !== -1; });
-      if(idx2 !== -1) return idx2;
-    }
-    return -1;
-  }
-
-  function mapImportStatus(raw){
-    if(!raw) return 'want';
-    var s = raw.toLowerCase().trim();
-    if(s.indexOf('currently') !== -1 || s === 'reading') return 'reading';
-    if(s.indexOf('did not finish') !== -1 || s.indexOf('dnf') !== -1) return 'dnf';
-    if(s.indexOf('hold') !== -1) return 'hold';
-    if(s.indexOf('to-read') !== -1 || s.indexOf('to read') !== -1 || s.indexOf('want') !== -1) return 'want';
-    if(s.indexOf('finished') !== -1 || s === 'read' || s.indexOf('read') !== -1) return 'finished';
-    return 'want';
-  }
-
-  function dedupeKey(title, author){
-    return (title || '').trim().toLowerCase() + '|' + (author || '').trim().toLowerCase();
-  }
-
-  function normalizeFormat(raw){
-    if(!raw) return '';
-    var s = raw.toLowerCase();
-    if(s.indexOf('audio') !== -1) return 'Audiobook';
-    if(s.indexOf('paper') !== -1 || s.indexOf('physical') !== -1 || s.indexOf('hardcover') !== -1 || s.indexOf('print') !== -1) return 'Paperback';
-    if(s.indexOf('ebook') !== -1 || s.indexOf('e-book') !== -1 || s.indexOf('epub') !== -1 || s.indexOf('kindle') !== -1 || s.indexOf('digital') !== -1) return 'eBook / ePub';
-    return '';
-  }
-
-  function normalizeOwnership(raw){
-    if(!raw) return 'Owned';
-    return raw.toLowerCase().indexOf('borrow') !== -1 ? 'Borrowed' : 'Owned';
-  }
-
-  function normalizeDate(raw){
-    if(!raw) return '';
-    var m = raw.trim().match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
-    if(!m) return '';
-    return m[1] + '-' + pad2(parseInt(m[2], 10)) + '-' + pad2(parseInt(m[3], 10));
-  }
-
-  function importCsvText(text){
-    var rows = parseCsv(text);
-    if(!rows.length){ showBanner('That CSV looks empty.'); return; }
-    var headers = rows[0].map(function(h){ return h.trim(); });
-    var idxTitle = findCol(headers, ['title']);
-    var idxAuthor = findCol(headers, ['author', 'authors']);
-    var idxRating = findCol(headers, ['my rating', 'star rating', 'rating']);
-    var idxPages = findCol(headers, ['number of pages', 'total pages', 'pages']);
-    var idxCurrentPage = findCol(headers, ['current page']);
-    var idxDateRead = findCol(headers, ['date read', 'dates read', 'date finished']);
-    var idxDateStarted = findCol(headers, ['date started']);
-    var idxShelf = findCol(headers, ['exclusive shelf', 'read status', 'status']);
-    var idxSeries = findCol(headers, ['series']);
-    var idxSeriesNum = findCol(headers, ['series number', 'book number', 'series #']);
-    var idxGenre = findCol(headers, ['genre']);
-    var idxTropes = findCol(headers, ['tropes']);
-    var idxFormat = findCol(headers, ['format']);
-    var idxOwnership = findCol(headers, ['ownership']);
-    var idxBorrowDue = findCol(headers, ['borrow due date', 'return by']);
-    var idxIsArc = findCol(headers, ['is arc', 'arc']);
-    var idxArcSource = findCol(headers, ['arc source', 'provider']);
-    var idxDueDate = findCol(headers, ['due date']);
-    var idxArcFormLink = findCol(headers, ['review form link', 'arc form link']);
-    var idxDnfReason = findCol(headers, ['dnf reason']);
-    var idxNowPlaying = findCol(headers, ['now playing']);
-
-    if(idxTitle === -1){
-      showBanner("Couldn't find a Title column in that file — make sure it's a Goodreads/StoryGraph export or the Lunaria bulk-import template.");
-      return;
-    }
-
-    var existingKeys = {};
-    books.forEach(function(b){ existingKeys[dedupeKey(b.title, b.author)] = true; });
-
-    var newBooks = [];
-    var skipped = 0;
-    for(var r = 1; r < rows.length; r++){
-      var row = rows[r];
-      if(!row || !row.length || !row[idxTitle]) continue;
-      var title = row[idxTitle].trim();
-      if(!title) continue;
-      var author = idxAuthor !== -1 ? (row[idxAuthor] || '').trim() : '';
-
-      var key = dedupeKey(title, author);
-      if(existingKeys[key]){ skipped++; continue; }
-      existingKeys[key] = true; // also guards against duplicate rows within this same file
-
-      var ratingRaw = idxRating !== -1 ? parseFloat(row[idxRating]) : 0;
-      var rating = isNaN(ratingRaw) ? 0 : Math.min(5, Math.max(0, ratingRaw));
-      var pagesRaw = idxPages !== -1 ? parseInt(row[idxPages], 10) : NaN;
-      var totalPages = isNaN(pagesRaw) ? null : pagesRaw;
-      var currentPageRaw = idxCurrentPage !== -1 ? parseInt(row[idxCurrentPage], 10) : NaN;
-      var currentPage = isNaN(currentPageRaw) ? null : currentPageRaw;
-      var dateFinished = idxDateRead !== -1 ? normalizeDate(row[idxDateRead] || '') : '';
-      var dateStarted = idxDateStarted !== -1 ? normalizeDate(row[idxDateStarted] || '') : '';
-      var shelfRaw = idxShelf !== -1 ? (row[idxShelf] || '').trim() : '';
-      var status = mapImportStatus(shelfRaw);
-      if(status === 'finished' && currentPage === null) currentPage = totalPages;
-
-      var series = idxSeries !== -1 ? (row[idxSeries] || '').trim() : '';
-      var seriesNumRaw = idxSeriesNum !== -1 ? parseFloat(row[idxSeriesNum]) : NaN;
-      var seriesNumber = isNaN(seriesNumRaw) ? null : seriesNumRaw;
-      var genre = idxGenre !== -1 ? (row[idxGenre] || '').trim() : '';
-      var tropesRaw = idxTropes !== -1 ? (row[idxTropes] || '').trim() : '';
-      var tropes = tropesRaw ? tropesRaw.split(/[;,]/).map(function(t){ return t.trim(); }).filter(Boolean) : [];
-      var format = idxFormat !== -1 ? normalizeFormat(row[idxFormat] || '') : '';
-      var ownership = idxOwnership !== -1 ? normalizeOwnership(row[idxOwnership] || '') : 'Owned';
-      var borrowDueDate = idxBorrowDue !== -1 ? normalizeDate(row[idxBorrowDue] || '') : '';
-      var isARC = idxIsArc !== -1 ? /^(y|yes|true|1)$/i.test((row[idxIsArc] || '').trim()) : false;
-      var arcSource = idxArcSource !== -1 ? (row[idxArcSource] || '').trim() : '';
-      var dueDate = idxDueDate !== -1 ? normalizeDate(row[idxDueDate] || '') : '';
-      var arcFormLink = idxArcFormLink !== -1 ? (row[idxArcFormLink] || '').trim() : '';
-      var dnfReason = (status === 'dnf' && idxDnfReason !== -1) ? (row[idxDnfReason] || '').trim() : '';
-      var nowPlaying = idxNowPlaying !== -1 ? (row[idxNowPlaying] || '').trim() : '';
-
-      newBooks.push({
-        id: uid(),
-        title: title,
-        author: author,
-        status: status,
-        series: series,
-        seriesNumber: seriesNumber,
-        format: format,
-        ownership: ownership,
-        borrowDueDate: borrowDueDate,
-        isARC: isARC,
-        arcSource: arcSource,
-        dueDate: dueDate,
-        arcFormLink: arcFormLink,
-        totalPages: totalPages,
-        currentPage: currentPage,
-        dateStarted: dateStarted,
-        dateFinished: dateFinished,
-        genre: genre,
-        rating: rating,
-        tropes: tropes,
-        cover: null,
-        dnfReason: dnfReason,
-        nowPlaying: nowPlaying,
-        review: '',
-        postcardCaption: '',
-        blurb: '',
-        createdAt: Date.now(),
-        statusChangedAt: Date.now()
-      });
-
-      if(genre && genreList.indexOf(genre) === -1){ genreList.push(genre); }
-      tropes.forEach(function(t){ if(tropeList.indexOf(t) === -1) tropeList.push(t); });
-      if(arcSource && arcSourceList.indexOf(arcSource) === -1){ arcSourceList.push(arcSource); }
-    }
-
-    if(!newBooks.length){
-      if(skipped > 0){
-        showBanner('Nothing new to import — all ' + skipped + ' book' + (skipped === 1 ? '' : 's') + ' in that file ' + (skipped === 1 ? 'is' : 'are') + ' already in your library.');
-      } else {
-        showBanner('No rows could be imported from that file.');
-      }
-      return;
-    }
-
-    newBooks = newBooks.map(migrateBookToFormats);
-    books = books.concat(newBooks);
-    saveGenreList();
-    saveTropeList();
-    saveArcSourceList();
-    renderGenreFilter();
-    renderArcSourceList();
-    render();
-    var skippedNote = skipped > 0 ? (' (' + skipped + ' already in your library, skipped)') : '';
-    showBanner('Importing ' + newBooks.length + ' book' + (newBooks.length === 1 ? '' : 's') + '...' + skippedNote);
-    Promise.all(newBooks.map(function(b){ return window.cloudStore.saveBook(b); }))
-      .then(function(){ showBanner('Imported ' + newBooks.length + ' book' + (newBooks.length === 1 ? '' : 's') + skippedNote + '.'); })
-      .catch(function(){ showBanner('Imported locally, but some books failed to sync — check your connection.'); });
-  }
-
-  document.getElementById('importCsvBtn').onclick = function(){
-    document.getElementById('exportMenu').style.display = 'none';
-    document.getElementById('csvInput').click();
-  };
-  document.getElementById('csvInput').addEventListener('change', function(e){
-    var file = e.target.files[0];
-    if(!file) return;
-    var reader = new FileReader();
-    reader.onload = function(ev){ importCsvText(ev.target.result); };
-    reader.readAsText(file);
-    e.target.value = '';
-  });
-
-  window.LunariaApp = {
-    init: function(){
-      if(appInitialized) return;
-      appInitialized = true;
-      updateNavDropdownHighlights();
-      loadBooks();
-    }
-  };
-})();
-</script>
-
-</body>
-</html>
+  document.getElementById('viewI encountered an error doing what you asked. Could you try again?
