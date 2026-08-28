@@ -362,8 +362,12 @@ body[data-theme="velaris"] .reader-intro p{color:#D2C6F1;text-shadow:0 1px 6px r
 .detail-format-top{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;}
 .platform-subtabs{display:flex;gap:8px;margin-bottom:16px;}
 .platform-logo-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));gap:14px;}
-.platform-logo-card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;transition:transform 0.15s, border-color 0.15s;text-decoration:none;color:var(--ink);}
+.platform-logo-card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;transition:transform 0.15s, border-color 0.15s;text-decoration:none;color:var(--ink);}
 .platform-logo-card:hover{transform:translateY(-2px);border-color:var(--accent);background:var(--card-hover);}
+.platform-logo-edit-btn{position:absolute;top:6px;right:6px;background:var(--card);border:1px solid var(--line-strong);border-radius:50%;width:22px;height:22px;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);}
+.platform-logo-edit-btn:hover{color:var(--accent-deep);border-color:var(--accent);}
+.platform-direct-badge{font-size:9.5px;color:var(--accent-deep);margin-top:2px;font-family:var(--font-mono);}
+.platform-audio-flag{margin-left:4px;}
 .platform-logo-img-wrap{width:72px;height:72px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;}
 .platform-logo-img-wrap img{width:100%;height:100%;object-fit:contain;}
 .platform-logo-title{font-weight:700;font-size:13px;}
@@ -878,38 +882,16 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         <label>Book # in series</label>
         <input type="number" id="f_seriesNum" min="0" step="0.5" placeholder="1">
       </div>
-      <div class="checkbox-row" id="f_isArcRow">
-        <input type="checkbox" id="f_isArc">
-        <label for="f_isArc">This is an ARC (advance reader copy)</label>
-      </div>
-      <div id="arcFields" style="display:none;">
-        <div class="field-row">
-          <div class="field">
-            <label>ARC source <button type="button" class="manage-link" id="openManageArcBtn">Manage list</button></label>
-            <input type="text" id="f_arcSource" list="arcSourceOptions" placeholder="NetGalley, a promoter, a publisher...">
-            <datalist id="arcSourceOptions"></datalist>
-            <p class="hint">Type any source — new ones are saved for next time.</p>
-          </div>
-          <div class="field">
-            <label>Review due date</label>
-            <input type="date" id="f_dueDate" lang="en-US">
-          </div>
-        </div>
-        <div class="field">
-          <label>Review form link</label>
-          <input type="text" id="f_arcFormLink" placeholder="https://forms.gle/...">
-          <p class="hint">If the promoter needs a feedback form filled out, paste the link here.</p>
-        </div>
-      </div>
 
       <div class="field" style="margin-top:6px;">
-        <label>Formats <span style="font-weight:normal;color:var(--muted);">(select every format you have — each gets its own cover, status, and progress)</span></label>
-        <div class="checkbox-row" style="gap:16px;flex-wrap:wrap;">
+        <label>Formats <span style="font-weight:normal;color:var(--muted);">(each gets its own cover, status, progress — and its own ARC info)</span></label>
+        <div class="checkbox-row" id="formatCheckboxRow" style="gap:16px;flex-wrap:wrap;display:none;">
           <span><input type="checkbox" class="f_formatType" value="Paperback" id="f_fmt_paperback"> <label for="f_fmt_paperback" style="display:inline;">Paperback</label></span>
           <span><input type="checkbox" class="f_formatType" value="eBook / ePub" id="f_fmt_ebook"> <label for="f_fmt_ebook" style="display:inline;">eBook / ePub</label></span>
           <span><input type="checkbox" class="f_formatType" value="Audiobook" id="f_fmt_audiobook"> <label for="f_fmt_audiobook" style="display:inline;">Audiobook</label></span>
         </div>
-        <p class="hint" id="noFormatsHint">Pick at least one format to track status and progress.</p>
+        <button type="button" class="manage-link" id="addAnotherFormatBtn" style="margin-top:2px;">+ Add another format</button>
+        <p class="hint" id="noFormatsHint" style="display:none;">Pick at least one format to track status and progress.</p>
       </div>
       <div id="formatPanels"></div>
 
@@ -1119,6 +1101,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     <div class="field">
       <label>Logo image URL</label>
       <input type="url" id="platformAddLogo" placeholder="https://...">
+    </div>
+    <div class="field" id="platformAddDirectField" style="display:none;">
+      <label style="display:flex;align-items:center;gap:8px;font-weight:400;">
+        <input type="checkbox" id="platformAddDirectInput" style="width:auto;">
+        This is "straight from the author or publisher" (groups by author instead of listing books)
+      </label>
     </div>
     <div class="field" id="platformAddUrlField" style="display:none;">
       <label>Website / profile URL</label>
@@ -1643,9 +1631,39 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       ownership: b.ownership || '',
       borrowDueDate: b.borrowDueDate || '',
       dnfReason: b.dnfReason || '',
-      rating: b.rating || 0
+      rating: b.rating || 0,
+      isARC: !!b.isARC,
+      arcSource: b.arcSource || '',
+      dueDate: b.dueDate || '',
+      arcFormLink: b.arcFormLink || '',
+      platformId: b.platformId || ''
     };
     b.formats = legacyType ? [inst] : [];
+    b._arcMigrated = true;
+    return b;
+  }
+
+  // Second-pass migration: books that already had a formats[] array (from
+  // before ARC info moved per-format) still have isARC/arcSource/dueDate/
+  // arcFormLink sitting at the book level only. Since a book could have had
+  // several formats before this change with no record of which one was the
+  // actual ARC, this makes a single best guess — the "primary" (most active)
+  // format — and copies the book's ARC info onto that one. Books with only
+  // one format at migration time are unambiguous. Runs once per book (marked
+  // via _arcMigrated) so it never re-copies stale book-level data later.
+  function migrateArcFieldsToFormats(b){
+    if(b._arcMigrated) return b;
+    if(b.isARC && b.formats && b.formats.length){
+      var target = primaryFormatFor(b.formats) || b.formats[0];
+      if(target && !target.isARC){
+        target.isARC = true;
+        target.arcSource = b.arcSource || '';
+        target.dueDate = b.dueDate || '';
+        target.arcFormLink = b.arcFormLink || '';
+        if(target.type !== 'Paperback' && !target.platformId) target.platformId = b.platformId || '';
+      }
+    }
+    b._arcMigrated = true;
     return b;
   }
   function migrateAllBooks(list){
@@ -1654,6 +1672,10 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       if(!b.formats || !Array.isArray(b.formats) || !b.formats.length){
         touched = true;
         return migrateBookToFormats(b);
+      }
+      if(!b._arcMigrated){
+        touched = true;
+        return migrateArcFieldsToFormats(b);
       }
       return b;
     });
@@ -1854,8 +1876,21 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
 
   function renderArcSourceList(){
-    var dl = document.getElementById('arcSourceOptions');
-    dl.innerHTML = arcSourceList.map(function(s){ return '<option value="' + escapeHtml(s) + '">'; }).join('');
+    // No-op now: ARC source pickers are <select> dropdowns rebuilt fresh from
+    // arcSourceList every time a format panel or quick-edit view renders, so
+    // there's no persistent DOM element (like the old datalist) to refresh here.
+    // Kept as a function so existing call sites after list edits don't need touching.
+  }
+
+  function arcSourceOptionsHtml(selected){
+    var opts = '<option value="">Select a source…</option>';
+    arcSourceList.forEach(function(s){
+      opts += '<option value="' + escapeHtml(s) + '"' + (s === selected ? ' selected' : '') + '>' + escapeHtml(s) + '</option>';
+    });
+    if(selected && arcSourceList.indexOf(selected) === -1){
+      opts += '<option value="' + escapeHtml(selected) + '" selected>' + escapeHtml(selected) + '</option>';
+    }
+    return opts;
   }
 
   function daysUntil(dateStr){
@@ -2076,7 +2111,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     return b.format ? [{
       type: b.format, status: b.status, totalPages: b.totalPages, currentPage: b.currentPage,
       ownership: b.ownership, borrowDueDate: b.borrowDueDate, dnfReason: b.dnfReason, cover: b.cover,
-      rating: b.rating || 0
+      rating: b.rating || 0, isARC: !!b.isARC, arcSource: b.arcSource || '', dueDate: b.dueDate || '',
+      arcFormLink: b.arcFormLink || '', platformId: b.platformId || ''
     }] : [];
   }
 
@@ -2106,8 +2142,10 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   function effectiveDueDate(b){
     var candidates = [];
-    if(b.isARC && b.dueDate && !bookIsFullyDone(b)) candidates.push(b.dueDate);
     formatInstancesOf(b).forEach(function(f){
+      if(f.isARC && f.dueDate && f.status !== 'finished' && f.status !== 'dnf'){
+        candidates.push(f.dueDate);
+      }
       if(f.type === 'Paperback' && f.ownership === 'Borrowed' && f.borrowDueDate &&
          f.status !== 'finished' && f.status !== 'dnf' && f.status !== 'hold' && f.status !== 'requested'){
         candidates.push(f.borrowDueDate);
@@ -2687,7 +2725,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   document.getElementById('openManageGenreBtn').onclick = function(){ openManageModal('genre'); };
   document.getElementById('openManageTropeBtn').onclick = function(){ openManageModal('trope'); };
-  document.getElementById('openManageArcBtn').onclick = function(){ openManageModal('arc'); };
   document.getElementById('manageCloseBtn').onclick = function(){ document.getElementById('manageOverlay').style.display = 'none'; };
   document.getElementById('manageOverlay').addEventListener('click', function(e){
     if(e.target.id === 'manageOverlay') document.getElementById('manageOverlay').style.display = 'none';
@@ -2796,6 +2833,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       var isPaperback = type === 'Paperback';
       var cover = formatPendingCovers[type] || st.cover || '';
       var coverHtml = cover ? '<img src="' + cover + '" alt="">' : '<span class="ph">No cover</span>';
+      var isArc = !!st.isARC;
       return '' +
         '<div class="field format-panel" style="border:1px solid var(--line-strong);border-radius:10px;padding:12px;margin-bottom:12px;background:var(--card-hover);">' +
           '<label style="font-weight:bold;">' + escapeHtml(type) + '</label>' +
@@ -2824,12 +2862,32 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
               '<input type="text" class="fmtDnfReason" data-type="' + escapeHtml(type) + '" id="fmtDnfReason_' + key + '" value="' + escapeHtml(st.dnfReason || '') + '">' +
             '</div>' +
           '</div>' +
-          (type !== 'Paperback' ?
+          '<div class="checkbox-row" style="margin:4px 0 8px;">' +
+            '<input type="checkbox" class="fmtIsArc" data-type="' + escapeHtml(type) + '" id="fmtIsArc_' + key + '"' + (isArc ? ' checked' : '') + '>' +
+            '<label for="fmtIsArc_' + key + '">This copy is an ARC (advance reader copy)</label>' +
+          '</div>' +
+          '<div class="fmtArcFields" id="fmtArcFields_' + key + '" style="display:' + (isArc ? 'block' : 'none') + ';">' +
+            '<div class="field-row">' +
+              '<div class="field">' +
+                '<label>ARC source <button type="button" class="manage-link fmtManageArcBtn">Manage list</button></label>' +
+                '<select class="fmtArcSource" data-type="' + escapeHtml(type) + '" id="fmtArcSource_' + key + '">' + arcSourceOptionsHtml(st.arcSource || '') + '</select>' +
+              '</div>' +
+              '<div class="field">' +
+                '<label>Review due date</label>' +
+                '<input type="date" class="fmtDueDate" data-type="' + escapeHtml(type) + '" id="fmtDueDate_' + key + '" value="' + (st.dueDate || '') + '" lang="en-US">' +
+              '</div>' +
+            '</div>' +
             '<div class="field">' +
-              '<label>Platform ID <span style="font-weight:normal;color:var(--muted);">(auto-suggested from ARC source, editable)</span></label>' +
-              '<input type="text" class="fmtPlatformId" data-type="' + escapeHtml(type) + '" id="fmtPlatformId_' + key + '" placeholder="e.g. NG001" value="' + escapeHtml(st.platformId || '') + '">' +
-            '</div>'
-          : '') +
+              '<label>Review form link</label>' +
+              '<input type="text" class="fmtArcFormLink" data-type="' + escapeHtml(type) + '" id="fmtArcFormLink_' + key + '" placeholder="https://forms.gle/..." value="' + escapeHtml(st.arcFormLink || '') + '">' +
+            '</div>' +
+            (type !== 'Paperback' ?
+              '<div class="field">' +
+                '<label>Platform ID <span style="font-weight:normal;color:var(--muted);">(auto-suggested from ARC source, editable)</span></label>' +
+                '<input type="text" class="fmtPlatformId" data-type="' + escapeHtml(type) + '" id="fmtPlatformId_' + key + '" placeholder="e.g. NG001" value="' + escapeHtml(st.platformId || '') + '">' +
+              '</div>'
+            : '') +
+          '</div>' +
           '<div class="field-row">' +
             '<div class="field">' +
               '<label>' + (isAudiobook ? 'Total chapters' : 'Total pages') + '</label>' +
@@ -2891,6 +2949,48 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         formatPanelState[type].rating = v;
         document.getElementById('fmtStarPreview_' + key).textContent = starsPlain(v);
       });
+      var isArcEl = document.getElementById('fmtIsArc_' + key);
+      isArcEl.addEventListener('change', function(){
+        formatPanelState[type] = formatPanelState[type] || {};
+        formatPanelState[type].isARC = this.checked;
+        document.getElementById('fmtArcFields_' + key).style.display = this.checked ? 'block' : 'none';
+        if(this.checked && !formatPanelState[type].platformId){
+          var srcEl = document.getElementById('fmtArcSource_' + key);
+          if(srcEl && srcEl.value) formatPanelState[type].platformId = suggestNextPlatformId(srcEl.value);
+          var pidEl = document.getElementById('fmtPlatformId_' + key);
+          if(pidEl) pidEl.value = formatPanelState[type].platformId || '';
+        }
+      });
+      var arcSourceEl = document.getElementById('fmtArcSource_' + key);
+      if(arcSourceEl){
+        arcSourceEl.addEventListener('change', function(){
+          formatPanelState[type] = formatPanelState[type] || {};
+          formatPanelState[type].arcSource = this.value;
+          if(this.value && !formatPanelState[type].platformId){
+            formatPanelState[type].platformId = suggestNextPlatformId(this.value);
+            var pidEl = document.getElementById('fmtPlatformId_' + key);
+            if(pidEl) pidEl.value = formatPanelState[type].platformId;
+          }
+        });
+      }
+      var dueDateEl = document.getElementById('fmtDueDate_' + key);
+      if(dueDateEl){
+        dueDateEl.addEventListener('input', function(){
+          formatPanelState[type] = formatPanelState[type] || {};
+          formatPanelState[type].dueDate = this.value;
+        });
+      }
+      var formLinkEl = document.getElementById('fmtArcFormLink_' + key);
+      if(formLinkEl){
+        formLinkEl.addEventListener('input', function(){
+          formatPanelState[type] = formatPanelState[type] || {};
+          formatPanelState[type].arcFormLink = this.value.trim();
+        });
+      }
+      var manageArcBtn = container.querySelector('#fmtArcFields_' + key + ' .fmtManageArcBtn');
+      if(manageArcBtn){
+        manageArcBtn.addEventListener('click', function(){ openManageModal('arc'); });
+      }
       var platformIdEl = document.getElementById('fmtPlatformId_' + key);
       if(platformIdEl){
         platformIdEl.addEventListener('input', function(){
@@ -2923,40 +3023,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
 
   document.querySelectorAll('.f_formatType').forEach(function(cb){
-    cb.addEventListener('change', function(){
-      // Auto-suggest a platform ID the moment a qualifying format is freshly
-      // checked (only if it doesn't already have one, and we have a source to
-      // base the prefix on) — never overwrites something already typed.
-      if(cb.checked){
-        var type = cb.value;
-        var hasId = formatPanelState[type] && formatPanelState[type].platformId;
-        var isArc = document.getElementById('f_isArc').checked;
-        var source = document.getElementById('f_arcSource').value.trim();
-        if(type !== 'Paperback' && !hasId && isArc && source){
-          formatPanelState[type] = formatPanelState[type] || {};
-          formatPanelState[type].platformId = suggestNextPlatformId(source);
-        }
-      }
-      renderFormatPanels();
-    });
-  });
-
-  // If the ARC source is set/changed after a qualifying format is already
-  // checked, backfill its Platform ID — but only while that field is still
-  // empty, so it never clobbers something the user typed themselves.
-  document.getElementById('f_arcSource').addEventListener('change', function(){
-    var source = this.value.trim();
-    if(!document.getElementById('f_isArc').checked || !source) return;
-    checkedFormatTypes().forEach(function(type){
-      if(type === 'Paperback') return;
-      var hasId = formatPanelState[type] && formatPanelState[type].platformId;
-      if(hasId) return;
-      formatPanelState[type] = formatPanelState[type] || {};
-      formatPanelState[type].platformId = suggestNextPlatformId(source);
-      var key = fmtKey(type);
-      var el = document.getElementById('fmtPlatformId_' + key);
-      if(el) el.value = formatPanelState[type].platformId;
-    });
+    cb.addEventListener('change', renderFormatPanels);
   });
 
   // Reads whatever is currently unsaved in each format panel's inputs back
@@ -2971,11 +3038,21 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       var dnfEl = document.getElementById('fmtDnfReason_' + key);
       var borrowEl = document.getElementById('fmtBorrowDue_' + key);
       var ratingEl = document.getElementById('fmtRating_' + key);
+      var isArcEl = document.getElementById('fmtIsArc_' + key);
+      var arcSourceEl = document.getElementById('fmtArcSource_' + key);
+      var dueDateEl = document.getElementById('fmtDueDate_' + key);
+      var formLinkEl = document.getElementById('fmtArcFormLink_' + key);
+      var platformIdEl = document.getElementById('fmtPlatformId_' + key);
       if(totalEl) formatPanelState[type].totalPages = totalEl.value ? Number(totalEl.value) : null;
       if(currentEl) formatPanelState[type].currentPage = currentEl.value ? Number(currentEl.value) : null;
       if(dnfEl) formatPanelState[type].dnfReason = dnfEl.value.trim();
       if(borrowEl) formatPanelState[type].borrowDueDate = borrowEl.value || '';
       if(ratingEl) formatPanelState[type].rating = ratingEl.value ? Math.round(parseFloat(ratingEl.value) * 4) / 4 : 0;
+      if(isArcEl) formatPanelState[type].isARC = isArcEl.checked;
+      if(arcSourceEl) formatPanelState[type].arcSource = arcSourceEl.value;
+      if(dueDateEl) formatPanelState[type].dueDate = dueDateEl.value;
+      if(formLinkEl) formatPanelState[type].arcFormLink = formLinkEl.value.trim();
+      if(platformIdEl) formatPanelState[type].platformId = platformIdEl.value.trim();
     });
   }
 
@@ -2988,6 +3065,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       var st = formatPanelState[type] || {};
       var existing = existingById[type];
       var cover = formatPendingCovers.hasOwnProperty(type) ? formatPendingCovers[type] : (existing ? existing.cover : '');
+      var isArc = !!st.isARC;
       return {
         id: existing ? existing.id : fmtUid(),
         type: type,
@@ -2999,7 +3077,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         ownership: type === 'Paperback' ? (st.ownership || 'Owned') : '',
         borrowDueDate: (type === 'Paperback' && st.ownership === 'Borrowed') ? (st.borrowDueDate || '') : '',
         rating: st.rating || 0,
-        platformId: type !== 'Paperback' ? (st.platformId || '') : ''
+        isARC: isArc,
+        arcSource: isArc ? (st.arcSource || '') : '',
+        dueDate: isArc ? (st.dueDate || '') : '',
+        arcFormLink: isArc ? (st.arcFormLink || '') : '',
+        platformId: (type !== 'Paperback' && isArc) ? (st.platformId || '') : ''
       };
     });
   }
@@ -3023,9 +3105,23 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         borrowDueDate: f.borrowDueDate || '',
         cover: f.cover || '',
         rating: f.rating || 0,
-        platformId: f.platformId || ''
+        platformId: f.platformId || '',
+        isARC: !!f.isARC,
+        arcSource: f.arcSource || '',
+        dueDate: f.dueDate || '',
+        arcFormLink: f.arcFormLink || ''
       };
     });
+    // Progressive disclosure: if there's 0 or 1 format, hide the checkbox row
+    // and default a brand-new book straight into an eBook panel — the common
+    // case — rather than making every add start with three checkboxes.
+    var revealCheckboxes = formats.length > 1;
+    if(!book && formats.length === 0){
+      var ebookCb = document.querySelector('.f_formatType[value="eBook / ePub"]');
+      if(ebookCb) ebookCb.checked = true;
+    }
+    document.getElementById('formatCheckboxRow').style.display = revealCheckboxes ? 'flex' : 'none';
+    document.getElementById('addAnotherFormatBtn').style.display = revealCheckboxes ? 'none' : 'inline-block';
     renderFormatPanels();
   }
 
@@ -3060,6 +3156,17 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     data.borrowDueDate = primary ? primary.borrowDueDate : '';
     data.rating = primary ? (primary.rating || 0) : 0;
     data.cover = primary ? (primary.cover || pendingCover || null) : (pendingCover || null);
+    // ARC info now lives per-format; mirror whichever format is actually
+    // marked ARC (preferring the same priority order as primaryFormatFor)
+    // onto the book level, so older code that still reads b.isARC/arcSource
+    // directly (postcards, PDF export, CSV) keeps showing something sensible.
+    var arcFormats = (data.formats || []).filter(function(f){ return f.isARC; });
+    var arcPrimary = arcFormats.length ? primaryFormatFor(arcFormats) : null;
+    data.isARC = !!arcPrimary;
+    data.arcSource = arcPrimary ? (arcPrimary.arcSource || '') : '';
+    data.dueDate = arcPrimary ? (arcPrimary.dueDate || '') : '';
+    data.arcFormLink = arcPrimary ? (arcPrimary.arcFormLink || '') : '';
+    data.platformId = arcPrimary ? (arcPrimary.platformId || '') : '';
     return data;
   }
 
@@ -3135,10 +3242,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     document.getElementById('f_author').value = b ? b.author || '' : '';
     document.getElementById('f_series').value = b ? b.series || '' : '';
     document.getElementById('f_seriesNum').value = b && (b.seriesNumber || b.seriesNumber === 0) ? b.seriesNumber : '';
-    document.getElementById('f_isArc').checked = b ? !!b.isARC : false;
-    document.getElementById('f_arcSource').value = b ? b.arcSource || '' : '';
-    document.getElementById('f_dueDate').value = b ? b.dueDate || '' : '';
-    document.getElementById('f_arcFormLink').value = b ? b.arcFormLink || '' : '';
     document.getElementById('f_dateStarted').value = b ? b.dateStarted || '' : '';
     document.getElementById('f_dateFinished').value = b ? b.dateFinished || '' : '';
     renderGenreSelect(b ? b.genre || '' : '');
@@ -3155,7 +3258,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     renderTropeChips();
     renderTropeOptions();
     document.getElementById('tropeSearchInput').value = '';
-    document.getElementById('arcFields').style.display = document.getElementById('f_isArc').checked ? 'block' : 'none';
     populateFormatUI(b);
     document.getElementById('overlay').style.display = 'flex';
     if(!isReviewOnly) document.getElementById('f_title').focus();
@@ -3168,13 +3270,13 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
 
   document.getElementById('addBtn').onclick = function(){ openModal(null); };
+  document.getElementById('addAnotherFormatBtn').onclick = function(){
+    document.getElementById('formatCheckboxRow').style.display = 'flex';
+    document.getElementById('addAnotherFormatBtn').style.display = 'none';
+  };
   document.getElementById('cancelBtn').onclick = closeModal;
   document.getElementById('overlay').addEventListener('click', function(e){
     if(e.target.id === 'overlay') closeModal();
-  });
-
-  document.getElementById('f_isArc').addEventListener('change', function(e){
-    document.getElementById('arcFields').style.display = e.target.checked ? 'block' : 'none';
   });
 
   document.getElementById('addBlurbLink').addEventListener('click', function(e){
@@ -3199,10 +3301,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       series: document.getElementById('f_series').value.trim(),
       seriesNumber: document.getElementById('f_seriesNum').value ? Number(document.getElementById('f_seriesNum').value) : null,
       formats: formats,
-      isARC: document.getElementById('f_isArc').checked,
-      arcSource: document.getElementById('f_isArc').checked ? document.getElementById('f_arcSource').value.trim() : '',
-      dueDate: document.getElementById('f_isArc').checked ? document.getElementById('f_dueDate').value : '',
-      arcFormLink: document.getElementById('f_isArc').checked ? document.getElementById('f_arcFormLink').value.trim() : '',
       dateStarted: document.getElementById('f_dateStarted').value,
       dateFinished: document.getElementById('f_dateFinished').value,
       genre: document.getElementById('f_genre').value,
@@ -3212,12 +3310,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       tropes: selectedTropes.slice()
     };
     applyLegacyFieldsFromFormats(data);
-
-    if(data.arcSource && arcSourceList.indexOf(data.arcSource) === -1){
-      arcSourceList.push(data.arcSource);
-      saveArcSourceList();
-      renderArcSourceList();
-    }
 
     var finalBook = data;
     if(editingId){
@@ -5021,7 +5113,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     if(platformsSubTab === 'teams' && platformsDrilldownTeam){
       bodyHtml = buildPlatformTeamTableHtml(platformsDrilldownTeam);
     } else if(platformsSubTab === 'teams'){
-      bodyHtml = buildPlatformLogoGridHtml(arcTeams, 'team');
+      bodyHtml = buildPlatformLogoGridHtml(arcTeams, 'teams');
     } else {
       bodyHtml = buildPlatformLogoGridHtml(reviewPlatforms, 'review');
     }
@@ -5038,7 +5130,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var filtered = list.filter(function(p){
       if(!query) return true;
       if(p.name.toLowerCase().indexOf(query) !== -1) return true;
-      if(kind !== 'team') return false;
+      if(kind !== 'teams') return false;
       return books.some(function(b){
         if(!b.isARC || b.arcSource !== p.name) return false;
         var hay = [b.title, b.author, b.series, (b.tropes||[]).join(' '), b.review].join(' ').toLowerCase();
@@ -5047,29 +5139,34 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     });
     if(!filtered.length){
       var emptyMsg = list.length ? ('No platforms match "' + escapeHtml(platformsSearchTerm) + '".') :
-        (kind === 'team' ? 'No ARC/PR teams added yet — tap + to add one.' : 'No review platforms added yet — tap + to add one.');
+        (kind === 'teams' ? 'No ARC/PR teams added yet — tap + to add one.' : 'No review platforms added yet — tap + to add one.');
       return '<div class="cal-empty-note">' + emptyMsg + '</div>';
     }
     var cards = filtered.map(function(p){
+      var originalIndex = list.indexOf(p); // preserved through .filter(), used so edits hit the right entry even while searching
       var logoHtml = p.logo ? '<img src="' + escapeHtml(p.logo) + '" alt="">' : '<span class="ph">No logo</span>';
-      var count = kind === 'team' ? books.filter(function(b){ return b.isARC && b.arcSource === p.name; }).length : 0;
-      var subHtml = kind === 'team' ? '<div class="platform-logo-sub">' + count + ' book' + (count === 1 ? '' : 's') + '</div>' : '';
+      var count = kind === 'teams' ? books.filter(function(b){ return b.isARC && b.arcSource === p.name; }).length : 0;
+      var subHtml = kind === 'teams' ? '<div class="platform-logo-sub">' + count + ' book' + (count === 1 ? '' : 's') + '</div>' : '';
+      var directBadgeHtml = (kind === 'teams' && p.isAuthorDirect) ? '<div class="platform-direct-badge">Author/Publisher direct</div>' : '';
       var tag = kind === 'review' ? 'a' : 'div';
       var hrefAttr = kind === 'review' ? ' href="' + escapeHtml(p.url || '#') + '" target="_blank" rel="noopener"' : '';
+      var editBtnHtml = '<button type="button" class="platform-logo-edit-btn" data-edit-kind="' + kind + '" data-edit-index="' + originalIndex + '" title="Edit">✎</button>';
       return '<' + tag + ' class="platform-logo-card" data-platform-name="' + escapeHtml(p.name) + '"' + hrefAttr + '>' +
+        editBtnHtml +
         '<div class="platform-logo-img-wrap">' + logoHtml + '</div>' +
         '<div class="platform-logo-title">' + escapeHtml(p.name) + '</div>' +
-        subHtml +
+        subHtml + directBadgeHtml +
         '</' + tag + '>';
     }).join('');
     return '<div class="platform-logo-grid">' + cards + '</div>';
   }
 
-  // The drilled-down ARC table for one team: every ARC book assigned to that
-  // source, showing whichever format's Platform ID/status/pages apply (see
-  // formatInstanceForPlatformRow), falling back to the book's own synced
-  // status/pages for books that don't have a Platform ID set on any format.
+  // The drilled-down view for one team: normally an ARC table (see below).
+  // For teams marked "straight from author/publisher", groups by author name
+  // instead, since with dozens of individual authors a per-book table isn't
+  // useful — mirrors the old Platforms view's Author/Publisher behavior.
   function buildPlatformTeamTableHtml(teamName){
+    var team = arcTeams.find(function(t){ return t.name === teamName; });
     var query = platformsSearchTerm.trim().toLowerCase();
     var matches = books.filter(function(b){ return b.isARC && b.arcSource === teamName; });
     if(query){
@@ -5085,6 +5182,23 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     if(!matches.length){
       return header + '<div class="cal-empty-note">No books assigned to ' + escapeHtml(teamName) + ' yet.</div>';
     }
+
+    if(team && team.isAuthorDirect){
+      var authorCounts = {};
+      matches.forEach(function(b){ if(b.author) authorCounts[b.author] = (authorCounts[b.author] || 0) + 1; });
+      var authorNames = Object.keys(authorCounts).sort(function(a, b){ return a.localeCompare(b); });
+      if(!authorNames.length){
+        return header + '<div class="cal-empty-note">No authors found for ' + escapeHtml(teamName) + ' yet.</div>';
+      }
+      var authorRows = authorNames.map(function(aName, idx){
+        return '<div class="author-series-row" data-platform-author="' + escapeHtml(aName) + '">' +
+          '<span><span class="author-series-num">' + (idx + 1) + '.</span>' + escapeHtml(aName) + '</span>' +
+          '<span class="author-series-count">' + authorCounts[aName] + ' book' + (authorCounts[aName] === 1 ? '' : 's') + ' ›</span>' +
+          '</div>';
+      }).join('');
+      return header + '<div class="card platform-card">' + authorRows + '</div>';
+    }
+
     var rows = matches.map(function(b, idx){
       var fi = formatInstanceForPlatformRow(b);
       var idText = fi ? fi.platformId : String(idx + 1).padStart(3, '0');
@@ -5099,9 +5213,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       } else {
         statusText = statusLabelForValue(status, fi ? fi.type : b.format);
       }
+      var hasAudiobook = formatTypesOf(b).indexOf('Audiobook') !== -1;
+      var audioFlag = hasAudiobook ? '<span class="platform-audio-flag" title="Audiobook format available">🎧</span>' : '';
       return '<tr>' +
         '<td><strong>' + escapeHtml(idText) + '</strong></td>' +
-        '<td><button type="button" class="title-link" data-open-book-id="' + b.id + '">' + escapeHtml(b.title || 'Untitled') + '</button></td>' +
+        '<td><button type="button" class="title-link" data-open-book-id="' + b.id + '">' + escapeHtml(b.title || 'Untitled') + '</button>' + audioFlag + '</td>' +
         '<td>' + escapeHtml(b.author || '—') + '</td>' +
         '<td>' + escapeHtml(statusText) + '</td>' +
         '</tr>';
@@ -5124,7 +5240,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var reviewBtn = document.getElementById('platformsReviewTabBtn');
     if(reviewBtn) reviewBtn.onclick = function(){ platformsSubTab = 'review'; platformsDrilldownTeam = null; platformsSearchTerm = ''; renderPlatformsView(); };
     var addBtn = document.getElementById('platformAddOpenBtn');
-    if(addBtn) addBtn.onclick = openPlatformAddModal;
+    if(addBtn) addBtn.onclick = function(){ openPlatformAddModal(); };
     var backBtn = document.getElementById('platformBackToGridBtn');
     if(backBtn) backBtn.onclick = function(){ platformsDrilldownTeam = null; platformsSearchTerm = ''; renderPlatformsView(); };
     document.querySelectorAll('.platform-logo-card[data-platform-name]').forEach(function(card){
@@ -5138,19 +5254,46 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     document.querySelectorAll('.arc-table [data-open-book-id]').forEach(function(btn){
       btn.addEventListener('click', function(){ openModal(btn.getAttribute('data-open-book-id'), 'full'); });
     });
+    document.querySelectorAll('[data-platform-author]').forEach(function(row){
+      row.addEventListener('click', function(){ openAuthorPeek(row.getAttribute('data-platform-author')); });
+    });
+    document.querySelectorAll('.platform-logo-edit-btn').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        var kind = btn.getAttribute('data-edit-kind');
+        var idx = parseInt(btn.getAttribute('data-edit-index'), 10);
+        var list = kind === 'teams' ? arcTeams : reviewPlatforms;
+        openPlatformAddModal(list[idx], kind, idx);
+      });
+    });
   }
 
-  function openPlatformAddModal(){
-    document.getElementById('platformAddTitle').textContent = platformsSubTab === 'teams' ? 'Add ARC/PR Team' : 'Add Review Platform';
-    document.getElementById('platformAddUrlField').style.display = platformsSubTab === 'review' ? 'block' : 'none';
-    document.getElementById('platformAddName').value = '';
-    document.getElementById('platformAddLogo').value = '';
-    document.getElementById('platformAddUrl').value = '';
+  var platformEditIndex = null; // null = adding new; number = editing that index in the active list
+  var platformEditKind = null;
+
+  function openPlatformAddModal(existing, forceKind, editIndex){
+    var kind = forceKind || platformsSubTab;
+    platformEditKind = kind;
+    platformEditIndex = (existing && editIndex !== undefined) ? editIndex : null;
+    var isEdit = platformEditIndex !== null;
+    document.getElementById('platformAddTitle').textContent = isEdit
+      ? ('Edit ' + (kind === 'teams' ? 'ARC/PR Team' : 'Review Platform'))
+      : (kind === 'teams' ? 'Add ARC/PR Team' : 'Add Review Platform');
+    document.getElementById('platformAddUrlField').style.display = kind === 'review' ? 'block' : 'none';
+    document.getElementById('platformAddDirectField').style.display = kind === 'teams' ? 'block' : 'none';
+    document.getElementById('platformAddName').value = existing ? existing.name : '';
+    document.getElementById('platformAddLogo').value = existing ? (existing.logo || '') : '';
+    document.getElementById('platformAddUrl').value = existing ? (existing.url || '') : '';
+    document.getElementById('platformAddDirectInput').checked = existing ? !!existing.isAuthorDirect : false;
+    document.getElementById('platformAddSaveBtn').textContent = isEdit ? 'Save' : 'Add';
     document.getElementById('platformAddOverlay').style.display = 'flex';
     document.getElementById('platformAddName').focus();
   }
   function closePlatformAddModal(){
     document.getElementById('platformAddOverlay').style.display = 'none';
+    platformEditIndex = null;
+    platformEditKind = null;
   }
   document.getElementById('platformAddCancelBtn').addEventListener('click', closePlatformAddModal);
   document.getElementById('platformAddOverlay').addEventListener('click', function(e){
@@ -5160,11 +5303,21 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var name = document.getElementById('platformAddName').value.trim();
     if(!name) return;
     var logo = document.getElementById('platformAddLogo').value.trim();
-    if(platformsSubTab === 'teams'){
-      arcTeams.push({name: name, logo: logo});
+    var kind = platformEditKind || platformsSubTab;
+    if(kind === 'teams'){
+      var isAuthorDirect = document.getElementById('platformAddDirectInput').checked;
+      if(platformEditIndex !== null){
+        arcTeams[platformEditIndex] = {name: name, logo: logo, isAuthorDirect: isAuthorDirect};
+      } else {
+        arcTeams.push({name: name, logo: logo, isAuthorDirect: isAuthorDirect});
+      }
     } else {
       var url = document.getElementById('platformAddUrl').value.trim();
-      reviewPlatforms.push({name: name, logo: logo, url: url});
+      if(platformEditIndex !== null){
+        reviewPlatforms[platformEditIndex] = {name: name, logo: logo, url: url};
+      } else {
+        reviewPlatforms.push({name: name, logo: logo, url: url});
+      }
     }
     savePlatformDashboardMeta();
     closePlatformAddModal();
