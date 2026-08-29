@@ -411,6 +411,8 @@ table.arc-table tr:last-child td{border-bottom:none;}
 .search-wrap input:focus{outline:2px solid var(--accent);outline-offset:1px;}
 .search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--muted);}
 select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--card);font-family:var(--font-body);font-size:13px;color:var(--ink);cursor:pointer;}
+.toolbar-scroll .search-wrap input{padding:8px 14px 8px 34px;font-size:14px;}
+.toolbar-scroll select{padding:6px 26px 6px 10px;font-size:12.5px;}
 select:disabled{opacity:0.55;cursor:not-allowed;}
 .sort-dropdown{position:relative;}
 .sort-dropdown-btn{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--card);font-family:var(--font-body);font-size:13px;color:var(--ink);cursor:pointer;white-space:nowrap;}
@@ -1023,7 +1025,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       <input type="text" id="manageNewInput" placeholder="Add new">
       <button type="button" class="small-btn" id="manageAddBtn">Add</button>
     </div>
-    <p class="hint">Click a name to rename it — this updates any books using it too. Deleting only removes it from the picker; books that already used it keep it on their card.</p>
+    <p class="hint" id="manageHint">Click a name to rename it — this updates any books using it too. Deleting only removes it from the picker; books that already used it keep it on their card.</p>
     <div class="modal-actions">
       <button type="button" class="btn-primary" id="manageCloseBtn">Done</button>
     </div>
@@ -1037,7 +1039,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     <div class="manage-list">
       <button type="button" class="nav-dropdown-item manage-hub-item" id="hubManageGenres" style="width:100%;text-align:left;padding:10px 12px;">Genres</button>
       <button type="button" class="nav-dropdown-item manage-hub-item" id="hubManageTropes" style="width:100%;text-align:left;padding:10px 12px;">Tropes</button>
-      <button type="button" class="nav-dropdown-item manage-hub-item" id="hubManageArc" style="width:100%;text-align:left;padding:10px 12px;">ARC Sources</button>
+      <button type="button" class="nav-dropdown-item manage-hub-item" id="hubManageArc" style="width:100%;text-align:left;padding:10px 12px;">ARC Sources &amp; ID prefixes</button>
       <button type="button" class="nav-dropdown-item manage-hub-item" id="hubManagePlatforms" style="width:100%;text-align:left;padding:10px 12px;">Platforms</button>
     </div>
     <div class="modal-actions">
@@ -1424,6 +1426,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         authorLinks: meta.authorLinks || {},
         sourceInfo: meta.sourceInfo || {},
         customGenreColors: meta.customGenreColors || {},
+        arcSourcePrefixes: meta.arcSourcePrefixes || {},
         arcTeams: meta.arcTeams || [],
         reviewPlatforms: meta.reviewPlatforms || []
       };
@@ -1599,6 +1602,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   var arcTeams = [];
   var reviewPlatforms = [];
   var customGenreColors = {};
+  var arcSourcePrefixes = {};
   var pendingCover = null;
   var activeStatus = 'all';
   var dueSoonFilterActive = false;
@@ -1627,10 +1631,14 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
 
   // --- ARC / platform ID suggestion (e.g. NetGalley -> NG001) --------------
-  // Derives a short prefix from a source name: initials of each word, or the
-  // first 2-3 letters if it's a single word. "NetGalley" -> "NG",
-  // "Love Notes PR" -> "LNP", "Edelweiss" -> "EDE".
+  // Uses a custom prefix from arcSourcePrefixes if the source has one set
+  // (via Manage Lists > ARC Sources). Otherwise falls back to auto-deriving
+  // one from the source name: initials of each word, or the first 2-3
+  // letters if it's a single word. "NetGalley" -> "NG", "Love Notes PR" ->
+  // "LNP", "Edelweiss" -> "EDE".
   function prefixFromSourceName(source){
+    if(!source) return '';
+    if(arcSourcePrefixes[source]) return arcSourcePrefixes[source].toUpperCase();
     var words = (source || '').trim().split(/\s+/).filter(Boolean);
     if(!words.length) return '';
     if(words.length === 1){
@@ -1806,6 +1814,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       authorLinks = data.authorLinks || {};
       sourceInfo = data.sourceInfo || {};
       customGenreColors = data.customGenreColors || {};
+      arcSourcePrefixes = data.arcSourcePrefixes || {};
       arcTeams = data.arcTeams || [];
       reviewPlatforms = data.reviewPlatforms || [];
       importLegacyPlatformDashboardData();
@@ -1822,6 +1831,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       authorLinks = {};
       sourceInfo = {};
       customGenreColors = {};
+      arcSourcePrefixes = {};
       arcTeams = [];
       reviewPlatforms = [];
       setSync('error');
@@ -1919,6 +1929,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   async function saveCustomGenreColors(){
     try{ await window.cloudStore.saveMeta({customGenreColors: customGenreColors}); }catch(e){
       showBanner("Couldn't save that color. Try again.");
+    }
+  }
+
+  async function saveArcSourcePrefixes(){
+    try{ await window.cloudStore.saveMeta({arcSourcePrefixes: arcSourcePrefixes}); }catch(e){
+      showBanner("Couldn't save that prefix. Try again.");
     }
   }
 
@@ -2686,6 +2702,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     manageMode = mode;
     document.getElementById('manageTitle').textContent = mode === 'genre' ? 'Manage genres' : mode === 'arc' ? 'Manage ARC sources' : 'Manage tropes';
     document.getElementById('manageNewInput').placeholder = mode === 'genre' ? 'Add a genre' : mode === 'arc' ? 'Add an ARC source' : 'Add a trope';
+    document.getElementById('manageHint').textContent = mode === 'arc'
+      ? 'Click a name to rename it, or set the box on the right to the prefix its ID codes should use (e.g. NG for NG001) — leave it blank to auto-generate one from the name.'
+      : 'Click a name to rename it — this updates any books using it too. Deleting only removes it from the picker; books that already used it keep it on their card.';
     renderManageList();
     document.getElementById('manageOverlay').style.display = 'flex';
   }
@@ -2728,7 +2747,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       var swatchHtml = manageMode === 'genre'
         ? '<input type="color" class="genre-swatch-input" value="' + genreColorFor(item) + '" title="Click to change ' + escapeHtml(item) + '\'s color">'
         : '';
+      var prefixHtml = manageMode === 'arc'
+        ? '<input type="text" class="arc-prefix-input" maxlength="4" placeholder="' + escapeHtml(prefixFromSourceName(item) || 'NG') + '" value="' + escapeHtml(arcSourcePrefixes[item] || '') + '" title="Prefix used for this source\'s ID codes (e.g. NG for NG001)" style="width:52px;text-transform:uppercase;text-align:center;border:1px solid var(--line-strong);border-radius:6px;background:var(--card);font-size:12px;padding:4px 2px;font-family:var(--font-mono);">'
+        : '';
       row.innerHTML = swatchHtml + '<input type="text" class="manage-edit-input" value="' + escapeHtml(item) + '" style="flex:1;border:none;background:none;font-size:13px;color:var(--ink);padding:3px 4px;font-family:var(--font-body);">' +
+        prefixHtml +
         '<button type="button" class="link-remove" title="Delete">×</button>';
       if(manageMode === 'genre'){
         var swatchInput = row.querySelector('.genre-swatch-input');
@@ -2738,6 +2761,18 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
           render();
           if(currentActiveNav === 'navReviews') renderReviewsView();
         });
+      }
+      if(manageMode === 'arc'){
+        var prefixInput = row.querySelector('.arc-prefix-input');
+        prefixInput.addEventListener('input', function(){
+          prefixInput.value = prefixInput.value.toUpperCase();
+        });
+        prefixInput.addEventListener('blur', function(){
+          var v = prefixInput.value.trim().toUpperCase();
+          if(v){ arcSourcePrefixes[item] = v; } else { delete arcSourcePrefixes[item]; }
+          saveArcSourcePrefixes();
+        });
+        prefixInput.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); prefixInput.blur(); } });
       }
       var input = row.querySelector('.manage-edit-input');
       input.addEventListener('focus', function(){ input.style.background = 'var(--card-hover)'; input.style.borderRadius = '5px'; });
@@ -2761,6 +2796,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         } else if(manageMode === 'arc'){
           if(mergingInto){ arcSourceList = arcSourceList.filter(function(s){ return s !== item; }); }
           else { arcSourceList = arcSourceList.map(function(s){ return s === item ? newVal : s; }); }
+          if(arcSourcePrefixes[item] && !mergingInto){
+            arcSourcePrefixes[newVal] = arcSourcePrefixes[item];
+            delete arcSourcePrefixes[item];
+            saveArcSourcePrefixes();
+          }
           saveArcSourceList();
           renderArcSourceList();
         } else {
@@ -2785,6 +2825,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
           renderGenreSelect(document.getElementById('f_genre').value === item ? '' : document.getElementById('f_genre').value);
         } else if(manageMode === 'arc'){
           arcSourceList = arcSourceList.filter(function(s){ return s !== item; });
+          if(arcSourcePrefixes[item]){ delete arcSourcePrefixes[item]; saveArcSourcePrefixes(); }
           saveArcSourceList();
           renderArcSourceList();
         } else {
@@ -3583,7 +3624,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   document.getElementById('exportBackupBtn').onclick = function(){
     document.getElementById('exportMenu').style.display = 'none';
-    var payload = {books: books, tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, authorPhotos: authorPhotos, seriesInfo: seriesInfo, authorLinks: authorLinks, sourceInfo: sourceInfo, customGenreColors: customGenreColors, arcTeams: arcTeams, reviewPlatforms: reviewPlatforms, exportedAt: new Date().toISOString()};
+    var payload = {books: books, tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, authorPhotos: authorPhotos, seriesInfo: seriesInfo, authorLinks: authorLinks, sourceInfo: sourceInfo, customGenreColors: customGenreColors, arcSourcePrefixes: arcSourcePrefixes, arcTeams: arcTeams, reviewPlatforms: reviewPlatforms, exportedAt: new Date().toISOString()};
     var blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
     var url = URL.createObjectURL(blob);
     var link = document.createElement('a');
@@ -3617,12 +3658,13 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       authorLinks = data.authorLinks || {};
       sourceInfo = data.sourceInfo || {};
       customGenreColors = data.customGenreColors || {};
+      arcSourcePrefixes = data.arcSourcePrefixes || {};
       arcTeams = data.arcTeams || [];
       reviewPlatforms = data.reviewPlatforms || [];
       setSync('syncing');
       try{
         await window.cloudStore.replaceAllBooks(books);
-        await window.cloudStore.saveMeta({tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, authorPhotos: authorPhotos, seriesInfo: seriesInfo, authorLinks: authorLinks, sourceInfo: sourceInfo, customGenreColors: customGenreColors, arcTeams: arcTeams, reviewPlatforms: reviewPlatforms});
+        await window.cloudStore.saveMeta({tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, authorPhotos: authorPhotos, seriesInfo: seriesInfo, authorLinks: authorLinks, sourceInfo: sourceInfo, customGenreColors: customGenreColors, arcSourcePrefixes: arcSourcePrefixes, arcTeams: arcTeams, reviewPlatforms: reviewPlatforms});
         setSync('idle');
       }catch(e){
         setSync('error');
