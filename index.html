@@ -772,7 +772,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         <option value="velaris">Velaris</option>
         <option value="wisteria">Wisteria</option>
       </select>
-      <button type="button" class="notif-badge" id="gcalSyncBtn">📅 Sync Google Calendar</button>
+      <button type="button" class="notif-badge" id="icsExportBtn">📅 Export to Calendar (.ics)</button>
       <div class="account-row" id="accountRow"></div>
     </div>
   </div>
@@ -1216,161 +1216,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 </div>
 
 <!-- ============================================================
-     GOOGLE CALENDAR AUTOSYNC — SETUP REQUIRED
-     This won't work until you fill in GCAL_CLIENT_ID below with your
-     own Google OAuth Client ID. Steps:
-       1. Go to https://console.cloud.google.com and select (or create)
-          a project — you can reuse your existing Firebase project
-          "lunaria-app-21a35", since Firebase projects are Google Cloud
-          projects too.
-       2. In "APIs & Services" > "Library", search for "Google Calendar
-          API" and click Enable.
-       3. In "APIs & Services" > "Credentials", click "Create
-          Credentials" > "OAuth client ID" > Application type "Web
-          application". Add your site's URL (e.g.
-          https://lib.pagesofyue.com) under "Authorized JavaScript
-          origins".
-       4. In "APIs & Services" > "OAuth consent screen", add your own
-          Google account under "Test users" (this keeps the app in
-          Testing mode, which is fine for personal/single-user use and
-          skips Google's verification review).
-       5. Copy the generated Client ID (ends in
-          .apps.googleusercontent.com) and paste it below.
-     ============================================================ -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<script>
-  var GCAL_CLIENT_ID = 'YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com';
-  var GCAL_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
-  var gcalTokenClient = null;
-  var gcalAccessToken = null;
-  var gcalTokenExpiresAt = 0;
-
-  function gcalSyncEnabled(){
-    try{ return localStorage.getItem('lunaria_gcal_sync') === '1'; }catch(e){ return false; }
-  }
-  function setGcalSyncEnabled(on){
-    try{ localStorage.setItem('lunaria_gcal_sync', on ? '1' : '0'); }catch(e){}
-  }
-
-  function gcalInitTokenClient(callback){
-    if(gcalTokenClient) return gcalTokenClient;
-    gcalTokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: GCAL_CLIENT_ID,
-      scope: GCAL_SCOPE,
-      callback: function(resp){
-        if(resp && resp.access_token){
-          gcalAccessToken = resp.access_token;
-          gcalTokenExpiresAt = Date.now() + ((resp.expires_in || 3500) * 1000);
-        }
-        if(callback) callback(resp);
-      }
-    });
-    return gcalTokenClient;
-  }
-
-  function gcalEnsureToken(promptIfNeeded){
-    return new Promise(function(resolve, reject){
-      if(gcalAccessToken && Date.now() < gcalTokenExpiresAt - 60000){
-        resolve(gcalAccessToken);
-        return;
-      }
-      if(typeof google === 'undefined' || !google.accounts){
-        reject(new Error('Google Identity Services not loaded'));
-        return;
-      }
-      var client = gcalInitTokenClient(function(resp){
-        if(resp && resp.access_token) resolve(resp.access_token);
-        else reject(new Error('No access token'));
-      });
-      client.requestAccessToken({prompt: promptIfNeeded ? 'consent' : ''});
-    });
-  }
-
-  function gcalEventBody(book){
-    var due = window.lunariaEffectiveDueDate ? window.lunariaEffectiveDueDate(book) : (book.dueDate || book.borrowDueDate || '');
-    if(!due) return null;
-    var nextDay = new Date(due + 'T00:00:00');
-    nextDay.setDate(nextDay.getDate() + 1);
-    var nextDayStr = nextDay.toISOString().slice(0, 10);
-    var descBits = [];
-    if(book.author) descBits.push('by ' + book.author);
-    if(book.isARC && book.arcSource) descBits.push('ARC via ' + book.arcSource);
-    else if(book.format === 'Paperback' && book.ownership === 'Borrowed') descBits.push('Borrowed copy — return by this date');
-    return {
-      summary: '📚 ' + book.title + ' due',
-      description: descBits.join(' · '),
-      start: {date: due},
-      end: {date: nextDayStr}
-    };
-  }
-
-  async function gcalSyncBook(book){
-    if(!gcalSyncEnabled()) return;
-    try{
-      var token = await gcalEnsureToken(false);
-      var body = gcalEventBody(book);
-      var headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'};
-      if(!body){
-        if(book.gcalEventId){
-          await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events/' + book.gcalEventId, {method: 'DELETE', headers: headers});
-          book.gcalEventId = null;
-          if(window.lunariaSaveBookRemote) window.lunariaSaveBookRemote(book);
-        }
-        return;
-      }
-      var url = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
-      var method = 'POST';
-      if(book.gcalEventId){
-        url += '/' + book.gcalEventId;
-        method = 'PATCH';
-      }
-      var res = await fetch(url, {method: method, headers: headers, body: JSON.stringify(body)});
-      if(res.ok){
-        var data = await res.json();
-        if(data.id && data.id !== book.gcalEventId){
-          book.gcalEventId = data.id;
-          if(window.lunariaSaveBookRemote) window.lunariaSaveBookRemote(book);
-        }
-      } else if(res.status === 404 && book.gcalEventId){
-        // Event was deleted on the Google Calendar side — clear the stale id and retry as a fresh insert next save.
-        book.gcalEventId = null;
-        if(window.lunariaSaveBookRemote) window.lunariaSaveBookRemote(book);
-      }
-    }catch(e){
-      console.warn('Google Calendar sync failed', e);
-    }
-  }
-
-  async function gcalDeleteEvent(eventId){
-    if(!gcalSyncEnabled() || !eventId) return;
-    try{
-      var token = await gcalEnsureToken(false);
-      await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events/' + eventId, {
-        method: 'DELETE',
-        headers: {'Authorization': 'Bearer ' + token}
-      });
-    }catch(e){
-      console.warn('Google Calendar delete failed', e);
-    }
-  }
-
-  window.gcal = {
-    isEnabled: gcalSyncEnabled,
-    connect: function(){
-      return gcalEnsureToken(true).then(function(){
-        setGcalSyncEnabled(true);
-        return true;
-      });
-    },
-    disconnect: function(){
-      setGcalSyncEnabled(false);
-    },
-    syncBook: gcalSyncBook,
-    deleteEvent: gcalDeleteEvent
-  };
-</script>
-
-<!-- ============================================================
      FIREBASE SETUP — this is already configured with your project
      (lunaria-app-21a35). If you ever create a new Firebase project,
      swap the values below. See SETUP.md for background.
@@ -1464,16 +1309,22 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     }
   };
 
+  // A previously-registered service worker (sw.js) turned out to be the
+  // likely cause of stale/duplicated content and failed cloud loads after
+  // a cache clear — it could serve old cached HTML/API responses instead
+  // of hitting the network. Rather than debug its caching logic, we just
+  // remove it entirely: unregister anything already installed, wipe its
+  // caches, and never register it again. This runs harmlessly if no
+  // service worker was ever installed.
   if('serviceWorker' in navigator){
-    var swReloaded = false;
-    navigator.serviceWorker.addEventListener('controllerchange', function(){
-      if(swReloaded) return;
-      swReloaded = true;
-      window.location.reload();
-    });
-    window.addEventListener('load', function(){
-      navigator.serviceWorker.register('./sw.js').catch(function(){});
-    });
+    navigator.serviceWorker.getRegistrations().then(function(regs){
+      regs.forEach(function(reg){ reg.unregister(); });
+    }).catch(function(){});
+  }
+  if('caches' in window){
+    caches.keys().then(function(names){
+      names.forEach(function(name){ caches.delete(name); });
+    }).catch(function(){});
   }
 
   const googleBtn = document.getElementById('googleSignInBtn');
@@ -1543,39 +1394,63 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     try{ localStorage.setItem('hiraya_theme', val); }catch(e){}
   });
 
-  var gcalBtn = document.getElementById('gcalSyncBtn');
-  function updateGcalBtn(){
-    if(!gcalBtn) return;
-    if(window.gcal && window.gcal.isEnabled()){
-      gcalBtn.textContent = '📅 Calendar synced';
-      gcalBtn.classList.add('on');
-    } else {
-      gcalBtn.textContent = '📅 Sync Google Calendar';
-      gcalBtn.classList.remove('on');
-    }
+  // --- Calendar export (.ics) ------------------------------------------
+  // Builds a plain .ics file of every book's due date (ARC due dates and
+  // borrowed-paperback return dates) so it can be imported into Google
+  // Calendar, Apple Calendar, Outlook, etc. This is a one-time snapshot,
+  // not a live sync — re-export and re-import to pick up changes.
+  function icsEscape(str){
+    return String(str || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
   }
-  if(gcalBtn){
-    updateGcalBtn();
-    gcalBtn.addEventListener('click', function(){
-      if(window.gcal && window.gcal.isEnabled()){
-        window.gcal.disconnect();
-        updateGcalBtn();
+  function icsDateStamp(dateStr){
+    return dateStr.replace(/-/g, '');
+  }
+  function buildIcsFeed(){
+    var lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Hiraya Manawari//Reading Tracker//EN', 'CALSCALE:GREGORIAN'];
+    var now = new Date();
+    var stamp = now.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    var count = 0;
+    books.forEach(function(b){
+      var due = effectiveDueDate(b);
+      if(!due) return;
+      count++;
+      var nextDay = new Date(due + 'T00:00:00');
+      nextDay.setDate(nextDay.getDate() + 1);
+      var nextDayStr = nextDay.toISOString().slice(0, 10);
+      var descBits = [];
+      if(b.author) descBits.push('by ' + b.author);
+      if(b.isARC && b.arcSource) descBits.push('ARC via ' + b.arcSource);
+      lines.push('BEGIN:VEVENT');
+      lines.push('UID:' + b.id + '-due@hirayamanawari');
+      lines.push('DTSTAMP:' + stamp);
+      lines.push('DTSTART;VALUE=DATE:' + icsDateStamp(due));
+      lines.push('DTEND;VALUE=DATE:' + icsDateStamp(nextDayStr));
+      lines.push('SUMMARY:' + icsEscape('📚 ' + b.title + ' due'));
+      if(descBits.length) lines.push('DESCRIPTION:' + icsEscape(descBits.join(' · ')));
+      lines.push('END:VEVENT');
+    });
+    lines.push('END:VCALENDAR');
+    return {text: lines.join('\r\n'), count: count};
+  }
+
+  var icsExportBtn = document.getElementById('icsExportBtn');
+  if(icsExportBtn){
+    icsExportBtn.addEventListener('click', function(){
+      var feed = buildIcsFeed();
+      if(!feed.count){
+        showBanner('No due dates to export yet — add an ARC due date or borrow return date to a book first.');
         return;
       }
-      if(!window.gcal){ return; }
-      gcalBtn.textContent = '📅 Connecting…';
-      window.gcal.connect().then(function(){
-        updateGcalBtn();
-        // Push every book that currently has a due date, so existing
-        // deadlines show up on the calendar right away.
-        books.forEach(function(b){
-          if(window.lunariaEffectiveDueDate(b)) window.gcal.syncBook(b);
-        });
-        showBanner('Connected — due dates will keep syncing to your Google Calendar as you add or edit books.');
-      }).catch(function(){
-        updateGcalBtn();
-        showBanner("Couldn't connect to Google Calendar. Make sure the Calendar API is enabled and your OAuth Client ID is set up correctly (see the comment near the top of the file).");
-      });
+      var blob = new Blob([feed.text], {type: 'text/calendar;charset=utf-8'});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'hiraya-manawari-due-dates.ics';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showBanner('Exported ' + feed.count + ' due date' + (feed.count === 1 ? '' : 's') + ' — import the downloaded file into Google Calendar, Apple Calendar, or Outlook.');
     });
   }
 
@@ -2513,11 +2388,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     card.querySelector('.del-btn').onclick = function(){
       if(confirmingDelete === b.id){
         var deletedId = b.id;
-        var deletedGcalEventId = b.gcalEventId;
         books = books.filter(function(x){ return x.id !== deletedId; });
         confirmingDelete = null;
         deleteBookRemote(deletedId);
-        if(window.gcal && window.gcal.isEnabled() && deletedGcalEventId) window.gcal.deleteEvent(deletedGcalEventId);
         render();
       } else {
         confirmingDelete = b.id;
@@ -3477,7 +3350,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     }
 
     saveBookRemote(finalBook);
-    if(window.gcal && window.gcal.isEnabled()) window.gcal.syncBook(finalBook);
     closeModal();
     render();
     if(currentActiveNav === 'navReviews') renderReviewsView();
