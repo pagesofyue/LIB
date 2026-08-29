@@ -449,10 +449,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .status-tab.hold{background:var(--hold);}
 .status-tab.requested{background:var(--requested);}
 
-.card-topline{display:flex;align-items:center;gap:7px;margin:-16px 0 10px 0;}
-.genre-tab{display:inline-block;font-family:var(--font-body);font-size:10px;font-weight:600;color:var(--ink);padding:4px 12px;border-radius:6px 6px 0 0;letter-spacing:0.02em;}
-.card-id-badge{font-family:var(--font-mono);font-size:12.5px;font-weight:700;color:var(--muted);letter-spacing:0.03em;}
-.topline-dot{color:var(--muted);font-size:10px;}
+.card-topline{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 14px 0;}
+.genre-tab{display:inline-block;font-family:var(--font-body);font-size:10px;font-weight:600;color:var(--ink);padding:7px 16px;border-radius:999px;letter-spacing:0.02em;}
+.card-id-badge{font-family:var(--font-mono);font-size:12.5px;font-weight:700;color:var(--muted);letter-spacing:0.03em;white-space:nowrap;}
 .card-top{display:flex;gap:12px;align-items:flex-start;}
 .cover-col{flex:none;display:flex;flex-direction:column;align-items:center;width:70px;position:relative;}
 .reading-ribbon{position:absolute;top:-4px;right:11px;width:13px;height:24px;background:var(--reading-deep);clip-path:polygon(0 0,100% 0,100% 100%,50% 75%,0 100%);box-shadow:1px 1px 2px rgba(59,42,85,0.3);z-index:2;}
@@ -2441,8 +2440,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var formatLabelHtml = af.type ? '<div class="format-label">' + escapeHtml(af.type) + '</div>' : '';
     var platformIdBadgeHtml = af.platformId ? '<span class="card-id-badge">' + escapeHtml(af.platformId) + '</span>' : '';
     var genreTabHtml = b.genre ? '<div class="genre-tab" style="background:' + genreColorFor(b.genre) + ';">' + escapeHtml(b.genre) + '</div>' : '';
-    var toplineDotHtml = (genreTabHtml && platformIdBadgeHtml) ? '<span class="topline-dot">·</span>' : '';
-    var toplineHtml = (genreTabHtml || platformIdBadgeHtml) ? '<div class="card-topline">' + genreTabHtml + toplineDotHtml + platformIdBadgeHtml + '</div>' : '';
+    var toplineHtml = (genreTabHtml || platformIdBadgeHtml) ? '<div class="card-topline">' + genreTabHtml + platformIdBadgeHtml + '</div>' : '';
     var ribbonHtml = af.status === 'reading' ? '<div class="reading-ribbon" title="Currently reading"></div>' : '';
     var dupBadgeHtml = duplicateIds[b.id] ? '<div class="dup-banner" title="Another entry has the same title, author, and format">⚠ Possible Duplicate</div>' : '';
 
@@ -2748,7 +2746,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         ? '<input type="color" class="genre-swatch-input" value="' + genreColorFor(item) + '" title="Click to change ' + escapeHtml(item) + '\'s color">'
         : '';
       var prefixHtml = manageMode === 'arc'
-        ? '<input type="text" class="arc-prefix-input" maxlength="4" placeholder="' + escapeHtml(prefixFromSourceName(item) || 'NG') + '" value="' + escapeHtml(arcSourcePrefixes[item] || '') + '" title="Prefix used for this source\'s ID codes (e.g. NG for NG001)" style="width:52px;text-transform:uppercase;text-align:center;border:1px solid var(--line-strong);border-radius:6px;background:var(--card);font-size:12px;padding:4px 2px;font-family:var(--font-mono);">'
+        ? '<input type="text" class="arc-prefix-input" placeholder="' + escapeHtml(prefixFromSourceName(item) || 'NG') + '" value="' + escapeHtml(arcSourcePrefixes[item] || '') + '" title="Prefix used for this source\'s ID codes (e.g. NG for NG001)" style="width:72px;text-transform:uppercase;text-align:center;border:1px solid var(--line-strong);border-radius:6px;background:var(--card);font-size:12px;padding:4px 6px;font-family:var(--font-mono);">'
         : '';
       row.innerHTML = swatchHtml + '<input type="text" class="manage-edit-input" value="' + escapeHtml(item) + '" style="flex:1;border:none;background:none;font-size:13px;color:var(--ink);padding:3px 4px;font-family:var(--font-body);">' +
         prefixHtml +
