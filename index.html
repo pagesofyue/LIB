@@ -406,7 +406,7 @@ table.arc-table tr:last-child td{border-bottom:none;}
   .toolbar-scroll .search-wrap{flex:1 1 100%;}
 }
 .sort-dropdown, .export-wrap, .btn-add{flex:none;}
-.search-wrap{position:relative;flex:0 0 220px;min-width:220px;}
+.search-wrap{position:relative;flex:0 0 170px;min-width:170px;}
 .search-wrap input{width:100%;padding:12px 14px 12px 36px;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--card);font-family:var(--font-body);font-size:15px;color:var(--ink);}
 .search-wrap input:focus{outline:2px solid var(--accent);outline-offset:1px;}
 .search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--muted);}
@@ -450,7 +450,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .status-tab.requested{background:var(--requested);}
 
 .card-topline{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 14px 0;}
-.genre-tab{display:inline-block;font-family:var(--font-body);font-size:10px;font-weight:600;color:var(--ink);padding:7px 16px;border-radius:999px;letter-spacing:0.02em;}
+.genre-tab{display:inline-block;font-family:var(--font-body);font-size:10px;font-weight:600;color:var(--ink);padding:7px 16px;border-radius:6px 6px 0 0;letter-spacing:0.02em;}
 .card-id-badge{font-family:var(--font-mono);font-size:12.5px;font-weight:700;color:var(--muted);letter-spacing:0.03em;white-space:nowrap;}
 .card-top{display:flex;gap:12px;align-items:flex-start;}
 .cover-col{flex:none;display:flex;flex-direction:column;align-items:center;width:70px;position:relative;}
@@ -802,8 +802,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="text" id="searchInput" placeholder="Search title, author, series, tropes, reviews...">
       </div>
-      <select id="genreFilter" style="min-width:130px;"><option value="">All genres</option></select>
-      <select id="providerFilter" style="min-width:130px;"><option value="">All providers</option></select>
+      <select id="genreFilter" style="min-width:100px;"><option value="">All genres</option></select>
+      <select id="providerFilter" style="min-width:100px;"><option value="">All providers</option></select>
       <select id="formatFilter" style="min-width:130px;">
         <option value="">All formats</option>
         <option value="Paperback">Paperback</option>
