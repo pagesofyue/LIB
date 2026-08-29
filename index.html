@@ -267,23 +267,6 @@ body[data-theme="velaris"] .reader-intro p{color:#D2C6F1;text-shadow:0 1px 6px r
 .nav-dropdown-item{border:none;background:none;text-align:left;padding:8px 10px;font-size:13px;font-family:var(--font-body);color:var(--ink);cursor:pointer;border-radius:8px;text-decoration:none;display:block;}
 .nav-dropdown-item:hover{background:var(--card-hover);}
 .nav-dropdown-item.active{background:var(--accent);color:var(--card);}
-.app-body{display:flex;gap:22px;align-items:flex-start;}
-.app-main{flex:1;min-width:0;}
-.app-sidebar{flex:none;width:172px;flex-direction:column;gap:3px;position:sticky;top:16px;display:none;}
-.sidebar-navitem{display:flex;align-items:center;width:100%;text-align:left;background:none;border:none;border-radius:8px;padding:10px 12px;font-family:var(--font-body);font-size:13px;color:var(--muted);cursor:pointer;text-decoration:none;}
-.sidebar-navitem:hover{background:var(--card-hover);color:var(--ink);}
-.sidebar-navitem.active{background:var(--ink);color:var(--paper);}
-.sidebar-navitem .sidebar-chev{margin-left:auto;font-size:9px;transition:transform 0.15s;}
-.sidebar-navgroup.open > .sidebar-navitem .sidebar-chev{transform:rotate(90deg);}
-.sidebar-subnav{overflow:hidden;max-height:0;transition:max-height 0.2s ease;display:flex;flex-direction:column;}
-.sidebar-navgroup.open .sidebar-subnav{max-height:200px;}
-.sidebar-subitem{display:block;text-align:left;background:none;border:none;border-radius:8px;padding:8px 12px 8px 26px;font-family:var(--font-body);font-size:12.5px;color:var(--muted);cursor:pointer;text-decoration:none;}
-.sidebar-subitem:hover{background:var(--card-hover);color:var(--ink);}
-.sidebar-subitem.active{background:var(--card-hover);color:var(--accent-deep);font-weight:700;}
-@media (min-width:881px){
-  .app-sidebar{display:flex;}
-  .view-nav#mainNav{display:none;}
-}
 
 .reader-intro{margin-bottom:18px;display:flex;align-items:flex-start;justify-content:space-between;gap:14px;}
 .reader-intro h2{font-family:var(--font-display);font-size:24px;margin:0 0 4px;}
@@ -380,13 +363,17 @@ body[data-theme="velaris"] .reader-intro p{color:#D2C6F1;text-shadow:0 1px 6px r
 .platform-subtabs{display:flex;gap:8px;margin-bottom:16px;}
 .platform-logo-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));gap:14px;}
 .platform-logo-card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;transition:transform 0.15s, border-color 0.15s;text-decoration:none;color:var(--ink);}
-.platform-logo-edit-btn{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--muted);font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
-.platform-logo-edit-btn:hover{color:var(--ink);border-color:var(--line-strong);}
 .platform-logo-card:hover{transform:translateY(-2px);border-color:var(--accent);background:var(--card-hover);}
+.platform-logo-edit-btn{position:absolute;top:6px;right:6px;background:var(--card);border:1px solid var(--line-strong);border-radius:50%;width:22px;height:22px;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);}
+.platform-logo-edit-btn:hover{color:var(--accent-deep);border-color:var(--accent);}
+.platform-logo-delete-btn{position:absolute;top:6px;right:32px;background:var(--card);border:1px solid var(--line-strong);border-radius:50%;width:22px;height:22px;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);}
+.platform-logo-delete-btn:hover{color:var(--dnf-deep);border-color:var(--dnf-deep);}
+.platform-logo-delete-btn.confirming{background:var(--dnf-deep);color:var(--card);border-color:var(--dnf-deep);}
+.platform-direct-badge{font-size:9.5px;color:var(--accent-deep);margin-top:2px;font-family:var(--font-mono);}
+.platform-author-initial{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--accent);color:var(--card);font-family:var(--font-script);font-size:32px;border-radius:50%;}
+.platform-audio-flag{margin-left:4px;}
 .platform-logo-img-wrap{width:72px;height:72px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;}
 .platform-logo-img-wrap img{width:100%;height:100%;object-fit:contain;}
-.platform-logo-img-wrap.author-avatar img{border-radius:50%;object-fit:cover;}
-.platform-logo-img-wrap.author-avatar .author-photo-ph{width:100%;height:100%;}
 .platform-logo-title{font-weight:700;font-size:13px;}
 .platform-logo-sub{font-size:10.5px;color:var(--muted);margin-top:2px;}
 .btn-add-plus{background:var(--ink);color:var(--paper);border:none;border-radius:50%;width:34px;height:34px;font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;}
@@ -405,9 +392,14 @@ table.arc-table tr:last-child td{border-bottom:none;}
 .pagination button:disabled{opacity:0.4;cursor:not-allowed;}
 .pagination .page-info{font-size:12.5px;color:var(--muted);white-space:nowrap;}
 
-.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px;}
-.search-wrap{position:relative;flex:0 1 300px;min-width:180px;}
-.search-wrap input{width:100%;padding:11px 14px 11px 36px;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--card);font-family:var(--font-body);font-size:15px;color:var(--ink);}
+.toolbar{display:flex;gap:8px;flex-wrap:nowrap;align-items:center;margin-bottom:8px;}
+.toolbar-scroll{display:flex;gap:8px;align-items:center;overflow-x:auto;-webkit-overflow-scrolling:touch;flex:1;min-width:0;scrollbar-width:thin;}
+.toolbar-scroll::-webkit-scrollbar{height:5px;}
+.toolbar-scroll::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:3px;}
+.toolbar-scroll > *{flex:none;}
+.sort-dropdown, .export-wrap, .btn-add{flex:none;}
+.search-wrap{position:relative;flex:0 0 220px;min-width:220px;}
+.search-wrap input{width:100%;padding:12px 14px 12px 36px;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--card);font-family:var(--font-body);font-size:15px;color:var(--ink);}
 .search-wrap input:focus{outline:2px solid var(--accent);outline-offset:1px;}
 .search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--muted);}
 select{padding:9px 30px 9px 12px;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--card);font-family:var(--font-body);font-size:13px;color:var(--ink);cursor:pointer;}
@@ -447,9 +439,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .status-tab.hold{background:var(--hold);}
 .status-tab.requested{background:var(--requested);}
 
-.card-badge-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin:-16px -16px 10px;}
-.genre-tab{display:inline-block;font-family:var(--font-body);font-size:10px;font-weight:600;color:var(--ink);padding:4px 12px;border-radius:0 0 6px 0;letter-spacing:0.02em;}
-.card-id-badge{display:inline-block;font-family:var(--font-mono);font-size:10px;font-weight:600;color:var(--ink);background:var(--card-hover);border:1px solid var(--line-strong);border-top:none;border-radius:0 0 0 6px;padding:4px 12px;letter-spacing:0.02em;white-space:nowrap;flex:none;}
+.genre-tab{display:inline-block;font-family:var(--font-body);font-size:10px;font-weight:600;color:var(--ink);padding:4px 12px;border-radius:6px 6px 0 0;margin:-16px 0 10px 0;letter-spacing:0.02em;}
+.card-id-badge{position:absolute;top:8px;right:12px;font-family:var(--font-mono);font-size:9.5px;color:var(--muted);background:var(--card-hover);border:1px solid var(--line-strong);border-radius:8px;padding:2px 8px;z-index:2;}
 .card-top{display:flex;gap:12px;align-items:flex-start;}
 .cover-col{flex:none;display:flex;flex-direction:column;align-items:center;width:70px;position:relative;}
 .reading-ribbon{position:absolute;top:-4px;right:11px;width:13px;height:24px;background:var(--reading-deep);clip-path:polygon(0 0,100% 0,100% 100%,50% 75%,0 100%);box-shadow:1px 1px 2px rgba(59,42,85,0.3);z-index:2;}
@@ -472,10 +463,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .dnf-stamp{flex:none;font-family:var(--font-stamp);font-size:11px;font-weight:400;letter-spacing:0.08em;text-align:center;border:1.5px dashed var(--dnf-deep);color:var(--dnf-deep);background:radial-gradient(circle at 35% 35%, rgba(138,78,113,0.18), transparent 70%);border-radius:4px;padding:7px 9px;transform:rotate(-4deg);line-height:1.15;}
 .hold-stamp{flex:none;font-family:var(--font-stamp);font-size:10px;font-weight:400;letter-spacing:0.06em;text-align:center;border:1.5px dashed var(--hold-deep);color:var(--hold-deep);background:radial-gradient(circle at 35% 35%, rgba(143,111,60,0.18), transparent 70%);border-radius:4px;padding:7px 8px;transform:rotate(3deg);line-height:1.15;}
 .requested-stamp{flex:none;font-family:var(--font-stamp);font-size:10px;font-weight:400;letter-spacing:0.06em;text-align:center;border:1.5px dashed var(--requested-deep);color:var(--requested-deep);background:radial-gradient(circle at 35% 35%, rgba(92,115,150,0.18), transparent 70%);border-radius:4px;padding:7px 8px;transform:rotate(-3deg);line-height:1.15;}
-.arc-source{font-size:10.5px;color:var(--muted);margin-top:2px;font-family:var(--font-mono);}
-.arc-source-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;}
-.tag-more-btn{font-size:11px;background:none;border:1px dashed var(--line-strong);color:var(--accent-deep);border-radius:10px;padding:3px 9px;font-family:var(--font-body);cursor:pointer;}
-.tag-more-btn:hover{background:var(--card-hover);}
+.arc-source{font-size:10.5px;color:var(--muted);margin-top:2px;font-family:var(--font-mono);white-space:nowrap;overflow:hidden;max-width:100%;display:block;}
 .dup-banner{display:block;font-size:12.5px;font-weight:700;letter-spacing:0.02em;color:#8A3B3B;background:#F4D9D9;border:1px solid rgba(138,59,59,0.3);border-radius:6px;padding:7px 10px;margin-bottom:10px;text-align:center;}
 .arc-link{display:inline-block;font-size:10.5px;color:var(--accent-deep);margin-top:3px;text-decoration:underline;font-family:var(--font-body);}
 
@@ -514,6 +502,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
 .tags{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0;}
 .tag{font-size:11px;background:rgba(59,42,85,0.07);color:var(--muted);border-radius:10px;padding:3px 9px;font-family:var(--font-body);}
+.tag-see-more{border:1px solid var(--line-strong);cursor:pointer;font-weight:600;color:var(--accent-deep);}
 
 .progress-wrap{margin:10px 0 6px;}
 .progress-bar{height:5px;background:rgba(59,42,85,0.1);border-radius:3px;overflow:hidden;}
@@ -522,9 +511,16 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
 .dates{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:4px;}
 
-.card-actions{display:flex;flex-wrap:nowrap;justify-content:flex-end;gap:6px;margin-top:12px;border-top:1px solid var(--line);padding-top:10px;overflow-x:auto;scrollbar-width:thin;}
-.card-actions .icon-btn{flex:0 0 auto;}
-.icon-btn{background:none;border:1px solid var(--line);border-radius:7px;padding:5px 9px;cursor:pointer;color:var(--muted);font-size:11px;font-family:var(--font-body);display:flex;align-items:center;gap:4px;}
+.card-actions{display:flex;flex-wrap:nowrap;justify-content:flex-end;gap:5px;margin-top:12px;border-top:1px solid var(--line);padding-top:10px;overflow-x:auto;}
+.icon-btn{background:none;border:1px solid var(--line);border-radius:7px;padding:5px 8px;cursor:pointer;color:var(--muted);font-size:11px;font-family:var(--font-body);display:flex;align-items:center;gap:4px;flex:none;white-space:nowrap;}
+.icon-btn svg{flex:none;width:13px;height:13px;}
+@media(max-width:420px){
+  .card-actions{gap:4px;}
+  .icon-btn{padding:6px;}
+  .icon-btn span, .icon-btn:not(.danger){font-size:0;}
+  .icon-btn svg{width:15px;height:15px;}
+  .icon-btn.danger{font-size:10px;padding:6px 8px;}
+}
 .icon-btn:hover{border-color:var(--line-strong);color:var(--ink);}
 .icon-btn.danger{color:var(--dnf-deep);}
 .icon-btn.danger.confirming{background:var(--dnf-deep);color:#fff;border-color:var(--dnf-deep);}
@@ -603,11 +599,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .author-books{margin-top:10px;}
 .author-series-heading{font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:0.03em;text-transform:uppercase;margin:12px 0 4px;display:flex;align-items:center;gap:6px;}
 .author-series-heading:first-child{margin-top:0;}
-.authors-search-wrap{position:relative;max-width:380px;margin-bottom:18px;}
+.authors-search-wrap{position:relative;max-width:400px;margin-bottom:18px;}
 .authors-search-wrap svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--muted);}
-.authors-search-wrap input,#authorsSearchInput,#reviewsSearchInput,#platformsSearchInput{width:100%;padding:11px 14px 11px 38px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);font-family:var(--font-body);font-size:15px;color:var(--ink);}
+.authors-search-wrap input{width:100%;padding:12px 14px 12px 38px;border:1px solid var(--line-strong);border-radius:9px;background:var(--card);font-family:var(--font-body);font-size:15px;color:var(--ink);}
+.authors-search-wrap input:focus{outline:2px solid var(--accent);outline-offset:1px;}
 .toolbar-search-sort{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px;}
-.toolbar-search-sort .authors-search-wrap{flex:1;min-width:200px;max-width:380px;}
+.toolbar-search-sort .authors-search-wrap{flex:1;min-width:220px;max-width:400px;}
 #reviewsSortSelect,#seriesSortSelect{padding:9px 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);font-family:var(--font-body);font-size:13px;color:var(--ink);flex:none;}
 .flat-shelf-grid{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;}
 .flat-shelf-item{width:96px;cursor:pointer;text-align:center;position:relative;}
@@ -758,29 +755,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         <option value="wisteria">Wisteria</option>
       </select>
       <button type="button" class="notif-badge" id="gcalSyncBtn">📅 Sync Google Calendar</button>
-      <button type="button" class="notif-badge" id="sheetsSyncBtn">📊 Sync Google Sheet</button>
       <div class="account-row" id="accountRow"></div>
     </div>
   </div>
 
   <div class="banner" id="saveBanner"></div>
-
-  <div class="overlay" id="sheetsSetupOverlay" style="display:none;">
-    <div class="modal" style="max-width:420px;">
-      <h2>Connect a Google Sheet</h2>
-      <p class="hint" style="margin-top:-6px;">Every time you add, edit, or delete a book, this sheet gets rewritten with your full library — so it stays live without you touching it.</p>
-      <div class="field">
-        <label>Paste an existing Google Sheet link</label>
-        <input type="text" id="sheetsSetupIdInput" placeholder="https://docs.google.com/spreadsheets/d/...">
-      </div>
-      <p class="hint" style="text-align:center;margin:2px 0;">— or —</p>
-      <button type="button" class="btn-secondary" id="sheetsSetupCreateBtn" style="width:100%;">Create a brand-new sheet for me</button>
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary" id="sheetsSetupCancelBtn">Cancel</button>
-        <button type="button" class="btn-primary" id="sheetsSetupConnectBtn">Connect</button>
-      </div>
-    </div>
-  </div>
 
   <div class="view-nav" id="mainNav">
     <button class="view-tab active" id="navLibrary">My Library</button>
@@ -802,44 +781,24 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     </div>
   </div>
 
-  <div class="app-body">
-    <div class="app-sidebar" id="appSidebar">
-      <button type="button" class="sidebar-navitem active" id="sbLibrary">My Library</button>
-      <div class="sidebar-navgroup" id="sbBrowseGroup">
-        <button type="button" class="sidebar-navitem" id="sbBrowseToggle">Browse<span class="sidebar-chev">▸</span></button>
-        <div class="sidebar-subnav" id="sbBrowseSub">
-          <button type="button" class="sidebar-subitem" id="sbSeries">Series</button>
-          <button type="button" class="sidebar-subitem" id="sbPlatforms">Platforms</button>
-          <button type="button" class="sidebar-subitem" id="sbCalendar">Calendar</button>
-        </div>
-      </div>
-      <button type="button" class="sidebar-navitem" id="sbReviews">Reviews</button>
-      <div class="sidebar-navgroup" id="sbProfileGroup">
-        <button type="button" class="sidebar-navitem" id="sbProfileToggle">Profile<span class="sidebar-chev">▸</span></button>
-        <div class="sidebar-subnav" id="sbProfileSub">
-          <button type="button" class="sidebar-subitem" id="sbReader">Reader Page</button>
-          <a class="sidebar-subitem" href="./social.html" target="_blank" rel="noopener">Social Post</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="app-main">
   <div id="libraryView">
   <div class="stats" id="stats"></div>
 
   <div class="toolbar">
-    <div class="search-wrap">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="searchInput" placeholder="Search title, author, series, tropes, reviews...">
+    <div class="toolbar-scroll">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchInput" placeholder="Search title, author, series, tropes, reviews...">
+      </div>
+      <select id="genreFilter" style="min-width:130px;"><option value="">All genres</option></select>
+      <select id="providerFilter" style="min-width:130px;"><option value="">All providers</option></select>
+      <select id="formatFilter" style="min-width:130px;">
+        <option value="">All formats</option>
+        <option value="Paperback">Paperback</option>
+        <option value="eBook / ePub">eBook / ePub</option>
+        <option value="Audiobook">Audiobook</option>
+      </select>
     </div>
-    <select id="genreFilter"><option value="">All genres</option></select>
-    <select id="providerFilter"><option value="">All providers</option></select>
-    <select id="formatFilter">
-      <option value="">All formats</option>
-      <option value="Paperback">Paperback</option>
-      <option value="eBook / ePub">eBook / ePub</option>
-      <option value="Audiobook">Audiobook</option>
-    </select>
     <div class="sort-dropdown" id="sortDropdownWrap">
       <button type="button" class="sort-dropdown-btn" id="sortDropdownBtn">
         <span id="sortDropdownLabel">Due Soon</span>
@@ -891,6 +850,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   </div>
 
   <div id="seriesView" style="display:none;"></div>
+  <div id="authorsView" style="display:none;"></div>
   <div id="platformsView" style="display:none;"></div>
   <div id="calendarView" style="display:none;"></div>
   <div id="reviewsView" style="display:none;"></div>
@@ -905,8 +865,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     </div>
     <div class="links-list" id="linksList"></div>
     <button class="btn-add" id="addLinkBtn" style="margin-top:14px;display:none;">+ Add link</button>
-  </div>
-    </div>
   </div>
 </div>
 
@@ -944,38 +902,16 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         <label>Book # in series</label>
         <input type="number" id="f_seriesNum" min="0" step="0.5" placeholder="1">
       </div>
-      <div class="checkbox-row" id="f_isArcRow">
-        <input type="checkbox" id="f_isArc">
-        <label for="f_isArc">This is an ARC (advance reader copy)</label>
-      </div>
-      <div id="arcFields" style="display:none;">
-        <div class="field-row">
-          <div class="field">
-            <label>ARC source (default for all formats) <button type="button" class="manage-link" id="openManageArcBtn">Manage list</button></label>
-            <select id="f_arcSource"></select>
-            <p class="hint">Pick from your saved sources — use "Manage list" above to add a new one. If a specific format (below) came from somewhere else — e.g. you bought the eBook but got the audiobook as an ALC — set its own source in that format's panel and it'll override this one just for that copy.</p>
-          </div>
-          <div class="field">
-            <label>Review due date</label>
-            <input type="date" id="f_dueDate" lang="en-US">
-          </div>
-        </div>
-        <div class="field">
-          <label>Review form link</label>
-          <input type="text" id="f_arcFormLink" placeholder="https://forms.gle/...">
-          <p class="hint">If the promoter needs a feedback form filled out, paste the link here.</p>
-        </div>
-      </div>
 
       <div class="field" style="margin-top:6px;">
-        <label>Formats <span style="font-weight:normal;color:var(--muted);">(each format gets its own cover, status, and progress)</span></label>
-        <div class="checkbox-row" id="formatCheckboxRow" style="gap:16px;flex-wrap:wrap;">
+        <label>Formats <span style="font-weight:normal;color:var(--muted);">(each gets its own cover, status, progress — and its own ARC info)</span></label>
+        <div class="checkbox-row" id="formatCheckboxRow" style="gap:16px;flex-wrap:wrap;display:none;">
           <span><input type="checkbox" class="f_formatType" value="Paperback" id="f_fmt_paperback"> <label for="f_fmt_paperback" style="display:inline;">Paperback</label></span>
           <span><input type="checkbox" class="f_formatType" value="eBook / ePub" id="f_fmt_ebook"> <label for="f_fmt_ebook" style="display:inline;">eBook / ePub</label></span>
           <span><input type="checkbox" class="f_formatType" value="Audiobook" id="f_fmt_audiobook"> <label for="f_fmt_audiobook" style="display:inline;">Audiobook</label></span>
         </div>
-        <button type="button" class="manage-link" id="formatAddAnotherBtn" style="display:none;">+ Add another format</button>
-        <p class="hint" id="noFormatsHint">Pick at least one format to track status and progress.</p>
+        <button type="button" class="manage-link" id="addAnotherFormatBtn" style="margin-top:2px;">+ Add another format</button>
+        <p class="hint" id="noFormatsHint" style="display:none;">Pick at least one format to track status and progress.</p>
       </div>
       <div id="formatPanels"></div>
 
@@ -1186,12 +1122,17 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       <label>Logo image URL</label>
       <input type="url" id="platformAddLogo" placeholder="https://...">
     </div>
+    <div class="field" id="platformAddDirectField" style="display:none;">
+      <label style="display:flex;align-items:center;gap:8px;font-weight:400;">
+        <input type="checkbox" id="platformAddDirectInput" style="width:auto;">
+        This is "straight from the author or publisher" (groups by author instead of listing books)
+      </label>
+    </div>
     <div class="field" id="platformAddUrlField" style="display:none;">
       <label>Website / profile URL</label>
       <input type="url" id="platformAddUrl" placeholder="https://...">
     </div>
     <div class="modal-actions">
-      <button type="button" class="icon-btn danger" id="platformDeleteBtn" style="display:none;margin-right:auto;">Delete</button>
       <button type="button" class="btn-secondary" id="platformAddCancelBtn">Cancel</button>
       <button type="button" class="btn-primary" id="platformAddSaveBtn">Add</button>
     </div>
@@ -1396,195 +1337,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 </script>
 
 <!-- ============================================================
-     GOOGLE SHEETS LIVE SYNC — SETUP REQUIRED
-     Reuses the SAME GCAL_CLIENT_ID and Google Cloud project as the
-     Calendar sync above — you don't need a second one. Just:
-       1. In that same Cloud project, go to "APIs & Services" > "Library",
-          search for "Google Sheets API", and click Enable.
-       2. That's it — the OAuth Client ID and consent screen you already
-          set up for Calendar sync cover this too, since it's the same
-          Google account signing in.
-     Whenever the person adds, edits, or deletes a book, the whole
-     library gets rewritten to a "Library" tab in their chosen Google
-     Sheet — simple full-refresh sync rather than tracking individual
-     row positions, which keeps this reliable even if rows get
-     reordered or deleted on the Sheets side.
-     ============================================================ -->
-<script>
-  var SHEETS_SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
-  var SHEETS_TAB_NAME = 'Library';
-  var SHEETS_HEADER = ['Title', 'Author', 'Series', 'Book #', 'Genre', 'Format', 'Status', 'Progress', 'Platform ID', 'ARC Source', 'Rating (out of 5)', 'Date Started', 'Date Finished', 'Tropes'];
-  var sheetsTokenClient = null;
-  var sheetsAccessToken = null;
-  var sheetsTokenExpiresAt = 0;
-  var sheetsTabConfirmedFor = null; // spreadsheetId we've already verified/created the tab on, this session
-
-  function sheetsSyncEnabled(){
-    try{ return localStorage.getItem('lunaria_sheets_sync') === '1'; }catch(e){ return false; }
-  }
-  function setSheetsSyncEnabled(on){
-    try{ localStorage.setItem('lunaria_sheets_sync', on ? '1' : '0'); }catch(e){}
-  }
-  function sheetsSpreadsheetId(){
-    try{ return localStorage.getItem('lunaria_sheets_id') || ''; }catch(e){ return ''; }
-  }
-  function setSheetsSpreadsheetId(id){
-    try{ localStorage.setItem('lunaria_sheets_id', id || ''); }catch(e){}
-  }
-
-  function sheetsInitTokenClient(callback){
-    if(sheetsTokenClient) return sheetsTokenClient;
-    sheetsTokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: GCAL_CLIENT_ID,
-      scope: SHEETS_SCOPE,
-      callback: function(resp){
-        if(resp && resp.access_token){
-          sheetsAccessToken = resp.access_token;
-          sheetsTokenExpiresAt = Date.now() + ((resp.expires_in || 3500) * 1000);
-        }
-        if(callback) callback(resp);
-      }
-    });
-    return sheetsTokenClient;
-  }
-
-  function sheetsEnsureToken(promptIfNeeded){
-    return new Promise(function(resolve, reject){
-      if(sheetsAccessToken && Date.now() < sheetsTokenExpiresAt - 60000){
-        resolve(sheetsAccessToken);
-        return;
-      }
-      if(typeof google === 'undefined' || !google.accounts){
-        reject(new Error('Google Identity Services not loaded'));
-        return;
-      }
-      var client = sheetsInitTokenClient(function(resp){
-        if(resp && resp.access_token) resolve(resp.access_token);
-        else reject(new Error('No access token'));
-      });
-      client.requestAccessToken({prompt: promptIfNeeded ? 'consent' : ''});
-    });
-  }
-
-  // Extracts a spreadsheet ID whether the person pasted a full URL or just the ID itself.
-  function sheetsParseId(input){
-    input = (input || '').trim();
-    var m = input.match(/\/d\/([a-zA-Z0-9-_]+)/);
-    if(m) return m[1];
-    return input;
-  }
-
-  // Makes sure the target spreadsheet has a "Library" tab, creating one if
-  // it doesn't (e.g. the person connected an existing sheet that only has
-  // the default "Sheet1"). Only checked once per spreadsheet per session.
-  async function sheetsEnsureTab(spreadsheetId, token){
-    if(sheetsTabConfirmedFor === spreadsheetId) return;
-    var res = await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + spreadsheetId + '?fields=sheets.properties.title', {
-      headers: {'Authorization': 'Bearer ' + token}
-    });
-    if(!res.ok) throw new Error('Could not open that spreadsheet — double check the link and that your Google account has edit access.');
-    var data = await res.json();
-    var titles = (data.sheets || []).map(function(s){ return s.properties.title; });
-    if(titles.indexOf(SHEETS_TAB_NAME) === -1){
-      await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + spreadsheetId + ':batchUpdate', {
-        method: 'POST',
-        headers: {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'},
-        body: JSON.stringify({requests: [{addSheet: {properties: {title: SHEETS_TAB_NAME}}}]})
-      });
-    }
-    sheetsTabConfirmedFor = spreadsheetId;
-  }
-
-  function sheetsRowsFromBooks(bookList){
-    var rows = [SHEETS_HEADER];
-    (bookList || []).forEach(function(b){
-      var formats = (b.formats && b.formats.length) ? b.formats : [{
-        type: b.format || '', status: b.status || '', platformId: b.platformId || '',
-        rating: b.rating || 0, totalPages: b.totalPages, currentPage: b.currentPage, arcSource: ''
-      }];
-      formats.forEach(function(f){
-        var progress = f.totalPages ? ((f.currentPage || 0) + ' / ' + f.totalPages) : '';
-        var source = f.arcSource || (b.isARC ? b.arcSource : '') || '';
-        rows.push([
-          b.title || '', b.author || '', b.series || '',
-          (b.seriesNumber || b.seriesNumber === 0) ? b.seriesNumber : '',
-          b.genre || '', f.type || '', f.status || '', progress,
-          f.platformId || '', source, f.rating || b.rating || '',
-          b.dateStarted || '', b.dateFinished || '',
-          (b.tropes || []).join(', ')
-        ]);
-      });
-    });
-    return rows;
-  }
-
-  // Full-refresh sync: clears the tab and rewrites it from scratch with
-  // whatever's currently in the library. Simpler and more robust than
-  // tracking individual row positions per book.
-  async function sheetsSyncAll(bookList){
-    if(!sheetsSyncEnabled()) return;
-    var spreadsheetId = sheetsSpreadsheetId();
-    if(!spreadsheetId) return;
-    try{
-      var token = await sheetsEnsureToken(false);
-      await sheetsEnsureTab(spreadsheetId, token);
-      var headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'};
-      var clearRange = encodeURIComponent(SHEETS_TAB_NAME + '!A1:Z20000');
-      await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + spreadsheetId + '/values/' + clearRange + ':clear', {method: 'POST', headers: headers});
-      var updateRange = encodeURIComponent(SHEETS_TAB_NAME + '!A1');
-      await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + spreadsheetId + '/values/' + updateRange + '?valueInputOption=RAW', {
-        method: 'PUT', headers: headers, body: JSON.stringify({values: sheetsRowsFromBooks(bookList)})
-      });
-    }catch(e){
-      console.warn('Google Sheets sync failed', e);
-    }
-  }
-
-  async function sheetsCreateNew(){
-    var token = await sheetsEnsureToken(true);
-    var res = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
-      method: 'POST',
-      headers: {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        properties: {title: 'Hiraya Manawari — Library'},
-        sheets: [{properties: {title: SHEETS_TAB_NAME}}]
-      })
-    });
-    if(!res.ok) throw new Error('Could not create a new spreadsheet.');
-    var data = await res.json();
-    sheetsTabConfirmedFor = data.spreadsheetId;
-    return {id: data.spreadsheetId, url: data.spreadsheetUrl};
-  }
-
-  window.sheetsSync = {
-    isEnabled: sheetsSyncEnabled,
-    getSpreadsheetId: sheetsSpreadsheetId,
-    connect: function(rawIdOrUrl){
-      var id = sheetsParseId(rawIdOrUrl);
-      if(!id) return Promise.reject(new Error('No spreadsheet ID given.'));
-      return sheetsEnsureToken(true).then(function(token){
-        return sheetsEnsureTab(id, token);
-      }).then(function(){
-        setSheetsSpreadsheetId(id);
-        setSheetsSyncEnabled(true);
-        return id;
-      });
-    },
-    createAndConnect: function(){
-      return sheetsCreateNew().then(function(result){
-        setSheetsSpreadsheetId(result.id);
-        setSheetsSyncEnabled(true);
-        return result;
-      });
-    },
-    disconnect: function(){
-      setSheetsSyncEnabled(false);
-    },
-    syncAll: sheetsSyncAll
-  };
-</script>
-
-<!-- ============================================================
      FIREBASE SETUP — this is already configured with your project
      (lunaria-app-21a35). If you ever create a new Firebase project,
      swap the values below. See SETUP.md for background.
@@ -1781,76 +1533,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     });
   }
 
-  var sheetsBtn = document.getElementById('sheetsSyncBtn');
-  function updateSheetsBtn(){
-    if(!sheetsBtn) return;
-    if(window.sheetsSync && window.sheetsSync.isEnabled()){
-      sheetsBtn.textContent = '📊 Sheet synced';
-      sheetsBtn.classList.add('on');
-    } else {
-      sheetsBtn.textContent = '📊 Sync Google Sheet';
-      sheetsBtn.classList.remove('on');
-    }
-  }
-  function triggerSheetsSync(){
-    if(window.sheetsSync && window.sheetsSync.isEnabled()) window.sheetsSync.syncAll(books);
-  }
-  if(sheetsBtn){
-    updateSheetsBtn();
-    sheetsBtn.addEventListener('click', function(){
-      if(window.sheetsSync && window.sheetsSync.isEnabled()){
-        window.sheetsSync.disconnect();
-        updateSheetsBtn();
-        return;
-      }
-      document.getElementById('sheetsSetupIdInput').value = '';
-      document.getElementById('sheetsSetupOverlay').style.display = 'flex';
-    });
-  }
-  document.getElementById('sheetsSetupCancelBtn').addEventListener('click', function(){
-    document.getElementById('sheetsSetupOverlay').style.display = 'none';
-  });
-  document.getElementById('sheetsSetupOverlay').addEventListener('click', function(e){
-    if(e.target.id === 'sheetsSetupOverlay') document.getElementById('sheetsSetupOverlay').style.display = 'none';
-  });
-  document.getElementById('sheetsSetupConnectBtn').addEventListener('click', function(){
-    if(!window.sheetsSync) return;
-    var raw = document.getElementById('sheetsSetupIdInput').value.trim();
-    if(!raw){ showBanner('Paste a Google Sheet link first, or use "Create a brand-new sheet for me" instead.'); return; }
-    var btn = document.getElementById('sheetsSetupConnectBtn');
-    btn.textContent = 'Connecting…';
-    window.sheetsSync.connect(raw).then(function(){
-      document.getElementById('sheetsSetupOverlay').style.display = 'none';
-      updateSheetsBtn();
-      triggerSheetsSync();
-      showBanner('Connected — your library will keep syncing to that Google Sheet as you add, edit, or delete books.');
-    }).catch(function(err){
-      showBanner((err && err.message) || "Couldn't connect to that sheet. Make sure the Sheets API is enabled and your OAuth Client ID is set up correctly (see the comment near the top of the file).");
-    }).finally(function(){
-      btn.textContent = 'Connect';
-    });
-  });
-  document.getElementById('sheetsSetupCreateBtn').addEventListener('click', function(){
-    if(!window.sheetsSync) return;
-    var btn = document.getElementById('sheetsSetupCreateBtn');
-    btn.textContent = 'Creating…';
-    window.sheetsSync.createAndConnect().then(function(result){
-      document.getElementById('sheetsSetupOverlay').style.display = 'none';
-      updateSheetsBtn();
-      triggerSheetsSync();
-      showBanner('Created and connected! Find it in your Google Drive as "Hiraya Manawari — Library".');
-    }).catch(function(err){
-      showBanner((err && err.message) || "Couldn't create a new sheet. Make sure the Sheets API is enabled and your OAuth Client ID is set up correctly (see the comment near the top of the file).");
-    }).finally(function(){
-      btn.textContent = 'Create a brand-new sheet for me';
-    });
-  });
-
   var books = [];
   var duplicateIds = {};
   // Which format-tab is currently shown per book card / detail view, keyed by book id.
   // In-memory only (resets on reload) — defaults to the "reading" format, else the first one.
   var cardActiveFormat = {};
+  var cardExpandedTropes = {};
   function getActiveFormatInstance(b){
     if(!b.formats || !b.formats.length) return null;
     var chosenId = cardActiveFormat[b.id];
@@ -1889,8 +1577,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   var activeStatus = 'all';
   var dueSoonFilterActive = false;
   var confirmingDelete = null;
-  var tropesExpanded = {};
-  var TROPE_PREVIEW_COUNT = 5;
   var manageMode = null;
 
   var defaultTropes = ['Enemies to lovers','Slow burn','Found family','Chosen one','Love triangle','Second chance romance','Fake dating','Forbidden love','Morally gray character','Grumpy x sunshine','Redemption arc','Anti-hero','Multiple POV','Time skip','Coming of age','Revenge','Royalty / court intrigue','Workplace romance','Unreliable narrator','Plot twist ending'];
@@ -1919,11 +1605,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   // first 2-3 letters if it's a single word. "NetGalley" -> "NG",
   // "Love Notes PR" -> "LNP", "Edelweiss" -> "EDE".
   function prefixFromSourceName(source){
-    if(!source) return '';
-    // A custom prefix set on the ARC Source panel always wins over the
-    // auto-derived one, so you can tune the ID scheme without renaming the source.
-    var custom = sourceInfo[source] && sourceInfo[source].idPrefix;
-    if(custom) return custom.toUpperCase();
     var words = (source || '').trim().split(/\s+/).filter(Boolean);
     if(!words.length) return '';
     if(words.length === 1){
@@ -1972,10 +1653,38 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       borrowDueDate: b.borrowDueDate || '',
       dnfReason: b.dnfReason || '',
       rating: b.rating || 0,
-      platformId: b.platformId || '',
-      arcSource: b.isARC ? (b.arcSource || '') : ''
+      isARC: !!b.isARC,
+      arcSource: b.arcSource || '',
+      dueDate: b.dueDate || '',
+      arcFormLink: b.arcFormLink || '',
+      platformId: b.platformId || ''
     };
     b.formats = legacyType ? [inst] : [];
+    b._arcMigrated = true;
+    return b;
+  }
+
+  // Second-pass migration: books that already had a formats[] array (from
+  // before ARC info moved per-format) still have isARC/arcSource/dueDate/
+  // arcFormLink sitting at the book level only. Since a book could have had
+  // several formats before this change with no record of which one was the
+  // actual ARC, this makes a single best guess — the "primary" (most active)
+  // format — and copies the book's ARC info onto that one. Books with only
+  // one format at migration time are unambiguous. Runs once per book (marked
+  // via _arcMigrated) so it never re-copies stale book-level data later.
+  function migrateArcFieldsToFormats(b){
+    if(b._arcMigrated) return b;
+    if(b.isARC && b.formats && b.formats.length){
+      var target = primaryFormatFor(b.formats) || b.formats[0];
+      if(target && !target.isARC){
+        target.isARC = true;
+        target.arcSource = b.arcSource || '';
+        target.dueDate = b.dueDate || '';
+        target.arcFormLink = b.arcFormLink || '';
+        if(target.type !== 'Paperback' && !target.platformId) target.platformId = b.platformId || '';
+      }
+    }
+    b._arcMigrated = true;
     return b;
   }
   function migrateAllBooks(list){
@@ -1984,6 +1693,10 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       if(!b.formats || !Array.isArray(b.formats) || !b.formats.length){
         touched = true;
         return migrateBookToFormats(b);
+      }
+      if(!b._arcMigrated){
+        touched = true;
+        return migrateArcFieldsToFormats(b);
       }
       return b;
     });
@@ -2072,7 +1785,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       importLegacyPlatformDashboardData();
       setSync('idle');
       normalizeArcSourceNames();
-      triggerSheetsSync();
     }catch(e){
       books = [];
       tropeList = defaultTropes.slice();
@@ -2184,23 +1896,22 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     }
   }
 
-  // Fills every ARC-source <select> in the app (the main "ARC source" field,
-  // and any per-format source overrides currently in the DOM) from the
-  // canonical arcSourceList, preserving each select's current value where
-  // it still exists in the list.
   function renderArcSourceList(){
-    var optionsHtml = '<option value="">— none —</option>' + arcSourceList.map(function(s){ return '<option value="' + escapeHtml(s) + '">' + escapeHtml(s) + '</option>'; }).join('');
-    var mainSelect = document.getElementById('f_arcSource');
-    if(mainSelect){
-      var mainVal = mainSelect.value;
-      mainSelect.innerHTML = optionsHtml;
-      mainSelect.value = arcSourceList.indexOf(mainVal) !== -1 ? mainVal : '';
-    }
-    document.querySelectorAll('.fmtArcSource').forEach(function(sel){
-      var val = sel.value;
-      sel.innerHTML = '<option value="">— same as ARC source above —</option>' + arcSourceList.map(function(s){ return '<option value="' + escapeHtml(s) + '">' + escapeHtml(s) + '</option>'; }).join('');
-      sel.value = arcSourceList.indexOf(val) !== -1 ? val : '';
+    // No-op now: ARC source pickers are <select> dropdowns rebuilt fresh from
+    // arcSourceList every time a format panel or quick-edit view renders, so
+    // there's no persistent DOM element (like the old datalist) to refresh here.
+    // Kept as a function so existing call sites after list edits don't need touching.
+  }
+
+  function arcSourceOptionsHtml(selected){
+    var opts = '<option value="">Select a source…</option>';
+    arcSourceList.forEach(function(s){
+      opts += '<option value="' + escapeHtml(s) + '"' + (s === selected ? ' selected' : '') + '>' + escapeHtml(s) + '</option>';
     });
+    if(selected && arcSourceList.indexOf(selected) === -1){
+      opts += '<option value="' + escapeHtml(selected) + '" selected>' + escapeHtml(selected) + '</option>';
+    }
+    return opts;
   }
 
   function daysUntil(dateStr){
@@ -2231,8 +1942,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   function allProviders(){
     var set = {};
     books.forEach(function(b){
-      if(b.isARC && b.arcSource) set[b.arcSource] = true;
-      formatInstancesOf(b).forEach(function(f){ if(f.arcSource) set[f.arcSource] = true; });
+      formatInstancesOf(b).forEach(function(f){ if(f.isARC && f.arcSource) set[f.arcSource] = true; });
     });
     return Object.keys(set).sort();
   }
@@ -2424,7 +2134,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     return b.format ? [{
       type: b.format, status: b.status, totalPages: b.totalPages, currentPage: b.currentPage,
       ownership: b.ownership, borrowDueDate: b.borrowDueDate, dnfReason: b.dnfReason, cover: b.cover,
-      rating: b.rating || 0
+      rating: b.rating || 0, isARC: !!b.isARC, arcSource: b.arcSource || '', dueDate: b.dueDate || '',
+      arcFormLink: b.arcFormLink || '', platformId: b.platformId || ''
     }] : [];
   }
 
@@ -2454,8 +2165,10 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   function effectiveDueDate(b){
     var candidates = [];
-    if(b.isARC && b.dueDate && !bookIsFullyDone(b)) candidates.push(b.dueDate);
     formatInstancesOf(b).forEach(function(f){
+      if(f.isARC && f.dueDate && f.status !== 'finished' && f.status !== 'dnf'){
+        candidates.push(f.dueDate);
+      }
       if(f.type === 'Paperback' && f.ownership === 'Borrowed' && f.borrowDueDate &&
          f.status !== 'finished' && f.status !== 'dnf' && f.status !== 'hold' && f.status !== 'requested'){
         candidates.push(f.borrowDueDate);
@@ -2541,7 +2254,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var filtered = books.filter(function(b){
       if(activeStatus !== 'all' && b.status !== activeStatus) return false;
       if(genre && b.genre !== genre) return false;
-      if(provider && !bookMatchesArcSource(b, provider)) return false;
+      if(provider && !formatInstancesOf(b).some(function(f){ return f.isARC && f.arcSource === provider; })) return false;
       if(formatFilter && formatTypesOf(b).indexOf(formatFilter) === -1) return false;
       if(dueSoonFilterActive){
         var due = effectiveDueDate(b);
@@ -2633,7 +2346,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       type: b.format || '', status: b.status || 'want', cover: b.cover || '',
       totalPages: b.totalPages, currentPage: b.currentPage, ownership: b.ownership,
       borrowDueDate: b.borrowDueDate, dnfReason: b.dnfReason, rating: b.rating || 0, platformId: b.platformId || '',
-      arcSource: b.arcSource || ''
+      isARC: !!b.isARC, arcSource: b.arcSource || '', dueDate: b.dueDate || '', arcFormLink: b.arcFormLink || ''
     };
     var unit = af.type === 'Audiobook' ? 'chapters' : 'pages';
     var progressHtml = '';
@@ -2645,11 +2358,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
     var showDueStamp = af.status !== 'finished' && af.status !== 'dnf' && af.status !== 'hold' && af.status !== 'requested';
     var stampHtml = '';
-    if(showDueStamp && b.isARC && b.dueDate){
-      var d = daysUntil(b.dueDate);
+    if(showDueStamp && af.isARC && af.dueDate){
+      var d = daysUntil(af.dueDate);
       var overdue = d !== null && d < 0;
-      stampHtml = '<div class="stamp' + (overdue ? ' overdue' : '') + '"><span class="lbl">' + (overdue ? 'overdue' : 'due back') + '</span><span>' + fmtShort(b.dueDate) + '</span></div>';
-    } else if(showDueStamp && b.isARC){
+      stampHtml = '<div class="stamp' + (overdue ? ' overdue' : '') + '"><span class="lbl">' + (overdue ? 'overdue' : 'due back') + '</span><span>' + fmtShort(af.dueDate) + '</span></div>';
+    } else if(showDueStamp && af.isARC){
       stampHtml = '<div class="stamp"><span class="lbl">checked out</span></div>';
     } else if(showDueStamp && af.type === 'Paperback' && af.ownership === 'Borrowed' && af.borrowDueDate){
       var bd = daysUntil(af.borrowDueDate);
@@ -2663,22 +2376,17 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var requestedStampHtml = af.status === 'requested' ? '<div class="requested-stamp">REQUESTED</div>' : '';
     var stampColHtml = (stampHtml || readStampHtml || dnfStampHtml || holdStampHtml || requestedStampHtml) ? '<div class="stamp-col">' + stampHtml + readStampHtml + dnfStampHtml + holdStampHtml + requestedStampHtml + '</div>' : '';
 
-    var effectiveArcSource = (af.arcSource || (b.isARC ? b.arcSource : '') || '');
-    var arcSourceHtml = effectiveArcSource ? '<div class="arc-source arc-source-line">via ' + escapeHtml(effectiveArcSource) + '</div>' : '';
-    var arcLinkHtml = (b.isARC && b.arcFormLink) ? '<a class="arc-link" href="' + escapeHtml(b.arcFormLink) + '" target="_blank" rel="noopener">Review form ↗</a>' : '';
+    var arcSourceHtml = (af.isARC && af.arcSource) ? '<div class="arc-source">via ' + escapeHtml(af.arcSource) + '</div>' : '';
+    var arcLinkHtml = (af.isARC && af.arcFormLink) ? '<a class="arc-link" href="' + escapeHtml(af.arcFormLink) + '" target="_blank" rel="noopener">Review form ↗</a>' : '';
 
+    var tropesExpanded = !!cardExpandedTropes[b.id];
     var tagsHtml = '';
     if(b.tropes && b.tropes.length){
-      var isTropesExpanded = !!tropesExpanded[b.id];
-      var shownTropes = isTropesExpanded ? b.tropes : b.tropes.slice(0, TROPE_PREVIEW_COUNT);
-      var tropeChipsInner = shownTropes.map(function(t){ return '<span class="tag">' + escapeHtml(t) + '</span>'; }).join('');
-      var tropeToggleBtn = '';
-      if(b.tropes.length > TROPE_PREVIEW_COUNT){
-        tropeToggleBtn = isTropesExpanded
-          ? '<button type="button" class="tag-more-btn" data-tropes-toggle="' + b.id + '">Show less</button>'
-          : '<button type="button" class="tag-more-btn" data-tropes-toggle="' + b.id + '">See ' + (b.tropes.length - TROPE_PREVIEW_COUNT) + ' more</button>';
-      }
-      tagsHtml = '<div class="tags">' + tropeChipsInner + tropeToggleBtn + '</div>';
+      var shownTropes = tropesExpanded ? b.tropes : b.tropes.slice(0, 5);
+      var tagSpans = shownTropes.map(function(t){ return '<span class="tag">' + escapeHtml(t) + '</span>'; }).join('');
+      var moreCount = b.tropes.length - 5;
+      var seeMoreTagHtml = moreCount > 0 ? ('<button type="button" class="tag tag-see-more" data-tropes-toggle="' + b.id + '">' + (tropesExpanded ? 'Show fewer' : ('+' + moreCount + ' more')) + '</button>') : '';
+      tagsHtml = '<div class="tags">' + tagSpans + seeMoreTagHtml + '</div>';
     }
 
     var seriesHtml = b.series ? '<p class="series series-line">' + escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '') + '</p>' : '';
@@ -2689,9 +2397,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
     var coverHtml = af.cover ? '<img src="' + af.cover + '" alt="">' : (b.cover ? '<img src="' + b.cover + '" alt="">' : '<span class="ph">No cover</span>');
     var formatLabelHtml = af.type ? '<div class="format-label">' + escapeHtml(af.type) + '</div>' : '';
+    var platformIdBadgeHtml = af.platformId ? '<div class="card-id-badge">' + escapeHtml(af.platformId) + '</div>' : '';
     var genreTabHtml = b.genre ? '<div class="genre-tab" style="background:' + genreColorFor(b.genre) + ';">' + escapeHtml(b.genre) + '</div>' : '';
-    var idBadgeHtml = af.platformId ? '<div class="card-id-badge"' + (b.genre ? '' : ' style="margin-left:auto;"') + '>' + escapeHtml(af.platformId) + '</div>' : '';
-    var badgeRowHtml = (genreTabHtml || idBadgeHtml) ? '<div class="card-badge-row">' + genreTabHtml + idBadgeHtml + '</div>' : '';
     var ribbonHtml = af.status === 'reading' ? '<div class="reading-ribbon" title="Currently reading"></div>' : '';
     var dupBadgeHtml = duplicateIds[b.id] ? '<div class="dup-banner" title="Another entry has the same title, author, and format">⚠ Possible Duplicate</div>' : '';
 
@@ -2699,7 +2406,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     card.className = 'card clickable';
     card.innerHTML =
       '<div class="status-tab ' + af.status + '"></div>' +
-      badgeRowHtml +
+      genreTabHtml +
+      platformIdBadgeHtml +
       dupBadgeHtml +
       '<div class="card-top">' +
         '<div class="cover-col">' + ribbonHtml + '<div class="cover-thumb' + (af.type === 'Audiobook' ? ' audiobook-cover' : '') + '">' + coverHtml + '</div>' + formatLabelHtml + '</div>' +
@@ -2730,11 +2438,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       };
     });
 
-    var tropeToggle = card.querySelector('.tag-more-btn[data-tropes-toggle]');
-    if(tropeToggle){
-      tropeToggle.onclick = function(e){
+    var tropesToggleBtn = card.querySelector('.tag-see-more');
+    if(tropesToggleBtn){
+      tropesToggleBtn.onclick = function(e){
         e.stopPropagation();
-        tropesExpanded[b.id] = !tropesExpanded[b.id];
+        cardExpandedTropes[b.id] = !cardExpandedTropes[b.id];
         render();
       };
     }
@@ -2751,7 +2459,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         confirmingDelete = null;
         deleteBookRemote(deletedId);
         if(window.gcal && window.gcal.isEnabled() && deletedGcalEventId) window.gcal.deleteEvent(deletedGcalEventId);
-        triggerSheetsSync();
         render();
       } else {
         confirmingDelete = b.id;
@@ -2765,12 +2472,21 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
 
   function shrinkSeriesLines(){
-    document.querySelectorAll('.series-line, .arc-source-line').forEach(function(el){
-      var size = parseFloat(window.getComputedStyle(el).fontSize) || 12;
-      var minSize = size * 0.7;
+    document.querySelectorAll('.series-line').forEach(function(el){
+      var size = 12;
       el.style.fontSize = size + 'px';
       var guard = 0;
-      while(el.scrollWidth > el.clientWidth && size > minSize && guard < 20){
+      while(el.scrollWidth > el.clientWidth && size > 8.5 && guard < 20){
+        size -= 0.5;
+        el.style.fontSize = size + 'px';
+        guard++;
+      }
+    });
+    document.querySelectorAll('.arc-source').forEach(function(el){
+      var size = 10.5;
+      el.style.fontSize = size + 'px';
+      var guard = 0;
+      while(el.scrollWidth > el.clientWidth && size > 7 && guard < 20){
         size -= 0.5;
         el.style.fontSize = size + 'px';
         guard++;
@@ -2985,11 +2701,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       var swatchHtml = manageMode === 'genre'
         ? '<input type="color" class="genre-swatch-input" value="' + genreColorFor(item) + '" title="Click to change ' + escapeHtml(item) + '\'s color">'
         : '';
-      var idPrefixHtml = manageMode === 'arc'
-        ? '<input type="text" class="manage-arc-prefix-input" value="' + escapeHtml(prefixFromSourceName(item)) + '" maxlength="6" title="ID prefix used when auto-assigning this source\'s Platform IDs" style="width:56px;flex:none;border:1px solid var(--line);border-radius:5px;background:var(--card);font-size:11.5px;text-align:center;padding:3px 2px;font-family:var(--font-mono);text-transform:uppercase;">'
-        : '';
       row.innerHTML = swatchHtml + '<input type="text" class="manage-edit-input" value="' + escapeHtml(item) + '" style="flex:1;border:none;background:none;font-size:13px;color:var(--ink);padding:3px 4px;font-family:var(--font-body);">' +
-        idPrefixHtml +
         '<button type="button" class="link-remove" title="Delete">×</button>';
       if(manageMode === 'genre'){
         var swatchInput = row.querySelector('.genre-swatch-input');
@@ -2999,17 +2711,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
           render();
           if(currentActiveNav === 'navReviews') renderReviewsView();
         });
-      }
-      if(manageMode === 'arc'){
-        var prefixInput = row.querySelector('.manage-arc-prefix-input');
-        prefixInput.addEventListener('blur', function(){
-          var val = prefixInput.value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-          prefixInput.value = val || prefixFromSourceName(item);
-          sourceInfo[item] = sourceInfo[item] || {};
-          if(val){ sourceInfo[item].idPrefix = val; } else { delete sourceInfo[item].idPrefix; }
-          saveSourceInfo();
-        });
-        prefixInput.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); prefixInput.blur(); } });
       }
       var input = row.querySelector('.manage-edit-input');
       input.addEventListener('focus', function(){ input.style.background = 'var(--card-hover)'; input.style.borderRadius = '5px'; });
@@ -3033,11 +2734,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         } else if(manageMode === 'arc'){
           if(mergingInto){ arcSourceList = arcSourceList.filter(function(s){ return s !== item; }); }
           else { arcSourceList = arcSourceList.map(function(s){ return s === item ? newVal : s; }); }
-          if(sourceInfo[item] && !mergingInto){
-            sourceInfo[newVal] = sourceInfo[item];
-            delete sourceInfo[item];
-            saveSourceInfo();
-          }
           saveArcSourceList();
           renderArcSourceList();
         } else {
@@ -3079,7 +2775,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   document.getElementById('openManageGenreBtn').onclick = function(){ openManageModal('genre'); };
   document.getElementById('openManageTropeBtn').onclick = function(){ openManageModal('trope'); };
-  document.getElementById('openManageArcBtn').onclick = function(){ openManageModal('arc'); };
   document.getElementById('manageCloseBtn').onclick = function(){ document.getElementById('manageOverlay').style.display = 'none'; };
   document.getElementById('manageOverlay').addEventListener('click', function(e){
     if(e.target.id === 'manageOverlay') document.getElementById('manageOverlay').style.display = 'none';
@@ -3170,33 +2865,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   // so switching a checkbox off and back on doesn't lose what was typed.
   var formatPanelState = {};
   var formatPendingCovers = {}; // type -> dataUrl, for covers picked but not yet saved
-  // Whether the Paperback/eBook/Audiobook checkbox row is expanded. Collapsed
-  // by default (assumes eBook/ePub only, hidden) — expands automatically for
-  // a book that already has other formats, or when the user clicks "+ Add
-  // another format".
-  var formatRowExpanded = false;
-
-  function applyFormatCheckboxVisibility(){
-    var row = document.getElementById('formatCheckboxRow');
-    var addBtn = document.getElementById('formatAddAnotherBtn');
-    if(formatRowExpanded){
-      row.style.display = 'flex';
-      addBtn.style.display = 'none';
-    } else {
-      row.style.display = 'none';
-      addBtn.style.display = 'inline-block';
-      // Collapsed default: eBook/ePub only.
-      document.getElementById('f_fmt_ebook').checked = true;
-      document.getElementById('f_fmt_paperback').checked = false;
-      document.getElementById('f_fmt_audiobook').checked = false;
-    }
-  }
-
-  document.getElementById('formatAddAnotherBtn').addEventListener('click', function(){
-    formatRowExpanded = true;
-    applyFormatCheckboxVisibility();
-    renderFormatPanels();
-  });
 
   function fmtKey(type){ return type.replace(/[^a-z0-9]/gi, ''); }
 
@@ -3215,6 +2883,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       var isPaperback = type === 'Paperback';
       var cover = formatPendingCovers[type] || st.cover || '';
       var coverHtml = cover ? '<img src="' + cover + '" alt="">' : '<span class="ph">No cover</span>';
+      var isArc = !!st.isARC;
       return '' +
         '<div class="field format-panel" style="border:1px solid var(--line-strong);border-radius:10px;padding:12px;margin-bottom:12px;background:var(--card-hover);">' +
           '<label style="font-weight:bold;">' + escapeHtml(type) + '</label>' +
@@ -3243,21 +2912,32 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
               '<input type="text" class="fmtDnfReason" data-type="' + escapeHtml(type) + '" id="fmtDnfReason_' + key + '" value="' + escapeHtml(st.dnfReason || '') + '">' +
             '</div>' +
           '</div>' +
-          (types.length > 1 ?
+          '<div class="checkbox-row" style="margin:4px 0 8px;">' +
+            '<input type="checkbox" class="fmtIsArc" data-type="' + escapeHtml(type) + '" id="fmtIsArc_' + key + '"' + (isArc ? ' checked' : '') + '>' +
+            '<label for="fmtIsArc_' + key + '">This copy is an ARC (advance reader copy)</label>' +
+          '</div>' +
+          '<div class="fmtArcFields" id="fmtArcFields_' + key + '" style="display:' + (isArc ? 'block' : 'none') + ';">' +
+            '<div class="field-row">' +
+              '<div class="field">' +
+                '<label>ARC source <button type="button" class="manage-link fmtManageArcBtn">Manage list</button></label>' +
+                '<select class="fmtArcSource" data-type="' + escapeHtml(type) + '" id="fmtArcSource_' + key + '">' + arcSourceOptionsHtml(st.arcSource || '') + '</select>' +
+              '</div>' +
+              '<div class="field">' +
+                '<label>Review due date</label>' +
+                '<input type="date" class="fmtDueDate" data-type="' + escapeHtml(type) + '" id="fmtDueDate_' + key + '" value="' + (st.dueDate || '') + '" lang="en-US">' +
+              '</div>' +
+            '</div>' +
             '<div class="field">' +
-              '<label>ARC / ALC source for this format <span style="font-weight:normal;color:var(--muted);">(optional — leave blank to use the source above)</span></label>' +
-              '<select class="fmtArcSource" data-type="' + escapeHtml(type) + '" id="fmtArcSource_' + key + '">' +
-                '<option value="">— same as ARC source above —</option>' +
-                arcSourceList.map(function(s){ return '<option value="' + escapeHtml(s) + '"' + (st.arcSource === s ? ' selected' : '') + '>' + escapeHtml(s) + '</option>'; }).join('') +
-              '</select>' +
-            '</div>'
-          : '') +
-          (type !== 'Paperback' ?
-            '<div class="field">' +
-              '<label>Platform ID <span style="font-weight:normal;color:var(--muted);">(auto-suggested from ARC source, editable)</span></label>' +
-              '<input type="text" class="fmtPlatformId" data-type="' + escapeHtml(type) + '" id="fmtPlatformId_' + key + '" placeholder="e.g. NG001" value="' + escapeHtml(st.platformId || '') + '">' +
-            '</div>'
-          : '') +
+              '<label>Review form link</label>' +
+              '<input type="text" class="fmtArcFormLink" data-type="' + escapeHtml(type) + '" id="fmtArcFormLink_' + key + '" placeholder="https://forms.gle/..." value="' + escapeHtml(st.arcFormLink || '') + '">' +
+            '</div>' +
+            (type !== 'Paperback' ?
+              '<div class="field">' +
+                '<label>Platform ID <span style="font-weight:normal;color:var(--muted);">(auto-suggested from ARC source, editable)</span></label>' +
+                '<input type="text" class="fmtPlatformId" data-type="' + escapeHtml(type) + '" id="fmtPlatformId_' + key + '" placeholder="e.g. NG001" value="' + escapeHtml(st.platformId || '') + '">' +
+              '</div>'
+            : '') +
+          '</div>' +
           '<div class="field-row">' +
             '<div class="field">' +
               '<label>' + (isAudiobook ? 'Total chapters' : 'Total pages') + '</label>' +
@@ -3319,30 +2999,53 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         formatPanelState[type].rating = v;
         document.getElementById('fmtStarPreview_' + key).textContent = starsPlain(v);
       });
+      var isArcEl = document.getElementById('fmtIsArc_' + key);
+      isArcEl.addEventListener('change', function(){
+        formatPanelState[type] = formatPanelState[type] || {};
+        formatPanelState[type].isARC = this.checked;
+        document.getElementById('fmtArcFields_' + key).style.display = this.checked ? 'block' : 'none';
+        if(this.checked && !formatPanelState[type].platformId){
+          var srcEl = document.getElementById('fmtArcSource_' + key);
+          if(srcEl && srcEl.value) formatPanelState[type].platformId = suggestNextPlatformId(srcEl.value);
+          var pidEl = document.getElementById('fmtPlatformId_' + key);
+          if(pidEl) pidEl.value = formatPanelState[type].platformId || '';
+        }
+      });
+      var arcSourceEl = document.getElementById('fmtArcSource_' + key);
+      if(arcSourceEl){
+        arcSourceEl.addEventListener('change', function(){
+          formatPanelState[type] = formatPanelState[type] || {};
+          formatPanelState[type].arcSource = this.value;
+          if(this.value && !formatPanelState[type].platformId){
+            formatPanelState[type].platformId = suggestNextPlatformId(this.value);
+            var pidEl = document.getElementById('fmtPlatformId_' + key);
+            if(pidEl) pidEl.value = formatPanelState[type].platformId;
+          }
+        });
+      }
+      var dueDateEl = document.getElementById('fmtDueDate_' + key);
+      if(dueDateEl){
+        dueDateEl.addEventListener('input', function(){
+          formatPanelState[type] = formatPanelState[type] || {};
+          formatPanelState[type].dueDate = this.value;
+        });
+      }
+      var formLinkEl = document.getElementById('fmtArcFormLink_' + key);
+      if(formLinkEl){
+        formLinkEl.addEventListener('input', function(){
+          formatPanelState[type] = formatPanelState[type] || {};
+          formatPanelState[type].arcFormLink = this.value.trim();
+        });
+      }
+      var manageArcBtn = container.querySelector('#fmtArcFields_' + key + ' .fmtManageArcBtn');
+      if(manageArcBtn){
+        manageArcBtn.addEventListener('click', function(){ openManageModal('arc'); });
+      }
       var platformIdEl = document.getElementById('fmtPlatformId_' + key);
       if(platformIdEl){
         platformIdEl.addEventListener('input', function(){
           formatPanelState[type] = formatPanelState[type] || {};
           formatPanelState[type].platformId = this.value.trim();
-        });
-      }
-      var fmtArcSourceEl = document.getElementById('fmtArcSource_' + key);
-      if(fmtArcSourceEl){
-        fmtArcSourceEl.value = (formatPanelState[type] && formatPanelState[type].arcSource) || '';
-        fmtArcSourceEl.addEventListener('change', function(){
-          formatPanelState[type] = formatPanelState[type] || {};
-          formatPanelState[type].arcSource = this.value;
-          // Auto-suggest a Platform ID for this specific format's source,
-          // same as picking the book-level ARC source does — only while
-          // the ID field is still empty.
-          if(type !== 'Paperback' && this.value){
-            var hasId = formatPanelState[type].platformId;
-            if(!hasId){
-              formatPanelState[type].platformId = suggestNextPlatformId(this.value);
-              var idEl = document.getElementById('fmtPlatformId_' + key);
-              if(idEl) idEl.value = formatPanelState[type].platformId;
-            }
-          }
         });
       }
       var coverInput = document.getElementById('fmtCoverInput_' + key);
@@ -3370,40 +3073,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
 
   document.querySelectorAll('.f_formatType').forEach(function(cb){
-    cb.addEventListener('change', function(){
-      // Auto-suggest a platform ID the moment a qualifying format is freshly
-      // checked (only if it doesn't already have one, and we have a source to
-      // base the prefix on) — never overwrites something already typed.
-      if(cb.checked){
-        var type = cb.value;
-        var hasId = formatPanelState[type] && formatPanelState[type].platformId;
-        var isArc = document.getElementById('f_isArc').checked;
-        var source = document.getElementById('f_arcSource').value.trim();
-        if(type !== 'Paperback' && !hasId && isArc && source){
-          formatPanelState[type] = formatPanelState[type] || {};
-          formatPanelState[type].platformId = suggestNextPlatformId(source);
-        }
-      }
-      renderFormatPanels();
-    });
-  });
-
-  // If the ARC source is set/changed after a qualifying format is already
-  // checked, backfill its Platform ID — but only while that field is still
-  // empty, so it never clobbers something the user typed themselves.
-  document.getElementById('f_arcSource').addEventListener('change', function(){
-    var source = this.value.trim();
-    if(!document.getElementById('f_isArc').checked || !source) return;
-    checkedFormatTypes().forEach(function(type){
-      if(type === 'Paperback') return;
-      var hasId = formatPanelState[type] && formatPanelState[type].platformId;
-      if(hasId) return;
-      formatPanelState[type] = formatPanelState[type] || {};
-      formatPanelState[type].platformId = suggestNextPlatformId(source);
-      var key = fmtKey(type);
-      var el = document.getElementById('fmtPlatformId_' + key);
-      if(el) el.value = formatPanelState[type].platformId;
-    });
+    cb.addEventListener('change', renderFormatPanels);
   });
 
   // Reads whatever is currently unsaved in each format panel's inputs back
@@ -3418,11 +3088,21 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       var dnfEl = document.getElementById('fmtDnfReason_' + key);
       var borrowEl = document.getElementById('fmtBorrowDue_' + key);
       var ratingEl = document.getElementById('fmtRating_' + key);
+      var isArcEl = document.getElementById('fmtIsArc_' + key);
+      var arcSourceEl = document.getElementById('fmtArcSource_' + key);
+      var dueDateEl = document.getElementById('fmtDueDate_' + key);
+      var formLinkEl = document.getElementById('fmtArcFormLink_' + key);
+      var platformIdEl = document.getElementById('fmtPlatformId_' + key);
       if(totalEl) formatPanelState[type].totalPages = totalEl.value ? Number(totalEl.value) : null;
       if(currentEl) formatPanelState[type].currentPage = currentEl.value ? Number(currentEl.value) : null;
       if(dnfEl) formatPanelState[type].dnfReason = dnfEl.value.trim();
       if(borrowEl) formatPanelState[type].borrowDueDate = borrowEl.value || '';
       if(ratingEl) formatPanelState[type].rating = ratingEl.value ? Math.round(parseFloat(ratingEl.value) * 4) / 4 : 0;
+      if(isArcEl) formatPanelState[type].isARC = isArcEl.checked;
+      if(arcSourceEl) formatPanelState[type].arcSource = arcSourceEl.value;
+      if(dueDateEl) formatPanelState[type].dueDate = dueDateEl.value;
+      if(formLinkEl) formatPanelState[type].arcFormLink = formLinkEl.value.trim();
+      if(platformIdEl) formatPanelState[type].platformId = platformIdEl.value.trim();
     });
   }
 
@@ -3431,12 +3111,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     syncFormatPanelStateFromDom();
     var existingById = {};
     (existingFormats || []).forEach(function(f){ existingById[f.type] = f; });
-    var allTypes = checkedFormatTypes();
-    var multiFormat = allTypes.length > 1;
-    return allTypes.map(function(type){
+    return checkedFormatTypes().map(function(type){
       var st = formatPanelState[type] || {};
       var existing = existingById[type];
       var cover = formatPendingCovers.hasOwnProperty(type) ? formatPendingCovers[type] : (existing ? existing.cover : '');
+      var isArc = !!st.isARC;
       return {
         id: existing ? existing.id : fmtUid(),
         type: type,
@@ -3448,12 +3127,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         ownership: type === 'Paperback' ? (st.ownership || 'Owned') : '',
         borrowDueDate: (type === 'Paperback' && st.ownership === 'Borrowed') ? (st.borrowDueDate || '') : '',
         rating: st.rating || 0,
-        platformId: type !== 'Paperback' ? (st.platformId || '') : '',
-        // Per-format source only applies (and is only shown) when there's
-        // more than one format on the book — with just one, the book-level
-        // ARC source above already covers it, so we don't carry a stale
-        // value over from when a since-removed second format existed.
-        arcSource: multiFormat ? (st.arcSource || '') : ''
+        isARC: isArc,
+        arcSource: isArc ? (st.arcSource || '') : '',
+        dueDate: isArc ? (st.dueDate || '') : '',
+        arcFormLink: isArc ? (st.arcFormLink || '') : '',
+        platformId: (type !== 'Paperback' && isArc) ? (st.platformId || '') : ''
       };
     });
   }
@@ -3465,11 +3143,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     formatPendingCovers = {};
     document.querySelectorAll('.f_formatType').forEach(function(cb){ cb.checked = false; });
     var formats = (book && book.formats) || [];
-    var types = formats.map(function(f){ return f.type; });
-    // Collapse to the "just eBook" shorthand whenever that's all this book
-    // is (including a brand-new book, which has no formats yet) — expand
-    // for anything else so the real state stays visible.
-    formatRowExpanded = !(types.length === 0 || (types.length === 1 && types[0] === 'eBook / ePub'));
     formats.forEach(function(f){
       var cb = document.querySelector('.f_formatType[value="' + f.type + '"]');
       if(cb) cb.checked = true;
@@ -3483,10 +3156,22 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         cover: f.cover || '',
         rating: f.rating || 0,
         platformId: f.platformId || '',
-        arcSource: f.arcSource || ''
+        isARC: !!f.isARC,
+        arcSource: f.arcSource || '',
+        dueDate: f.dueDate || '',
+        arcFormLink: f.arcFormLink || ''
       };
     });
-    applyFormatCheckboxVisibility();
+    // Progressive disclosure: if there's 0 or 1 format, hide the checkbox row
+    // and default a brand-new book straight into an eBook panel — the common
+    // case — rather than making every add start with three checkboxes.
+    var revealCheckboxes = formats.length > 1;
+    if(!book && formats.length === 0){
+      var ebookCb = document.querySelector('.f_formatType[value="eBook / ePub"]');
+      if(ebookCb) ebookCb.checked = true;
+    }
+    document.getElementById('formatCheckboxRow').style.display = revealCheckboxes ? 'flex' : 'none';
+    document.getElementById('addAnotherFormatBtn').style.display = revealCheckboxes ? 'none' : 'inline-block';
     renderFormatPanels();
   }
 
@@ -3521,6 +3206,17 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     data.borrowDueDate = primary ? primary.borrowDueDate : '';
     data.rating = primary ? (primary.rating || 0) : 0;
     data.cover = primary ? (primary.cover || pendingCover || null) : (pendingCover || null);
+    // ARC info now lives per-format; mirror whichever format is actually
+    // marked ARC (preferring the same priority order as primaryFormatFor)
+    // onto the book level, so older code that still reads b.isARC/arcSource
+    // directly (postcards, PDF export, CSV) keeps showing something sensible.
+    var arcFormats = (data.formats || []).filter(function(f){ return f.isARC; });
+    var arcPrimary = arcFormats.length ? primaryFormatFor(arcFormats) : null;
+    data.isARC = !!arcPrimary;
+    data.arcSource = arcPrimary ? (arcPrimary.arcSource || '') : '';
+    data.dueDate = arcPrimary ? (arcPrimary.dueDate || '') : '';
+    data.arcFormLink = arcPrimary ? (arcPrimary.arcFormLink || '') : '';
+    data.platformId = arcPrimary ? (arcPrimary.platformId || '') : '';
     return data;
   }
 
@@ -3596,11 +3292,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     document.getElementById('f_author').value = b ? b.author || '' : '';
     document.getElementById('f_series').value = b ? b.series || '' : '';
     document.getElementById('f_seriesNum').value = b && (b.seriesNumber || b.seriesNumber === 0) ? b.seriesNumber : '';
-    document.getElementById('f_isArc').checked = b ? !!b.isARC : false;
-    renderArcSourceList();
-    document.getElementById('f_arcSource').value = b ? b.arcSource || '' : '';
-    document.getElementById('f_dueDate').value = b ? b.dueDate || '' : '';
-    document.getElementById('f_arcFormLink').value = b ? b.arcFormLink || '' : '';
     document.getElementById('f_dateStarted').value = b ? b.dateStarted || '' : '';
     document.getElementById('f_dateFinished').value = b ? b.dateFinished || '' : '';
     renderGenreSelect(b ? b.genre || '' : '');
@@ -3617,7 +3308,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     renderTropeChips();
     renderTropeOptions();
     document.getElementById('tropeSearchInput').value = '';
-    document.getElementById('arcFields').style.display = document.getElementById('f_isArc').checked ? 'block' : 'none';
     populateFormatUI(b);
     document.getElementById('overlay').style.display = 'flex';
     if(!isReviewOnly) document.getElementById('f_title').focus();
@@ -3630,13 +3320,13 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
 
   document.getElementById('addBtn').onclick = function(){ openModal(null); };
+  document.getElementById('addAnotherFormatBtn').onclick = function(){
+    document.getElementById('formatCheckboxRow').style.display = 'flex';
+    document.getElementById('addAnotherFormatBtn').style.display = 'none';
+  };
   document.getElementById('cancelBtn').onclick = closeModal;
   document.getElementById('overlay').addEventListener('click', function(e){
     if(e.target.id === 'overlay') closeModal();
-  });
-
-  document.getElementById('f_isArc').addEventListener('change', function(e){
-    document.getElementById('arcFields').style.display = e.target.checked ? 'block' : 'none';
   });
 
   document.getElementById('addBlurbLink').addEventListener('click', function(e){
@@ -3661,10 +3351,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       series: document.getElementById('f_series').value.trim(),
       seriesNumber: document.getElementById('f_seriesNum').value ? Number(document.getElementById('f_seriesNum').value) : null,
       formats: formats,
-      isARC: document.getElementById('f_isArc').checked,
-      arcSource: document.getElementById('f_isArc').checked ? document.getElementById('f_arcSource').value.trim() : '',
-      dueDate: document.getElementById('f_isArc').checked ? document.getElementById('f_dueDate').value : '',
-      arcFormLink: document.getElementById('f_isArc').checked ? document.getElementById('f_arcFormLink').value.trim() : '',
       dateStarted: document.getElementById('f_dateStarted').value,
       dateFinished: document.getElementById('f_dateFinished').value,
       genre: document.getElementById('f_genre').value,
@@ -3674,12 +3360,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       tropes: selectedTropes.slice()
     };
     applyLegacyFieldsFromFormats(data);
-
-    if(data.arcSource && arcSourceList.indexOf(data.arcSource) === -1){
-      arcSourceList.push(data.arcSource);
-      saveArcSourceList();
-      renderArcSourceList();
-    }
 
     var finalBook = data;
     if(editingId){
@@ -3699,7 +3379,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
     saveBookRemote(finalBook);
     if(window.gcal && window.gcal.isEnabled()) window.gcal.syncBook(finalBook);
-    triggerSheetsSync();
     closeModal();
     render();
     if(currentActiveNav === 'navReviews') renderReviewsView();
@@ -3943,24 +3622,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     navReader: 'readerView'
   };
 
-  // Sidebar counterpart button for each top-nav id (desktop-width sidebar —
-  // see .app-sidebar). Kept in sync with the top nav bar by switchView() so
-  // either one reflects whichever the person actually clicked.
-  var SIDEBAR_TABS = {
-    navLibrary: 'sbLibrary',
-    navSeries: 'sbSeries',
-    navPlatforms: 'sbPlatforms',
-    navCalendar: 'sbCalendar',
-    navReviews: 'sbReviews',
-    navReader: 'sbReader'
-  };
-  // Which sidebar group (Browse/Profile) each sub-item belongs to, so
-  // switchView() can auto-expand the right one when its item becomes active.
-  var SIDEBAR_GROUP_OF = {
-    sbSeries: 'sbBrowseGroup', sbPlatforms: 'sbBrowseGroup', sbCalendar: 'sbBrowseGroup',
-    sbReader: 'sbProfileGroup'
-  };
-
   var currentActiveNav = 'navLibrary';
 
   function switchView(activeNavId){
@@ -3969,15 +3630,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       var isActive = navId === activeNavId;
       document.getElementById(navId).classList.toggle('active', isActive);
       document.getElementById(NAV_TABS[navId]).style.display = isActive ? 'block' : 'none';
-      var sbId = SIDEBAR_TABS[navId];
-      var sbEl = sbId && document.getElementById(sbId);
-      if(sbEl){
-        sbEl.classList.toggle('active', isActive);
-        if(isActive){
-          var groupId = SIDEBAR_GROUP_OF[sbId];
-          if(groupId) document.getElementById(groupId).classList.add('open');
-        }
-      }
     });
     if(activeNavId === 'navSeries') renderSeriesView();
     if(activeNavId === 'navPlatforms') renderPlatformsView();
@@ -4034,22 +3686,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   document.getElementById('navCalendar').onclick = function(){ switchView('navCalendar'); };
   document.getElementById('navReviews').onclick = function(){ switchView('navReviews'); };
   document.getElementById('navReader').onclick = function(){ switchView('navReader'); };
-
-  // Sidebar (desktop-width layout) — same destinations as the top nav above.
-  document.getElementById('sbLibrary').onclick = function(){ switchView('navLibrary'); };
-  document.getElementById('sbSeries').onclick = function(){ switchView('navSeries'); };
-  document.getElementById('sbPlatforms').onclick = function(){ switchView('navPlatforms'); };
-  document.getElementById('sbCalendar').onclick = function(){ switchView('navCalendar'); };
-  document.getElementById('sbReviews').onclick = function(){ switchView('navReviews'); };
-  document.getElementById('sbReader').onclick = function(){ switchView('navReader'); };
-  // Browse/Profile start collapsed — clicking the group header just expands
-  // or collapses its sub-pages, it doesn't navigate anywhere by itself.
-  document.getElementById('sbBrowseToggle').onclick = function(){
-    document.getElementById('sbBrowseGroup').classList.toggle('open');
-  };
-  document.getElementById('sbProfileToggle').onclick = function(){
-    document.getElementById('sbProfileGroup').classList.toggle('open');
-  };
 
   async function saveLinks(){
     try{ await window.cloudStore.saveMeta({readerLinks: readerLinks}); }catch(e){
@@ -5083,9 +4719,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
     var arcRows = '';
     if(b.isARC || bvEditingField === 'arcSource'){
-      var arcSourceOpts = '<option value="">—</option>' + arcSourceList.map(function(s){ return '<option value="' + escapeHtml(s) + '"' + (s === b.arcSource ? ' selected' : '') + '>' + escapeHtml(s) + '</option>'; }).join('');
       arcRows += field('arcSource', 'Source',
-        '<select id="bvInput_arcSource">' + arcSourceOpts + '</select>',
+        '<input type="text" id="bvInput_arcSource" list="arcSourceOptions" value="' + escapeHtml(b.arcSource || '') + '">',
         bvValueOrEmpty(escapeHtml(b.arcSource || ''), !b.arcSource, '—'));
     }
     if(b.isARC || bvEditingField === 'dueDate'){
@@ -5298,13 +4933,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       '</div>';
   }
 
-  // Builds the "Direct from Authors" tile grid inside Platforms — one small
-  // logo-style card per author (photo + name + book count), matching the
-  // look of the ARC Team / Review Platform grids. Tapping a tile pops open
-  // the full author card (buildAuthorCardHtml) in the peek modal, same as
-  // clicking an "Author/Publisher" ARC source used to. Search term comes
-  // from the shared platformsSearchTerm/platformsSearchInput.
-  function buildAuthorsPlatformGridHtml(){
+  function renderAuthorsView(){
+    var wrap = document.getElementById('authorsView');
     var groups = {};
     books.forEach(function(b){
       if(!b.author) return;
@@ -5313,10 +4943,16 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     });
     var allNames = Object.keys(groups).sort(function(a, b){ return a.localeCompare(b); });
     if(!allNames.length){
-      return '<div class="cal-empty-note">No authors yet — add an author to a book to see them here.</div>';
+      wrap.innerHTML = '<div class="cal-empty-note">No authors yet — add an author to a book to see them here.</div>';
+      return;
     }
 
-    var query = platformsSearchTerm.trim().toLowerCase();
+    var searchWrapHtml = '<div class="authors-search-wrap">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
+      '<input type="text" id="authorsSearchInput" placeholder="Search authors..." value="' + escapeHtml(authorsSearchTerm) + '">' +
+      '</div>';
+
+    var query = authorsSearchTerm.trim().toLowerCase();
     var names = query ? allNames.filter(function(n){
       if(n.toLowerCase().indexOf(query) !== -1) return true;
       return groups[n].some(function(b){
@@ -5326,22 +4962,28 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     }) : allNames;
 
     if(!names.length){
-      return '<div class="cal-empty-note">No authors match "' + escapeHtml(platformsSearchTerm) + '".</div>';
+      wrap.innerHTML = searchWrapHtml + '<div class="cal-empty-note">No authors match "' + escapeHtml(authorsSearchTerm) + '".</div>';
+      wireAuthorsSearchInput();
+      return;
     }
 
-    var cards = names.map(function(name){
-      var photo = authorPhotos[name];
-      var logoHtml = photo
-        ? '<img src="' + photo + '" alt="">'
-        : '<div class="author-photo-ph">' + escapeHtml(authorInitial(name)) + '</div>';
-      var count = groups[name].length;
-      return '<div class="platform-logo-card" data-author-name="' + escapeHtml(name) + '">' +
-        '<div class="platform-logo-img-wrap author-avatar">' + logoHtml + '</div>' +
-        '<div class="platform-logo-title">' + escapeHtml(name) + '</div>' +
-        '<div class="platform-logo-sub">' + count + ' book' + (count === 1 ? '' : 's') + '</div>' +
-        '</div>';
-    }).join('');
-    return '<div class="platform-logo-grid">' + cards + '</div>';
+    var cards = names.map(buildAuthorCardHtml).join('');
+    wrap.innerHTML = searchWrapHtml + '<div class="grid">' + cards + '</div>';
+    wireAuthorsSearchInput();
+  }
+
+  var authorsSearchTerm = '';
+
+  function wireAuthorsSearchInput(){
+    var input = document.getElementById('authorsSearchInput');
+    if(!input) return;
+    input.focus();
+    var val = input.value;
+    input.setSelectionRange(val.length, val.length);
+    input.oninput = function(){
+      authorsSearchTerm = input.value;
+      renderAuthorsView();
+    };
   }
 
   // Pops open just that one author's card on top of wherever you are —
@@ -5389,6 +5031,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   function toggleAuthorStandaloneExpanded(name){
     authorStandaloneExpanded[name] = !authorStandaloneExpanded[name];
+    if(currentActiveNav === 'navPlatforms' && platformsSubTab === 'authors') renderPlatformsView();
     if(document.getElementById('authorPeekOverlay').style.display === 'flex'){
       document.getElementById('authorPeekContent').innerHTML = buildAuthorCardHtml(name);
     }
@@ -5437,9 +5080,36 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     }
   });
 
-  // Photo upload lives only in the author peek modal now that the Authors
-  // page has been folded into Platforms → Direct from Authors.
-  document.getElementById('authorPeekContent').addEventListener('change', function(e){
+  document.getElementById('authorsView').addEventListener('click', function(e){
+    var editRowBtn = e.target.closest('.book-row-edit-btn');
+    if(editRowBtn){
+      openModal(editRowBtn.getAttribute('data-edit-book-id'), 'full');
+      return;
+    }
+    var standaloneToggleBtn = e.target.closest('.see-more-btn[data-standalone-toggle]');
+    if(standaloneToggleBtn){
+      toggleAuthorStandaloneExpanded(standaloneToggleBtn.getAttribute('data-standalone-toggle'));
+      return;
+    }
+    var linkEditBtn = e.target.closest('.entity-link-edit-btn');
+    if(linkEditBtn){
+      openEntityLinksEditModal(linkEditBtn.getAttribute('data-entity-kind'), linkEditBtn.getAttribute('data-entity-name'));
+      return;
+    }
+    var seriesRow = e.target.closest('.author-series-row');
+    if(seriesRow && seriesRow.hasAttribute('data-series')){
+      openSeriesPeek(seriesRow.getAttribute('data-series'));
+      return;
+    }
+    var bookRow = e.target.closest('.series-book-row');
+    if(bookRow){
+      var id = bookRow.getAttribute('data-book-id');
+      if(id) openBookView(id);
+      return;
+    }
+  });
+
+  document.getElementById('authorsView').addEventListener('change', function(e){
     var input = e.target.closest('.author-photo-input');
     if(!input) return;
     var file = input.files[0];
@@ -5450,8 +5120,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     resizeImage(file, 200, 0.82).then(function(dataUrl){
       authorPhotos[name] = dataUrl;
       saveAuthorPhotos();
-      document.getElementById('authorPeekContent').innerHTML = buildAuthorCardHtml(name);
-      if(currentActiveNav === 'navPlatforms' && platformsSubTab === 'authors') renderPlatformsView();
+      renderAuthorsView();
     }).catch(function(){
       showBanner("Couldn't process that photo. Try a different image.");
     });
@@ -5462,34 +5131,21 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   // "Author/Publisher" (isAuthorDirect) shows a list of the authors you've
   // gotten books directly from instead of a book list, since one such
   // entry can span many different authors — click a name to peek at them.
-  var platformsSubTab = 'teams'; // 'teams' | 'authors' | 'review'
+  var platformsSubTab = 'teams'; // 'teams' | 'review'
+  var platformDeleteConfirm = null; // {kind, index} of a card mid tap-to-confirm delete
   var platformsSearchTerm = '';
   var platformsDrilldownTeam = null; // team name currently drilled into, or null for grid view
 
-  // True if this book has ANY copy attributed to this ARC/PR source — either
-  // the book-level source (the classic single-source case) or a per-format
-  // source (e.g. an eBook bought outright but an Audiobook received as an ALC
-  // from a specific team).
-  function bookMatchesArcSource(b, sourceName){
-    if(!sourceName) return false;
-    if(b.isARC && b.arcSource === sourceName) return true;
-    return formatInstancesOf(b).some(function(f){ return f.arcSource === sourceName; });
-  }
-
   // Finds which format-instance on a book should represent it in a team's
-  // ARC table row. When a team name is given, prefers whichever format is
-  // actually attributed to that team (with a Platform ID if it has one);
-  // otherwise falls back to any format with a Platform ID set, then to the
-  // book's overall (legacy-synced) status/pages if none do.
-  function formatInstanceForPlatformRow(b, sourceName){
+  // ARC table row for a specific team — finds the format instance actually
+  // tied to that team's source (a book could have two different formats ARC'd
+  // from two different sources, so we must match on source, not just "any
+  // format with an ID"), falling back to any ARC'd format, then to the book's
+  // legacy-synced fields if truly nothing matches.
+  function formatInstanceForPlatformRow(b, teamName){
     var instances = formatInstancesOf(b);
-    if(sourceName){
-      var forSource = instances.find(function(f){ return f.arcSource === sourceName && f.platformId; });
-      if(forSource) return forSource;
-      forSource = instances.find(function(f){ return f.arcSource === sourceName; });
-      if(forSource) return forSource;
-    }
-    return instances.find(function(f){ return f.platformId; }) || null;
+    return instances.find(function(f){ return f.isARC && f.arcSource === teamName; }) ||
+      instances.find(function(f){ return f.isARC && f.platformId; }) || null;
   }
 
   function renderPlatformsView(){
@@ -5500,29 +5156,62 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       '<button type="button" class="view-tab' + (platformsSubTab === 'review' ? ' active' : '') + '" id="platformsReviewTabBtn">Review Platforms</button>' +
       '</div>';
 
-    // Authors aren't manually added like ARC teams / review platforms — they
-    // come from whatever's on your books — so the tab has no "+" button.
-    var showAddBtn = platformsSubTab !== 'authors';
-    var searchPlaceholder = platformsSubTab === 'authors' ? 'Search authors...' : 'Search platforms, title, author, series...';
+    var addBtnHtml = platformsSubTab !== 'authors' ? '<button type="button" class="btn-add-plus" id="platformAddOpenBtn" title="Add platform">+</button>' : '';
     var toolbarHtml = '<div class="authors-search-wrap" style="flex:1;">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
-      '<input type="text" id="platformsSearchInput" placeholder="' + searchPlaceholder + '" value="' + escapeHtml(platformsSearchTerm) + '">' +
-      '</div>' +
-      (showAddBtn ? '<button type="button" class="btn-add-plus" id="platformAddOpenBtn" title="Add platform">+</button>' : '');
+      '<input type="text" id="platformsSearchInput" placeholder="Search platforms, title, author, series...'  + '" value="' + escapeHtml(platformsSearchTerm) + '">' +
+      '</div>' + addBtnHtml;
 
     var bodyHtml;
     if(platformsSubTab === 'teams' && platformsDrilldownTeam){
       bodyHtml = buildPlatformTeamTableHtml(platformsDrilldownTeam);
     } else if(platformsSubTab === 'teams'){
-      bodyHtml = buildPlatformLogoGridHtml(arcTeams, 'team');
+      bodyHtml = buildPlatformLogoGridHtml(arcTeams, 'teams');
     } else if(platformsSubTab === 'authors'){
-      bodyHtml = buildAuthorsPlatformGridHtml();
+      bodyHtml = buildDirectAuthorsGridHtml();
     } else {
       bodyHtml = buildPlatformLogoGridHtml(reviewPlatforms, 'review');
     }
 
     wrap.innerHTML = subtabsHtml + '<div class="toolbar" style="display:flex;gap:10px;align-items:center;">' + toolbarHtml + '</div>' + bodyHtml;
     wirePlatformsViewHandlers();
+  }
+
+  // "Direct from Authors" grid: unlike ARC teams/review platforms, this list
+  // isn't manually managed — it's derived straight from every author name
+  // that appears in your library, using the same author photos already set
+  // on the (now-retired) standalone Authors page. Clicking a card opens the
+  // existing author peek popup (full series/standalone book list, links, etc.)
+  // rather than duplicating that view here.
+  function buildDirectAuthorsGridHtml(){
+    var names = {};
+    books.forEach(function(b){ if(b.author) names[b.author] = (names[b.author] || 0) + 1; });
+    var allNames = Object.keys(names).sort(function(a, b){ return a.localeCompare(b); });
+    if(!allNames.length){
+      return '<div class="cal-empty-note">No authors yet — add a book to see them here.</div>';
+    }
+    var query = platformsSearchTerm.trim().toLowerCase();
+    var filtered = query ? allNames.filter(function(name){
+      if(name.toLowerCase().indexOf(query) !== -1) return true;
+      return books.some(function(b){
+        if(b.author !== name) return false;
+        var hay = [b.title, b.series, (b.tropes||[]).join(' '), b.review].join(' ').toLowerCase();
+        return hay.indexOf(query) !== -1;
+      });
+    }) : allNames;
+    if(!filtered.length){
+      return '<div class="cal-empty-note">No authors match "' + escapeHtml(platformsSearchTerm) + '".</div>';
+    }
+    var cards = filtered.map(function(name){
+      var photo = authorPhotos[name];
+      var logoHtml = photo ? '<img src="' + escapeHtml(photo) + '" alt="">' : '<div class="platform-author-initial">' + escapeHtml(authorInitial(name)) + '</div>';
+      return '<div class="platform-logo-card" data-author-name="' + escapeHtml(name) + '">' +
+        '<div class="platform-logo-img-wrap" style="border-radius:50%;overflow:hidden;">' + logoHtml + '</div>' +
+        '<div class="platform-logo-title">' + escapeHtml(name) + '</div>' +
+        '<div class="platform-logo-sub">' + names[name] + ' book' + (names[name] === 1 ? '' : 's') + '</div>' +
+        '</div>';
+    }).join('');
+    return '<div class="platform-logo-grid">' + cards + '</div>';
   }
 
   // Renders the logo grid for either sub-tab. "kind" is 'team' (drills into
@@ -5533,42 +5222,47 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var filtered = list.filter(function(p){
       if(!query) return true;
       if(p.name.toLowerCase().indexOf(query) !== -1) return true;
-      if(kind !== 'team') return false;
+      if(kind !== 'teams') return false;
       return books.some(function(b){
-        if(!bookMatchesArcSource(b, p.name)) return false;
+        if(!b.isARC || b.arcSource !== p.name) return false;
         var hay = [b.title, b.author, b.series, (b.tropes||[]).join(' '), b.review].join(' ').toLowerCase();
         return hay.indexOf(query) !== -1;
       });
     });
     if(!filtered.length){
       var emptyMsg = list.length ? ('No platforms match "' + escapeHtml(platformsSearchTerm) + '".') :
-        (kind === 'team' ? 'No ARC/PR teams added yet — tap + to add one.' : 'No review platforms added yet — tap + to add one.');
+        (kind === 'teams' ? 'No ARC/PR teams added yet — tap + to add one.' : 'No review platforms added yet — tap + to add one.');
       return '<div class="cal-empty-note">' + emptyMsg + '</div>';
     }
     var cards = filtered.map(function(p){
+      var originalIndex = list.indexOf(p); // preserved through .filter(), used so edits hit the right entry even while searching
       var logoHtml = p.logo ? '<img src="' + escapeHtml(p.logo) + '" alt="">' : '<span class="ph">No logo</span>';
-      var count = kind === 'team' ? books.filter(function(b){ return bookMatchesArcSource(b, p.name); }).length : 0;
-      var subHtml = kind === 'team' ? '<div class="platform-logo-sub">' + count + ' book' + (count === 1 ? '' : 's') + '</div>' : '';
+      var count = kind === 'teams' ? books.filter(function(b){ return formatInstancesOf(b).some(function(f){ return f.isARC && f.arcSource === p.name; }); }).length : 0;
+      var subHtml = kind === 'teams' ? '<div class="platform-logo-sub">' + count + ' book' + (count === 1 ? '' : 's') + '</div>' : '';
+      var directBadgeHtml = (kind === 'teams' && p.isAuthorDirect) ? '<div class="platform-direct-badge">Author/Publisher direct</div>' : '';
       var tag = kind === 'review' ? 'a' : 'div';
       var hrefAttr = kind === 'review' ? ' href="' + escapeHtml(p.url || '#') + '" target="_blank" rel="noopener"' : '';
-      var editBtnHtml = '<button type="button" class="platform-logo-edit-btn" data-edit-platform-kind="' + kind + '" data-edit-platform-name="' + escapeHtml(p.name) + '" title="Edit ' + escapeHtml(p.name) + '">✎</button>';
+      var isConfirming = platformDeleteConfirm && platformDeleteConfirm.kind === kind && platformDeleteConfirm.index === originalIndex;
+      var editBtnHtml = '<button type="button" class="platform-logo-edit-btn" data-edit-kind="' + kind + '" data-edit-index="' + originalIndex + '" title="Edit">✎</button>';
+      var deleteBtnHtml = '<button type="button" class="platform-logo-delete-btn' + (isConfirming ? ' confirming' : '') + '" data-delete-kind="' + kind + '" data-delete-index="' + originalIndex + '" title="Delete">' + (isConfirming ? '✓' : '✕') + '</button>';
       return '<' + tag + ' class="platform-logo-card" data-platform-name="' + escapeHtml(p.name) + '"' + hrefAttr + '>' +
-        editBtnHtml +
+        editBtnHtml + deleteBtnHtml +
         '<div class="platform-logo-img-wrap">' + logoHtml + '</div>' +
         '<div class="platform-logo-title">' + escapeHtml(p.name) + '</div>' +
-        subHtml +
+        subHtml + directBadgeHtml +
         '</' + tag + '>';
     }).join('');
     return '<div class="platform-logo-grid">' + cards + '</div>';
   }
 
-  // The drilled-down ARC table for one team: every ARC book assigned to that
-  // source, showing whichever format's Platform ID/status/pages apply (see
-  // formatInstanceForPlatformRow), falling back to the book's own synced
-  // status/pages for books that don't have a Platform ID set on any format.
+  // The drilled-down view for one team: normally an ARC table (see below).
+  // For teams marked "straight from author/publisher", groups by author name
+  // instead, since with dozens of individual authors a per-book table isn't
+  // useful — mirrors the old Platforms view's Author/Publisher behavior.
   function buildPlatformTeamTableHtml(teamName){
+    var team = arcTeams.find(function(t){ return t.name === teamName; });
     var query = platformsSearchTerm.trim().toLowerCase();
-    var matches = books.filter(function(b){ return bookMatchesArcSource(b, teamName); });
+    var matches = books.filter(function(b){ return formatInstancesOf(b).some(function(f){ return f.isARC && f.arcSource === teamName; }); });
     if(query){
       matches = matches.filter(function(b){
         var hay = [b.title, b.author, b.series, (b.tropes||[]).join(' '), b.review].join(' ').toLowerCase();
@@ -5582,24 +5276,38 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     if(!matches.length){
       return header + '<div class="cal-empty-note">No books assigned to ' + escapeHtml(teamName) + ' yet.</div>';
     }
-    var rowsData = matches.map(function(b, idx){
+
+    if(team && team.isAuthorDirect){
+      var authorCounts = {};
+      matches.forEach(function(b){ if(b.author) authorCounts[b.author] = (authorCounts[b.author] || 0) + 1; });
+      var authorNames = Object.keys(authorCounts).sort(function(a, b){ return a.localeCompare(b); });
+      if(!authorNames.length){
+        return header + '<div class="cal-empty-note">No authors found for ' + escapeHtml(teamName) + ' yet.</div>';
+      }
+      var authorRows = authorNames.map(function(aName, idx){
+        return '<div class="author-series-row" data-platform-author="' + escapeHtml(aName) + '">' +
+          '<span><span class="author-series-num">' + (idx + 1) + '.</span>' + escapeHtml(aName) + '</span>' +
+          '<span class="author-series-count">' + authorCounts[aName] + ' book' + (authorCounts[aName] === 1 ? '' : 's') + ' ›</span>' +
+          '</div>';
+      }).join('');
+      return header + '<div class="card platform-card">' + authorRows + '</div>';
+    }
+
+    var rowData = matches.map(function(b, idx){
       var fi = formatInstanceForPlatformRow(b, teamName);
-      var idText = fi ? fi.platformId : String(idx + 1).padStart(3, '0');
-      return { b: b, fi: fi, idText: idText };
+      var idText = fi ? fi.platformId : '';
+      var sortNum = idText ? (parseInt((idText.match(/(\d+)$/) || [])[1], 10) || 0) : 0;
+      return {b: b, fi: fi, idText: idText || String(idx + 1).padStart(3, '0'), sortNum: sortNum, hasId: !!idText};
     });
-    // Chronological order: sort by the numeric portion of the platform ID
-    // (e.g. BELLA001, BELLA002...), falling back to plain string compare
-    // when an ID doesn't have a trailing number (or is missing).
-    rowsData.sort(function(x, y){
-      var mx = (x.idText || '').match(/(\d+)\s*$/);
-      var my = (y.idText || '').match(/(\d+)\s*$/);
-      var px = (x.idText || '').replace(/\d+\s*$/, '');
-      var py = (y.idText || '').replace(/\d+\s*$/, '');
-      if(px === py && mx && my){ return parseInt(mx[1], 10) - parseInt(my[1], 10); }
-      return (x.idText || '').localeCompare(y.idText || '', undefined, {numeric: true, sensitivity: 'base'});
+    // IDs sort chronologically (by their numeric suffix, e.g. NG001 before NG010);
+    // books without an ID yet fall to the end, in the order they were added.
+    rowData.sort(function(a, b){
+      if(a.hasId && b.hasId) return a.sortNum - b.sortNum;
+      if(a.hasId !== b.hasId) return a.hasId ? -1 : 1;
+      return 0;
     });
-    var rows = rowsData.map(function(row){
-      var b = row.b, fi = row.fi, idText = row.idText;
+    var rows = rowData.map(function(entry){
+      var b = entry.b, fi = entry.fi;
       var status = fi ? fi.status : b.status;
       var totalPages = fi ? fi.totalPages : b.totalPages;
       var currentPage = fi ? fi.currentPage : b.currentPage;
@@ -5611,10 +5319,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       } else {
         statusText = statusLabelForValue(status, fi ? fi.type : b.format);
       }
-      var seriesText = b.series ? (escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' (Book ' + escapeHtml(String(b.seriesNumber)) + ')' : '')) : '—';
+      var hasAudiobook = formatTypesOf(b).indexOf('Audiobook') !== -1;
+      var audioFlag = hasAudiobook ? '<span class="platform-audio-flag" title="Audiobook format available">🎧</span>' : '';
+      var seriesText = b.series ? (escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '')) : '—';
       return '<tr>' +
-        '<td><strong>' + escapeHtml(idText) + '</strong></td>' +
-        '<td><button type="button" class="title-link" data-open-book-id="' + b.id + '">' + escapeHtml(b.title || 'Untitled') + '</button></td>' +
+        '<td><strong>' + escapeHtml(entry.idText) + '</strong></td>' +
+        '<td><button type="button" class="title-link" data-open-book-id="' + b.id + '">' + escapeHtml(b.title || 'Untitled') + '</button>' + audioFlag + '</td>' +
         '<td>' + escapeHtml(b.author || '—') + '</td>' +
         '<td>' + seriesText + '</td>' +
         '<td>' + escapeHtml(statusText) + '</td>' +
@@ -5643,13 +5353,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     if(addBtn) addBtn.onclick = function(){ openPlatformAddModal(); };
     var backBtn = document.getElementById('platformBackToGridBtn');
     if(backBtn) backBtn.onclick = function(){ platformsDrilldownTeam = null; platformsSearchTerm = ''; renderPlatformsView(); };
-    document.querySelectorAll('.platform-logo-edit-btn').forEach(function(btn){
-      btn.addEventListener('click', function(e){
-        e.preventDefault();
-        e.stopPropagation();
-        openPlatformAddModal(btn.getAttribute('data-edit-platform-name'));
-      });
-    });
     document.querySelectorAll('.platform-logo-card[data-platform-name]').forEach(function(card){
       if(card.tagName === 'A') return; // review-site cards navigate externally, no extra handler needed
       card.addEventListener('click', function(){
@@ -5659,107 +5362,102 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       });
     });
     document.querySelectorAll('.platform-logo-card[data-author-name]').forEach(function(card){
-      card.addEventListener('click', function(){
-        openAuthorPeek(card.getAttribute('data-author-name'));
-      });
+      card.addEventListener('click', function(){ openAuthorPeek(card.getAttribute('data-author-name')); });
     });
     document.querySelectorAll('.arc-table [data-open-book-id]').forEach(function(btn){
       btn.addEventListener('click', function(){ openModal(btn.getAttribute('data-open-book-id'), 'full'); });
     });
+    document.querySelectorAll('[data-platform-author]').forEach(function(row){
+      row.addEventListener('click', function(){ openAuthorPeek(row.getAttribute('data-platform-author')); });
+    });
+    document.querySelectorAll('.platform-logo-edit-btn').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        var kind = btn.getAttribute('data-edit-kind');
+        var idx = parseInt(btn.getAttribute('data-edit-index'), 10);
+        var list = kind === 'teams' ? arcTeams : reviewPlatforms;
+        openPlatformAddModal(list[idx], kind, idx);
+      });
+    });
+    document.querySelectorAll('.platform-logo-delete-btn').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        var kind = btn.getAttribute('data-delete-kind');
+        var idx = parseInt(btn.getAttribute('data-delete-index'), 10);
+        if(platformDeleteConfirm && platformDeleteConfirm.kind === kind && platformDeleteConfirm.index === idx){
+          var list = kind === 'teams' ? arcTeams : reviewPlatforms;
+          list.splice(idx, 1);
+          platformDeleteConfirm = null;
+          savePlatformDashboardMeta();
+          renderPlatformsView();
+        } else {
+          platformDeleteConfirm = {kind: kind, index: idx};
+          renderPlatformsView();
+          setTimeout(function(){
+            if(platformDeleteConfirm && platformDeleteConfirm.kind === kind && platformDeleteConfirm.index === idx){
+              platformDeleteConfirm = null;
+              renderPlatformsView();
+            }
+          }, 3000);
+        }
+      });
+    });
   }
 
-  var editingPlatformIndex = null;
-  var platformDeleteConfirming = false;
+  var platformEditIndex = null; // null = adding new; number = editing that index in the active list
+  var platformEditKind = null;
 
-  function openPlatformAddModal(existingName){
-    var isReview = platformsSubTab === 'review';
-    var list = isReview ? reviewPlatforms : arcTeams;
-    editingPlatformIndex = existingName ? list.findIndex(function(p){ return p.name === existingName; }) : -1;
-    var editing = editingPlatformIndex !== -1;
-    var p = editing ? list[editingPlatformIndex] : null;
-    platformDeleteConfirming = false;
-
-    document.getElementById('platformAddTitle').textContent = editing
-      ? ('Edit ' + (isReview ? 'Review Platform' : 'ARC/PR Team'))
-      : (isReview ? 'Add Review Platform' : 'Add ARC/PR Team');
-    document.getElementById('platformAddUrlField').style.display = isReview ? 'block' : 'none';
-    document.getElementById('platformAddName').value = p ? p.name : '';
-    document.getElementById('platformAddLogo').value = p ? (p.logo || '') : '';
-    document.getElementById('platformAddUrl').value = p ? (p.url || '') : '';
-    var delBtn = document.getElementById('platformDeleteBtn');
-    delBtn.style.display = editing ? 'inline-flex' : 'none';
-    delBtn.textContent = 'Delete';
-    delBtn.classList.remove('confirming');
-    document.getElementById('platformAddSaveBtn').textContent = editing ? 'Save' : 'Add';
+  function openPlatformAddModal(existing, forceKind, editIndex){
+    var kind = forceKind || platformsSubTab;
+    platformEditKind = kind;
+    platformEditIndex = (existing && editIndex !== undefined) ? editIndex : null;
+    var isEdit = platformEditIndex !== null;
+    document.getElementById('platformAddTitle').textContent = isEdit
+      ? ('Edit ' + (kind === 'teams' ? 'ARC/PR Team' : 'Review Platform'))
+      : (kind === 'teams' ? 'Add ARC/PR Team' : 'Add Review Platform');
+    document.getElementById('platformAddUrlField').style.display = kind === 'review' ? 'block' : 'none';
+    document.getElementById('platformAddDirectField').style.display = kind === 'teams' ? 'block' : 'none';
+    document.getElementById('platformAddName').value = existing ? existing.name : '';
+    document.getElementById('platformAddLogo').value = existing ? (existing.logo || '') : '';
+    document.getElementById('platformAddUrl').value = existing ? (existing.url || '') : '';
+    document.getElementById('platformAddDirectInput').checked = existing ? !!existing.isAuthorDirect : false;
+    document.getElementById('platformAddSaveBtn').textContent = isEdit ? 'Save' : 'Add';
     document.getElementById('platformAddOverlay').style.display = 'flex';
     document.getElementById('platformAddName').focus();
   }
   function closePlatformAddModal(){
     document.getElementById('platformAddOverlay').style.display = 'none';
-    editingPlatformIndex = null;
+    platformEditIndex = null;
+    platformEditKind = null;
   }
   document.getElementById('platformAddCancelBtn').addEventListener('click', closePlatformAddModal);
   document.getElementById('platformAddOverlay').addEventListener('click', function(e){
     if(e.target.id === 'platformAddOverlay') closePlatformAddModal();
   });
   document.getElementById('platformAddSaveBtn').addEventListener('click', function(){
-    if(platformsSubTab === 'authors') return; // authors are derived from books, not added here
     var name = document.getElementById('platformAddName').value.trim();
     if(!name) return;
     var logo = document.getElementById('platformAddLogo').value.trim();
-    var isReview = platformsSubTab === 'review';
-    var list = isReview ? reviewPlatforms : arcTeams;
-    var editing = editingPlatformIndex !== null && editingPlatformIndex !== -1;
-    var oldName = editing ? list[editingPlatformIndex].name : null;
-
-    if(isReview){
-      var url = document.getElementById('platformAddUrl').value.trim();
-      if(editing){ list[editingPlatformIndex] = {name: name, logo: logo, url: url}; }
-      else { list.push({name: name, logo: logo, url: url}); }
+    var kind = platformEditKind || platformsSubTab;
+    if(kind === 'teams'){
+      var isAuthorDirect = document.getElementById('platformAddDirectInput').checked;
+      if(platformEditIndex !== null){
+        arcTeams[platformEditIndex] = {name: name, logo: logo, isAuthorDirect: isAuthorDirect};
+      } else {
+        arcTeams.push({name: name, logo: logo, isAuthorDirect: isAuthorDirect});
+      }
     } else {
-      if(editing){ list[editingPlatformIndex] = {name: name, logo: logo}; }
-      else { list.push({name: name, logo: logo}); }
+      var url = document.getElementById('platformAddUrl').value.trim();
+      if(platformEditIndex !== null){
+        reviewPlatforms[platformEditIndex] = {name: name, logo: logo, url: url};
+      } else {
+        reviewPlatforms.push({name: name, logo: logo, url: url});
+      }
     }
-
-    // Renaming a team/platform should carry every book (and per-format
-    // override) already tagged with the old name over to the new one, so
-    // they don't silently fall off the grid.
-    if(editing && oldName && oldName !== name){
-      books.forEach(function(b){
-        var changed = false;
-        if(b.arcSource === oldName){ b.arcSource = name; changed = true; }
-        formatInstancesOf(b).forEach(function(f){ if(f.arcSource === oldName){ f.arcSource = name; changed = true; } });
-        if(changed) saveBookRemote(b);
-      });
-      render();
-    }
-
     savePlatformDashboardMeta();
     closePlatformAddModal();
-    renderPlatformsView();
-  });
-  document.getElementById('platformDeleteBtn').addEventListener('click', function(){
-    if(editingPlatformIndex === null || editingPlatformIndex === -1) return;
-    var btn = this;
-    if(!platformDeleteConfirming){
-      platformDeleteConfirming = true;
-      btn.textContent = 'Confirm delete?';
-      btn.classList.add('confirming');
-      setTimeout(function(){
-        if(platformDeleteConfirming){
-          platformDeleteConfirming = false;
-          btn.textContent = 'Delete';
-          btn.classList.remove('confirming');
-        }
-      }, 3000);
-      return;
-    }
-    var isReview = platformsSubTab === 'review';
-    var list = isReview ? reviewPlatforms : arcTeams;
-    list.splice(editingPlatformIndex, 1);
-    savePlatformDashboardMeta();
-    closePlatformAddModal();
-    if(platformsDrilldownTeam) platformsDrilldownTeam = null;
     renderPlatformsView();
   });
 
