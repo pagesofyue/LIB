@@ -1378,7 +1378,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import {
-    getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+    getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
   import {
     getFirestore, collection, doc, getDoc, getDocs, setDoc, deleteDoc, writeBatch
@@ -1410,7 +1410,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         cb(user);
       });
     },
-    async signIn(){ await signInWithPopup(auth, provider); },
+    async signIn(){ await signInWithRedirect(auth, provider); },
     async signOut(){ await signOut(auth); },
     async loadAll(){
       const booksSnap = await getDocs(booksCol());
@@ -1492,6 +1492,17 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       loginError.textContent = 'Sign-in failed: ' + (e && e.message ? e.message : 'please try again.');
       loginError.style.display = 'block';
     }
+  });
+
+  // With signInWithRedirect, the actual success/failure only becomes known
+  // after Google sends the browser back here (a fresh page load) — this is
+  // what surfaces an error from that return trip, since the click handler's
+  // own try/catch only covers the initial "leaving the page" step.
+  getRedirectResult(auth).catch(function(e){
+    loginLoading.style.display = 'none';
+    googleBtn.disabled = false;
+    loginError.textContent = 'Sign-in failed: ' + (e && e.message ? e.message : 'please try again.');
+    loginError.style.display = 'block';
   });
 
   window.cloudStore.onAuthChange(function(user){
