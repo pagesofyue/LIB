@@ -267,6 +267,23 @@ body[data-theme="velaris"] .reader-intro p{color:#D2C6F1;text-shadow:0 1px 6px r
 .nav-dropdown-item{border:none;background:none;text-align:left;padding:8px 10px;font-size:13px;font-family:var(--font-body);color:var(--ink);cursor:pointer;border-radius:8px;text-decoration:none;display:block;}
 .nav-dropdown-item:hover{background:var(--card-hover);}
 .nav-dropdown-item.active{background:var(--accent);color:var(--card);}
+.app-body{display:flex;gap:22px;align-items:flex-start;}
+.app-main{flex:1;min-width:0;}
+.app-sidebar{flex:none;width:172px;flex-direction:column;gap:3px;position:sticky;top:16px;display:none;}
+.sidebar-navitem{display:flex;align-items:center;width:100%;text-align:left;background:none;border:none;border-radius:8px;padding:10px 12px;font-family:var(--font-body);font-size:13px;color:var(--muted);cursor:pointer;text-decoration:none;}
+.sidebar-navitem:hover{background:var(--card-hover);color:var(--ink);}
+.sidebar-navitem.active{background:var(--ink);color:var(--paper);}
+.sidebar-navitem .sidebar-chev{margin-left:auto;font-size:9px;transition:transform 0.15s;}
+.sidebar-navgroup.open > .sidebar-navitem .sidebar-chev{transform:rotate(90deg);}
+.sidebar-subnav{overflow:hidden;max-height:0;transition:max-height 0.2s ease;display:flex;flex-direction:column;}
+.sidebar-navgroup.open .sidebar-subnav{max-height:200px;}
+.sidebar-subitem{display:block;text-align:left;background:none;border:none;border-radius:8px;padding:8px 12px 8px 26px;font-family:var(--font-body);font-size:12.5px;color:var(--muted);cursor:pointer;text-decoration:none;}
+.sidebar-subitem:hover{background:var(--card-hover);color:var(--ink);}
+.sidebar-subitem.active{background:var(--card-hover);color:var(--accent-deep);font-weight:700;}
+@media (min-width:881px){
+  .app-sidebar{display:flex;}
+  .view-nav#mainNav{display:none;}
+}
 
 .reader-intro{margin-bottom:18px;display:flex;align-items:flex-start;justify-content:space-between;gap:14px;}
 .reader-intro h2{font-family:var(--font-display);font-size:24px;margin:0 0 4px;}
@@ -741,11 +758,29 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         <option value="wisteria">Wisteria</option>
       </select>
       <button type="button" class="notif-badge" id="gcalSyncBtn">📅 Sync Google Calendar</button>
+      <button type="button" class="notif-badge" id="sheetsSyncBtn">📊 Sync Google Sheet</button>
       <div class="account-row" id="accountRow"></div>
     </div>
   </div>
 
   <div class="banner" id="saveBanner"></div>
+
+  <div class="overlay" id="sheetsSetupOverlay" style="display:none;">
+    <div class="modal" style="max-width:420px;">
+      <h2>Connect a Google Sheet</h2>
+      <p class="hint" style="margin-top:-6px;">Every time you add, edit, or delete a book, this sheet gets rewritten with your full library — so it stays live without you touching it.</p>
+      <div class="field">
+        <label>Paste an existing Google Sheet link</label>
+        <input type="text" id="sheetsSetupIdInput" placeholder="https://docs.google.com/spreadsheets/d/...">
+      </div>
+      <p class="hint" style="text-align:center;margin:2px 0;">— or —</p>
+      <button type="button" class="btn-secondary" id="sheetsSetupCreateBtn" style="width:100%;">Create a brand-new sheet for me</button>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="sheetsSetupCancelBtn">Cancel</button>
+        <button type="button" class="btn-primary" id="sheetsSetupConnectBtn">Connect</button>
+      </div>
+    </div>
+  </div>
 
   <div class="view-nav" id="mainNav">
     <button class="view-tab active" id="navLibrary">My Library</button>
@@ -767,6 +802,28 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     </div>
   </div>
 
+  <div class="app-body">
+    <div class="app-sidebar" id="appSidebar">
+      <button type="button" class="sidebar-navitem active" id="sbLibrary">My Library</button>
+      <div class="sidebar-navgroup" id="sbBrowseGroup">
+        <button type="button" class="sidebar-navitem" id="sbBrowseToggle">Browse<span class="sidebar-chev">▸</span></button>
+        <div class="sidebar-subnav" id="sbBrowseSub">
+          <button type="button" class="sidebar-subitem" id="sbSeries">Series</button>
+          <button type="button" class="sidebar-subitem" id="sbPlatforms">Platforms</button>
+          <button type="button" class="sidebar-subitem" id="sbCalendar">Calendar</button>
+        </div>
+      </div>
+      <button type="button" class="sidebar-navitem" id="sbReviews">Reviews</button>
+      <div class="sidebar-navgroup" id="sbProfileGroup">
+        <button type="button" class="sidebar-navitem" id="sbProfileToggle">Profile<span class="sidebar-chev">▸</span></button>
+        <div class="sidebar-subnav" id="sbProfileSub">
+          <button type="button" class="sidebar-subitem" id="sbReader">Reader Page</button>
+          <a class="sidebar-subitem" href="./social.html" target="_blank" rel="noopener">Social Post</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="app-main">
   <div id="libraryView">
   <div class="stats" id="stats"></div>
 
@@ -848,6 +905,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     </div>
     <div class="links-list" id="linksList"></div>
     <button class="btn-add" id="addLinkBtn" style="margin-top:14px;display:none;">+ Add link</button>
+  </div>
+    </div>
   </div>
 </div>
 
@@ -1337,6 +1396,195 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 </script>
 
 <!-- ============================================================
+     GOOGLE SHEETS LIVE SYNC — SETUP REQUIRED
+     Reuses the SAME GCAL_CLIENT_ID and Google Cloud project as the
+     Calendar sync above — you don't need a second one. Just:
+       1. In that same Cloud project, go to "APIs & Services" > "Library",
+          search for "Google Sheets API", and click Enable.
+       2. That's it — the OAuth Client ID and consent screen you already
+          set up for Calendar sync cover this too, since it's the same
+          Google account signing in.
+     Whenever the person adds, edits, or deletes a book, the whole
+     library gets rewritten to a "Library" tab in their chosen Google
+     Sheet — simple full-refresh sync rather than tracking individual
+     row positions, which keeps this reliable even if rows get
+     reordered or deleted on the Sheets side.
+     ============================================================ -->
+<script>
+  var SHEETS_SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
+  var SHEETS_TAB_NAME = 'Library';
+  var SHEETS_HEADER = ['Title', 'Author', 'Series', 'Book #', 'Genre', 'Format', 'Status', 'Progress', 'Platform ID', 'ARC Source', 'Rating (out of 5)', 'Date Started', 'Date Finished', 'Tropes'];
+  var sheetsTokenClient = null;
+  var sheetsAccessToken = null;
+  var sheetsTokenExpiresAt = 0;
+  var sheetsTabConfirmedFor = null; // spreadsheetId we've already verified/created the tab on, this session
+
+  function sheetsSyncEnabled(){
+    try{ return localStorage.getItem('lunaria_sheets_sync') === '1'; }catch(e){ return false; }
+  }
+  function setSheetsSyncEnabled(on){
+    try{ localStorage.setItem('lunaria_sheets_sync', on ? '1' : '0'); }catch(e){}
+  }
+  function sheetsSpreadsheetId(){
+    try{ return localStorage.getItem('lunaria_sheets_id') || ''; }catch(e){ return ''; }
+  }
+  function setSheetsSpreadsheetId(id){
+    try{ localStorage.setItem('lunaria_sheets_id', id || ''); }catch(e){}
+  }
+
+  function sheetsInitTokenClient(callback){
+    if(sheetsTokenClient) return sheetsTokenClient;
+    sheetsTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GCAL_CLIENT_ID,
+      scope: SHEETS_SCOPE,
+      callback: function(resp){
+        if(resp && resp.access_token){
+          sheetsAccessToken = resp.access_token;
+          sheetsTokenExpiresAt = Date.now() + ((resp.expires_in || 3500) * 1000);
+        }
+        if(callback) callback(resp);
+      }
+    });
+    return sheetsTokenClient;
+  }
+
+  function sheetsEnsureToken(promptIfNeeded){
+    return new Promise(function(resolve, reject){
+      if(sheetsAccessToken && Date.now() < sheetsTokenExpiresAt - 60000){
+        resolve(sheetsAccessToken);
+        return;
+      }
+      if(typeof google === 'undefined' || !google.accounts){
+        reject(new Error('Google Identity Services not loaded'));
+        return;
+      }
+      var client = sheetsInitTokenClient(function(resp){
+        if(resp && resp.access_token) resolve(resp.access_token);
+        else reject(new Error('No access token'));
+      });
+      client.requestAccessToken({prompt: promptIfNeeded ? 'consent' : ''});
+    });
+  }
+
+  // Extracts a spreadsheet ID whether the person pasted a full URL or just the ID itself.
+  function sheetsParseId(input){
+    input = (input || '').trim();
+    var m = input.match(/\/d\/([a-zA-Z0-9-_]+)/);
+    if(m) return m[1];
+    return input;
+  }
+
+  // Makes sure the target spreadsheet has a "Library" tab, creating one if
+  // it doesn't (e.g. the person connected an existing sheet that only has
+  // the default "Sheet1"). Only checked once per spreadsheet per session.
+  async function sheetsEnsureTab(spreadsheetId, token){
+    if(sheetsTabConfirmedFor === spreadsheetId) return;
+    var res = await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + spreadsheetId + '?fields=sheets.properties.title', {
+      headers: {'Authorization': 'Bearer ' + token}
+    });
+    if(!res.ok) throw new Error('Could not open that spreadsheet — double check the link and that your Google account has edit access.');
+    var data = await res.json();
+    var titles = (data.sheets || []).map(function(s){ return s.properties.title; });
+    if(titles.indexOf(SHEETS_TAB_NAME) === -1){
+      await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + spreadsheetId + ':batchUpdate', {
+        method: 'POST',
+        headers: {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'},
+        body: JSON.stringify({requests: [{addSheet: {properties: {title: SHEETS_TAB_NAME}}}]})
+      });
+    }
+    sheetsTabConfirmedFor = spreadsheetId;
+  }
+
+  function sheetsRowsFromBooks(bookList){
+    var rows = [SHEETS_HEADER];
+    (bookList || []).forEach(function(b){
+      var formats = (b.formats && b.formats.length) ? b.formats : [{
+        type: b.format || '', status: b.status || '', platformId: b.platformId || '',
+        rating: b.rating || 0, totalPages: b.totalPages, currentPage: b.currentPage, arcSource: ''
+      }];
+      formats.forEach(function(f){
+        var progress = f.totalPages ? ((f.currentPage || 0) + ' / ' + f.totalPages) : '';
+        var source = f.arcSource || (b.isARC ? b.arcSource : '') || '';
+        rows.push([
+          b.title || '', b.author || '', b.series || '',
+          (b.seriesNumber || b.seriesNumber === 0) ? b.seriesNumber : '',
+          b.genre || '', f.type || '', f.status || '', progress,
+          f.platformId || '', source, f.rating || b.rating || '',
+          b.dateStarted || '', b.dateFinished || '',
+          (b.tropes || []).join(', ')
+        ]);
+      });
+    });
+    return rows;
+  }
+
+  // Full-refresh sync: clears the tab and rewrites it from scratch with
+  // whatever's currently in the library. Simpler and more robust than
+  // tracking individual row positions per book.
+  async function sheetsSyncAll(bookList){
+    if(!sheetsSyncEnabled()) return;
+    var spreadsheetId = sheetsSpreadsheetId();
+    if(!spreadsheetId) return;
+    try{
+      var token = await sheetsEnsureToken(false);
+      await sheetsEnsureTab(spreadsheetId, token);
+      var headers = {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'};
+      var clearRange = encodeURIComponent(SHEETS_TAB_NAME + '!A1:Z20000');
+      await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + spreadsheetId + '/values/' + clearRange + ':clear', {method: 'POST', headers: headers});
+      var updateRange = encodeURIComponent(SHEETS_TAB_NAME + '!A1');
+      await fetch('https://sheets.googleapis.com/v4/spreadsheets/' + spreadsheetId + '/values/' + updateRange + '?valueInputOption=RAW', {
+        method: 'PUT', headers: headers, body: JSON.stringify({values: sheetsRowsFromBooks(bookList)})
+      });
+    }catch(e){
+      console.warn('Google Sheets sync failed', e);
+    }
+  }
+
+  async function sheetsCreateNew(){
+    var token = await sheetsEnsureToken(true);
+    var res = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
+      method: 'POST',
+      headers: {'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        properties: {title: 'Hiraya Manawari — Library'},
+        sheets: [{properties: {title: SHEETS_TAB_NAME}}]
+      })
+    });
+    if(!res.ok) throw new Error('Could not create a new spreadsheet.');
+    var data = await res.json();
+    sheetsTabConfirmedFor = data.spreadsheetId;
+    return {id: data.spreadsheetId, url: data.spreadsheetUrl};
+  }
+
+  window.sheetsSync = {
+    isEnabled: sheetsSyncEnabled,
+    getSpreadsheetId: sheetsSpreadsheetId,
+    connect: function(rawIdOrUrl){
+      var id = sheetsParseId(rawIdOrUrl);
+      if(!id) return Promise.reject(new Error('No spreadsheet ID given.'));
+      return sheetsEnsureToken(true).then(function(token){
+        return sheetsEnsureTab(id, token);
+      }).then(function(){
+        setSheetsSpreadsheetId(id);
+        setSheetsSyncEnabled(true);
+        return id;
+      });
+    },
+    createAndConnect: function(){
+      return sheetsCreateNew().then(function(result){
+        setSheetsSpreadsheetId(result.id);
+        setSheetsSyncEnabled(true);
+        return result;
+      });
+    },
+    disconnect: function(){
+      setSheetsSyncEnabled(false);
+    },
+    syncAll: sheetsSyncAll
+  };
+</script>
+
+<!-- ============================================================
      FIREBASE SETUP — this is already configured with your project
      (lunaria-app-21a35). If you ever create a new Firebase project,
      swap the values below. See SETUP.md for background.
@@ -1532,6 +1780,71 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       });
     });
   }
+
+  var sheetsBtn = document.getElementById('sheetsSyncBtn');
+  function updateSheetsBtn(){
+    if(!sheetsBtn) return;
+    if(window.sheetsSync && window.sheetsSync.isEnabled()){
+      sheetsBtn.textContent = '📊 Sheet synced';
+      sheetsBtn.classList.add('on');
+    } else {
+      sheetsBtn.textContent = '📊 Sync Google Sheet';
+      sheetsBtn.classList.remove('on');
+    }
+  }
+  function triggerSheetsSync(){
+    if(window.sheetsSync && window.sheetsSync.isEnabled()) window.sheetsSync.syncAll(books);
+  }
+  if(sheetsBtn){
+    updateSheetsBtn();
+    sheetsBtn.addEventListener('click', function(){
+      if(window.sheetsSync && window.sheetsSync.isEnabled()){
+        window.sheetsSync.disconnect();
+        updateSheetsBtn();
+        return;
+      }
+      document.getElementById('sheetsSetupIdInput').value = '';
+      document.getElementById('sheetsSetupOverlay').style.display = 'flex';
+    });
+  }
+  document.getElementById('sheetsSetupCancelBtn').addEventListener('click', function(){
+    document.getElementById('sheetsSetupOverlay').style.display = 'none';
+  });
+  document.getElementById('sheetsSetupOverlay').addEventListener('click', function(e){
+    if(e.target.id === 'sheetsSetupOverlay') document.getElementById('sheetsSetupOverlay').style.display = 'none';
+  });
+  document.getElementById('sheetsSetupConnectBtn').addEventListener('click', function(){
+    if(!window.sheetsSync) return;
+    var raw = document.getElementById('sheetsSetupIdInput').value.trim();
+    if(!raw){ showBanner('Paste a Google Sheet link first, or use "Create a brand-new sheet for me" instead.'); return; }
+    var btn = document.getElementById('sheetsSetupConnectBtn');
+    btn.textContent = 'Connecting…';
+    window.sheetsSync.connect(raw).then(function(){
+      document.getElementById('sheetsSetupOverlay').style.display = 'none';
+      updateSheetsBtn();
+      triggerSheetsSync();
+      showBanner('Connected — your library will keep syncing to that Google Sheet as you add, edit, or delete books.');
+    }).catch(function(err){
+      showBanner((err && err.message) || "Couldn't connect to that sheet. Make sure the Sheets API is enabled and your OAuth Client ID is set up correctly (see the comment near the top of the file).");
+    }).finally(function(){
+      btn.textContent = 'Connect';
+    });
+  });
+  document.getElementById('sheetsSetupCreateBtn').addEventListener('click', function(){
+    if(!window.sheetsSync) return;
+    var btn = document.getElementById('sheetsSetupCreateBtn');
+    btn.textContent = 'Creating…';
+    window.sheetsSync.createAndConnect().then(function(result){
+      document.getElementById('sheetsSetupOverlay').style.display = 'none';
+      updateSheetsBtn();
+      triggerSheetsSync();
+      showBanner('Created and connected! Find it in your Google Drive as "Hiraya Manawari — Library".');
+    }).catch(function(err){
+      showBanner((err && err.message) || "Couldn't create a new sheet. Make sure the Sheets API is enabled and your OAuth Client ID is set up correctly (see the comment near the top of the file).");
+    }).finally(function(){
+      btn.textContent = 'Create a brand-new sheet for me';
+    });
+  });
 
   var books = [];
   var duplicateIds = {};
@@ -1759,6 +2072,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       importLegacyPlatformDashboardData();
       setSync('idle');
       normalizeArcSourceNames();
+      triggerSheetsSync();
     }catch(e){
       books = [];
       tropeList = defaultTropes.slice();
@@ -2437,6 +2751,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         confirmingDelete = null;
         deleteBookRemote(deletedId);
         if(window.gcal && window.gcal.isEnabled() && deletedGcalEventId) window.gcal.deleteEvent(deletedGcalEventId);
+        triggerSheetsSync();
         render();
       } else {
         confirmingDelete = b.id;
@@ -3384,6 +3699,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
     saveBookRemote(finalBook);
     if(window.gcal && window.gcal.isEnabled()) window.gcal.syncBook(finalBook);
+    triggerSheetsSync();
     closeModal();
     render();
     if(currentActiveNav === 'navReviews') renderReviewsView();
@@ -3627,6 +3943,24 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     navReader: 'readerView'
   };
 
+  // Sidebar counterpart button for each top-nav id (desktop-width sidebar —
+  // see .app-sidebar). Kept in sync with the top nav bar by switchView() so
+  // either one reflects whichever the person actually clicked.
+  var SIDEBAR_TABS = {
+    navLibrary: 'sbLibrary',
+    navSeries: 'sbSeries',
+    navPlatforms: 'sbPlatforms',
+    navCalendar: 'sbCalendar',
+    navReviews: 'sbReviews',
+    navReader: 'sbReader'
+  };
+  // Which sidebar group (Browse/Profile) each sub-item belongs to, so
+  // switchView() can auto-expand the right one when its item becomes active.
+  var SIDEBAR_GROUP_OF = {
+    sbSeries: 'sbBrowseGroup', sbPlatforms: 'sbBrowseGroup', sbCalendar: 'sbBrowseGroup',
+    sbReader: 'sbProfileGroup'
+  };
+
   var currentActiveNav = 'navLibrary';
 
   function switchView(activeNavId){
@@ -3635,6 +3969,15 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       var isActive = navId === activeNavId;
       document.getElementById(navId).classList.toggle('active', isActive);
       document.getElementById(NAV_TABS[navId]).style.display = isActive ? 'block' : 'none';
+      var sbId = SIDEBAR_TABS[navId];
+      var sbEl = sbId && document.getElementById(sbId);
+      if(sbEl){
+        sbEl.classList.toggle('active', isActive);
+        if(isActive){
+          var groupId = SIDEBAR_GROUP_OF[sbId];
+          if(groupId) document.getElementById(groupId).classList.add('open');
+        }
+      }
     });
     if(activeNavId === 'navSeries') renderSeriesView();
     if(activeNavId === 'navPlatforms') renderPlatformsView();
@@ -3691,6 +4034,22 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   document.getElementById('navCalendar').onclick = function(){ switchView('navCalendar'); };
   document.getElementById('navReviews').onclick = function(){ switchView('navReviews'); };
   document.getElementById('navReader').onclick = function(){ switchView('navReader'); };
+
+  // Sidebar (desktop-width layout) — same destinations as the top nav above.
+  document.getElementById('sbLibrary').onclick = function(){ switchView('navLibrary'); };
+  document.getElementById('sbSeries').onclick = function(){ switchView('navSeries'); };
+  document.getElementById('sbPlatforms').onclick = function(){ switchView('navPlatforms'); };
+  document.getElementById('sbCalendar').onclick = function(){ switchView('navCalendar'); };
+  document.getElementById('sbReviews').onclick = function(){ switchView('navReviews'); };
+  document.getElementById('sbReader').onclick = function(){ switchView('navReader'); };
+  // Browse/Profile start collapsed — clicking the group header just expands
+  // or collapses its sub-pages, it doesn't navigate anywhere by itself.
+  document.getElementById('sbBrowseToggle').onclick = function(){
+    document.getElementById('sbBrowseGroup').classList.toggle('open');
+  };
+  document.getElementById('sbProfileToggle').onclick = function(){
+    document.getElementById('sbProfileGroup').classList.toggle('open');
+  };
 
   async function saveLinks(){
     try{ await window.cloudStore.saveMeta({readerLinks: readerLinks}); }catch(e){
