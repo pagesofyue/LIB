@@ -352,8 +352,8 @@ body[data-theme="velaris"] .reader-intro p{color:#D2C6F1;text-shadow:0 1px 6px r
 .stat-scope-toggle{display:flex;font-family:var(--font-mono);font-size:10px;border:1px solid var(--line-strong);border-radius:20px;overflow:hidden;flex:none;}
 .stat-scope-toggle button{border:none;background:none;padding:3px 8px;cursor:pointer;color:var(--muted);font-family:var(--font-mono);font-size:10px;}
 .stat-scope-toggle button.active{background:var(--accent);color:var(--card);}
-.format-tabs{display:flex;flex-wrap:wrap;gap:5px;font-family:var(--font-mono);font-size:10.5px;margin:2px 0 8px;}
-.format-tabs button{border:1px solid var(--line-strong);background:var(--card);border-radius:14px;padding:3px 10px;cursor:pointer;color:var(--muted);font-family:var(--font-mono);font-size:10.5px;white-space:nowrap;}
+.format-tabs{display:flex;flex-wrap:wrap;gap:4px;font-family:var(--font-mono);font-size:10px;margin:2px 0 8px;}
+.format-tabs button{border:1px solid var(--line-strong);background:var(--card);border-radius:12px;padding:2px 7px;cursor:pointer;color:var(--muted);font-family:var(--font-mono);font-size:10px;white-space:nowrap;}
 .format-tabs button.active{background:var(--accent);color:var(--card);border-color:var(--accent);}
 .detail-format-block{border:1px solid var(--line-strong);border-radius:10px;padding:12px;margin:10px 0;background:var(--card-hover);}
 .detail-format-block h4{margin:0 0 8px;font-size:13px;}
@@ -500,8 +500,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .review-page-text{font-family:var(--font-body);font-size:15px;line-height:1.75;color:var(--ink);white-space:pre-wrap;overflow-wrap:break-word;}
 .rating-num{font-family:var(--font-mono);font-size:11px;color:var(--muted);}
 
-.tags{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0;}
-.tag{font-size:11px;background:rgba(59,42,85,0.07);color:var(--muted);border-radius:10px;padding:3px 9px;font-family:var(--font-body);}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin:10px 0;}
+.tag{font-size:10.5px;background:rgba(59,42,85,0.07);color:var(--muted);border-radius:9px;padding:2px 7px;font-family:var(--font-body);}
 .tag-see-more{border:1px solid var(--line-strong);cursor:pointer;font-weight:600;color:var(--accent-deep);}
 
 .progress-wrap{margin:10px 0 6px;}
@@ -830,9 +830,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       <input type="file" id="restoreInput" accept="application/json" style="display:none;">
       <input type="file" id="csvInput" accept=".csv,text/csv" style="display:none;">
     </div>
-    <button class="btn-add" id="addBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Add book
+    <button class="btn-add-plus" id="addBtn" title="Add book" aria-label="Add book">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     </button>
   </div>
 
@@ -874,7 +873,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     <form id="bookForm">
       <div class="core-fields" id="coreFields1">
       <div class="field">
-        <label>Cover image <span style="font-weight:normal;color:var(--muted);">(default — used if a format below doesn't have its own)</span></label>
+        <label>Cover image <span id="coverDefaultHint" style="font-weight:normal;color:var(--muted);">(default — used if a format below doesn't have its own)</span></label>
         <div class="cover-upload">
           <div class="cover-preview" id="coverPreview"><span class="ph">No cover</span></div>
           <div class="cover-btns">
@@ -2875,6 +2874,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   function renderFormatPanels(){
     var types = checkedFormatTypes();
     document.getElementById('noFormatsHint').style.display = types.length ? 'none' : 'block';
+    var coverHintEl = document.getElementById('coverDefaultHint');
+    if(coverHintEl) coverHintEl.style.display = types.length > 1 ? 'inline' : 'none';
     var container = document.getElementById('formatPanels');
     container.innerHTML = types.map(function(type){
       var key = fmtKey(type);
@@ -2884,9 +2885,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       var cover = formatPendingCovers[type] || st.cover || '';
       var coverHtml = cover ? '<img src="' + cover + '" alt="">' : '<span class="ph">No cover</span>';
       var isArc = !!st.isARC;
+      var showFmtCover = types.length > 1;
       return '' +
         '<div class="field format-panel" style="border:1px solid var(--line-strong);border-radius:10px;padding:12px;margin-bottom:12px;background:var(--card-hover);">' +
           '<label style="font-weight:bold;">' + escapeHtml(type) + '</label>' +
+          (showFmtCover ?
           '<div class="cover-upload" style="margin-bottom:10px;">' +
             '<div class="cover-preview' + (isAudiobook ? ' audiobook-cover' : '') + '" id="fmtCoverPreview_' + key + '">' + coverHtml + '</div>' +
             '<div class="cover-btns">' +
@@ -2894,7 +2897,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
               '<input type="file" id="fmtCoverInput_' + key + '" accept="image/*" style="display:none;">' +
               '<button type="button" class="small-btn fmtRemoveCoverBtn" data-type="' + escapeHtml(type) + '">Remove</button>' +
             '</div>' +
-          '</div>' +
+          '</div>' : '') +
           '<div class="field-row">' +
             '<div class="field">' +
               '<label>Status</label>' +
@@ -3049,15 +3052,17 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         });
       }
       var coverInput = document.getElementById('fmtCoverInput_' + key);
-      coverInput.addEventListener('change', function(e){
-        var file = e.target.files[0];
-        if(!file) return;
-        resizeImage(file, 200, 0.82).then(function(dataUrl){
-          formatPendingCovers[type] = dataUrl;
-          var isAudiobook = type === 'Audiobook';
-          document.getElementById('fmtCoverPreview_' + key).innerHTML = '<img src="' + dataUrl + '" alt="">';
+      if(coverInput){
+        coverInput.addEventListener('change', function(e){
+          var file = e.target.files[0];
+          if(!file) return;
+          resizeImage(file, 200, 0.82).then(function(dataUrl){
+            formatPendingCovers[type] = dataUrl;
+            var isAudiobook = type === 'Audiobook';
+            document.getElementById('fmtCoverPreview_' + key).innerHTML = '<img src="' + dataUrl + '" alt="">';
+          });
         });
-      });
+      }
     });
     document.querySelectorAll('.fmtRemoveCoverBtn').forEach(function(btn){
       btn.addEventListener('click', function(){
