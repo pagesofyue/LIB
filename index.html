@@ -393,10 +393,18 @@ table.arc-table tr:last-child td{border-bottom:none;}
 .pagination .page-info{font-size:12.5px;color:var(--muted);white-space:nowrap;}
 
 .toolbar{display:flex;gap:8px;flex-wrap:nowrap;align-items:center;margin-bottom:8px;}
-.toolbar-scroll{display:flex;gap:8px;align-items:center;overflow-x:auto;-webkit-overflow-scrolling:touch;flex:1;min-width:0;scrollbar-width:thin;}
+.toolbar-scroll{display:flex;gap:8px;align-items:center;overflow-x:auto;-webkit-overflow-scrolling:touch;flex:1;min-width:0;scrollbar-width:thin;scrollbar-color:transparent transparent;}
 .toolbar-scroll::-webkit-scrollbar{height:5px;}
-.toolbar-scroll::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:3px;}
+.toolbar-scroll::-webkit-scrollbar-thumb{background:transparent;border-radius:3px;}
+.toolbar-scroll:hover{scrollbar-color:var(--line-strong) transparent;}
+.toolbar-scroll:hover::-webkit-scrollbar-thumb{background:var(--line-strong);}
 .toolbar-scroll > *{flex:none;}
+@media (max-width:760px){
+  .toolbar{flex-wrap:wrap;}
+  .toolbar-scroll{overflow-x:visible;flex-wrap:wrap;flex:1 1 100%;}
+  .toolbar-scroll > *{flex:1 1 140px;}
+  .toolbar-scroll .search-wrap{flex:1 1 100%;}
+}
 .sort-dropdown, .export-wrap, .btn-add{flex:none;}
 .search-wrap{position:relative;flex:0 0 220px;min-width:220px;}
 .search-wrap input{width:100%;padding:12px 14px 12px 36px;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--card);font-family:var(--font-body);font-size:15px;color:var(--ink);}
@@ -439,8 +447,10 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .status-tab.hold{background:var(--hold);}
 .status-tab.requested{background:var(--requested);}
 
-.genre-tab{display:inline-block;font-family:var(--font-body);font-size:10px;font-weight:600;color:var(--ink);padding:4px 12px;border-radius:6px 6px 0 0;margin:-16px 0 10px 0;letter-spacing:0.02em;}
-.card-id-badge{position:absolute;top:8px;right:12px;font-family:var(--font-mono);font-size:9.5px;color:var(--muted);background:var(--card-hover);border:1px solid var(--line-strong);border-radius:8px;padding:2px 8px;z-index:2;}
+.card-topline{display:flex;align-items:center;gap:7px;margin:-16px 0 10px 0;}
+.genre-tab{display:inline-block;font-family:var(--font-body);font-size:10px;font-weight:600;color:var(--ink);padding:4px 12px;border-radius:6px 6px 0 0;letter-spacing:0.02em;}
+.card-id-badge{font-family:var(--font-mono);font-size:12.5px;font-weight:700;color:var(--muted);letter-spacing:0.03em;}
+.topline-dot{color:var(--muted);font-size:10px;}
 .card-top{display:flex;gap:12px;align-items:flex-start;}
 .cover-col{flex:none;display:flex;flex-direction:column;align-items:center;width:70px;position:relative;}
 .reading-ribbon{position:absolute;top:-4px;right:11px;width:13px;height:24px;background:var(--reading-deep);clip-path:polygon(0 0,100% 0,100% 100%,50% 75%,0 100%);box-shadow:1px 1px 2px rgba(59,42,85,0.3);z-index:2;}
@@ -531,7 +541,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .empty .icon{position:relative;z-index:1;font-size:36px;}
 .empty h3{font-family:var(--font-display);color:var(--ink);font-size:20px;margin:0 0 6px;}
 
-.overlay{position:fixed;inset:0;background:rgba(59,42,85,0.45);display:flex;align-items:flex-start;justify-content:center;padding:5vh 16px;overflow-y:auto;z-index:50;}
+.overlay{position:fixed;inset:0;background:rgba(59,42,85,0.45);display:flex;align-items:flex-start;align-items:safe center;justify-content:center;padding:5vh 16px;overflow-y:auto;z-index:50;}
 .modal{background:var(--card);border-radius:14px;max-width:560px;width:100%;padding:26px;border:1px solid var(--line-strong);margin-bottom:5vh;}
 .modal h2{font-family:var(--font-display);font-size:22px;margin:0 0 18px;}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
@@ -777,6 +787,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       <div class="nav-dropdown-menu">
         <button type="button" class="nav-dropdown-item" id="navReader">Reader Page</button>
         <a class="nav-dropdown-item" href="./social.html" target="_blank" rel="noopener">Social Post</a>
+        <button type="button" class="nav-dropdown-item" id="navManageLists">Manage Lists</button>
       </div>
     </div>
   </div>
@@ -1015,6 +1026,22 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     <p class="hint">Click a name to rename it — this updates any books using it too. Deleting only removes it from the picker; books that already used it keep it on their card.</p>
     <div class="modal-actions">
       <button type="button" class="btn-primary" id="manageCloseBtn">Done</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="manageListsHubOverlay" style="display:none;">
+  <div class="modal" style="max-width:420px;">
+    <h2>Manage Lists</h2>
+    <p class="hint" style="margin-top:-6px;">Pick what you want to edit — renaming here updates every book that uses it.</p>
+    <div class="manage-list">
+      <button type="button" class="nav-dropdown-item manage-hub-item" id="hubManageGenres" style="width:100%;text-align:left;padding:10px 12px;">Genres</button>
+      <button type="button" class="nav-dropdown-item manage-hub-item" id="hubManageTropes" style="width:100%;text-align:left;padding:10px 12px;">Tropes</button>
+      <button type="button" class="nav-dropdown-item manage-hub-item" id="hubManageArc" style="width:100%;text-align:left;padding:10px 12px;">ARC Sources</button>
+      <button type="button" class="nav-dropdown-item manage-hub-item" id="hubManagePlatforms" style="width:100%;text-align:left;padding:10px 12px;">Platforms</button>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" id="manageListsHubCloseBtn">Close</button>
     </div>
   </div>
 </div>
@@ -2396,8 +2423,10 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
     var coverHtml = af.cover ? '<img src="' + af.cover + '" alt="">' : (b.cover ? '<img src="' + b.cover + '" alt="">' : '<span class="ph">No cover</span>');
     var formatLabelHtml = af.type ? '<div class="format-label">' + escapeHtml(af.type) + '</div>' : '';
-    var platformIdBadgeHtml = af.platformId ? '<div class="card-id-badge">' + escapeHtml(af.platformId) + '</div>' : '';
+    var platformIdBadgeHtml = af.platformId ? '<span class="card-id-badge">' + escapeHtml(af.platformId) + '</span>' : '';
     var genreTabHtml = b.genre ? '<div class="genre-tab" style="background:' + genreColorFor(b.genre) + ';">' + escapeHtml(b.genre) + '</div>' : '';
+    var toplineDotHtml = (genreTabHtml && platformIdBadgeHtml) ? '<span class="topline-dot">·</span>' : '';
+    var toplineHtml = (genreTabHtml || platformIdBadgeHtml) ? '<div class="card-topline">' + genreTabHtml + toplineDotHtml + platformIdBadgeHtml + '</div>' : '';
     var ribbonHtml = af.status === 'reading' ? '<div class="reading-ribbon" title="Currently reading"></div>' : '';
     var dupBadgeHtml = duplicateIds[b.id] ? '<div class="dup-banner" title="Another entry has the same title, author, and format">⚠ Possible Duplicate</div>' : '';
 
@@ -2405,8 +2434,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     card.className = 'card clickable';
     card.innerHTML =
       '<div class="status-tab ' + af.status + '"></div>' +
-      genreTabHtml +
-      platformIdBadgeHtml +
+      toplineHtml +
       dupBadgeHtml +
       '<div class="card-top">' +
         '<div class="cover-col">' + ribbonHtml + '<div class="cover-thumb' + (af.type === 'Audiobook' ? ' audiobook-cover' : '') + '">' + coverHtml + '</div>' + formatLabelHtml + '</div>' +
@@ -2938,6 +2966,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
               '<div class="field">' +
                 '<label>Platform ID <span style="font-weight:normal;color:var(--muted);">(auto-suggested from ARC source, editable)</span></label>' +
                 '<input type="text" class="fmtPlatformId" data-type="' + escapeHtml(type) + '" id="fmtPlatformId_' + key + '" placeholder="e.g. NG001" value="' + escapeHtml(st.platformId || '') + '">' +
+                '<p class="hint fmtPlatformIdHint" id="fmtPlatformIdHint_' + key + '" style="display:' + (isArc && !st.platformId && !st.arcSource ? 'block' : 'none') + ';">Pick an ARC source above and an ID will be suggested.</p>' +
               '</div>'
             : '') +
           '</div>' +
@@ -3002,30 +3031,38 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         formatPanelState[type].rating = v;
         document.getElementById('fmtStarPreview_' + key).textContent = starsPlain(v);
       });
+      // Tries to fill in a Platform ID from whatever ARC source is currently
+      // selected. Shared by the initial render, the "is ARC" checkbox, and
+      // the ARC source dropdown so a suggestion appears the moment there's
+      // enough info to build one — no unchecking/rechecking required.
+      function trySuggestPlatformId(){
+        var pidEl = document.getElementById('fmtPlatformId_' + key);
+        var hintEl = document.getElementById('fmtPlatformIdHint_' + key);
+        var srcEl = document.getElementById('fmtArcSource_' + key);
+        var srcVal = srcEl ? srcEl.value : '';
+        formatPanelState[type] = formatPanelState[type] || {};
+        if(formatPanelState[type].isARC && !formatPanelState[type].platformId && srcVal){
+          formatPanelState[type].platformId = suggestNextPlatformId(srcVal);
+          if(pidEl) pidEl.value = formatPanelState[type].platformId;
+        }
+        if(hintEl) hintEl.style.display = (formatPanelState[type].isARC && !formatPanelState[type].platformId && !srcVal) ? 'block' : 'none';
+      }
       var isArcEl = document.getElementById('fmtIsArc_' + key);
       isArcEl.addEventListener('change', function(){
         formatPanelState[type] = formatPanelState[type] || {};
         formatPanelState[type].isARC = this.checked;
         document.getElementById('fmtArcFields_' + key).style.display = this.checked ? 'block' : 'none';
-        if(this.checked && !formatPanelState[type].platformId){
-          var srcEl = document.getElementById('fmtArcSource_' + key);
-          if(srcEl && srcEl.value) formatPanelState[type].platformId = suggestNextPlatformId(srcEl.value);
-          var pidEl = document.getElementById('fmtPlatformId_' + key);
-          if(pidEl) pidEl.value = formatPanelState[type].platformId || '';
-        }
+        trySuggestPlatformId();
       });
       var arcSourceEl = document.getElementById('fmtArcSource_' + key);
       if(arcSourceEl){
         arcSourceEl.addEventListener('change', function(){
           formatPanelState[type] = formatPanelState[type] || {};
           formatPanelState[type].arcSource = this.value;
-          if(this.value && !formatPanelState[type].platformId){
-            formatPanelState[type].platformId = suggestNextPlatformId(this.value);
-            var pidEl = document.getElementById('fmtPlatformId_' + key);
-            if(pidEl) pidEl.value = formatPanelState[type].platformId;
-          }
+          trySuggestPlatformId();
         });
       }
+      trySuggestPlatformId();
       var dueDateEl = document.getElementById('fmtDueDate_' + key);
       if(dueDateEl){
         dueDateEl.addEventListener('input', function(){
@@ -3691,6 +3728,27 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   document.getElementById('navCalendar').onclick = function(){ switchView('navCalendar'); };
   document.getElementById('navReviews').onclick = function(){ switchView('navReviews'); };
   document.getElementById('navReader').onclick = function(){ switchView('navReader'); };
+  document.getElementById('navManageLists').onclick = function(){ document.getElementById('manageListsHubOverlay').style.display = 'flex'; };
+  document.getElementById('manageListsHubCloseBtn').onclick = function(){ document.getElementById('manageListsHubOverlay').style.display = 'none'; };
+  document.getElementById('manageListsHubOverlay').addEventListener('click', function(e){
+    if(e.target.id === 'manageListsHubOverlay') document.getElementById('manageListsHubOverlay').style.display = 'none';
+  });
+  document.getElementById('hubManageGenres').onclick = function(){
+    document.getElementById('manageListsHubOverlay').style.display = 'none';
+    openManageModal('genre');
+  };
+  document.getElementById('hubManageTropes').onclick = function(){
+    document.getElementById('manageListsHubOverlay').style.display = 'none';
+    openManageModal('trope');
+  };
+  document.getElementById('hubManageArc').onclick = function(){
+    document.getElementById('manageListsHubOverlay').style.display = 'none';
+    openManageModal('arc');
+  };
+  document.getElementById('hubManagePlatforms').onclick = function(){
+    document.getElementById('manageListsHubOverlay').style.display = 'none';
+    switchView('navPlatforms');
+  };
 
   async function saveLinks(){
     try{ await window.cloudStore.saveMeta({readerLinks: readerLinks}); }catch(e){
@@ -5023,6 +5081,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     }
     var seriesRow = e.target.closest('.author-series-row');
     if(seriesRow && seriesRow.hasAttribute('data-series')){
+      closeAuthorPeek();
       openSeriesPeek(seriesRow.getAttribute('data-series'));
       return;
     }
