@@ -849,6 +849,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       <input type="file" id="restoreInput" accept="application/json" style="display:none;">
       <input type="file" id="csvInput" accept=".csv,text/csv" style="display:none;">
     </div>
+    <button type="button" class="btn-export" id="randomizerBtn" title="Pick a random book" style="margin-right:8px;">🎲 Randomizer</button>
     <button class="btn-add-plus" id="addBtn" title="Add book" aria-label="Add book">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     </button>
@@ -1054,6 +1055,26 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   </div>
 </div>
 
+<div class="overlay" id="randomizerOverlay" style="display:none;">
+  <div class="modal" style="max-width:440px;">
+    <h2>🎲 Randomizer</h2>
+    <p class="hint" style="margin-top:-6px;">Pick which shelves are fair game, then let it decide for you.</p>
+    <div class="wrapped-status-checks" id="randomizerStatusChecks">
+      <label><input type="checkbox" class="randomizerStatusCb" value="want" checked> Want to read</label>
+      <label><input type="checkbox" class="randomizerStatusCb" value="requested"> Requested</label>
+      <label><input type="checkbox" class="randomizerStatusCb" value="reading"> Reading</label>
+      <label><input type="checkbox" class="randomizerStatusCb" value="hold"> On Hold</label>
+      <label><input type="checkbox" class="randomizerStatusCb" value="dnf"> Did not finish</label>
+      <label><input type="checkbox" class="randomizerStatusCb" value="finished"> Finished</label>
+    </div>
+    <div id="randomizerResultArea" style="margin-top:16px;"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" id="randomizerCloseBtn">Close</button>
+      <button type="button" class="btn-primary" id="randomizerRollBtn">🎲 Pick a book</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="viewOverlay" style="display:none;">
   <div class="modal" style="max-width:560px;">
     <div id="viewContent"></div>
@@ -1223,7 +1244,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import {
-    getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged
+    getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
   import {
     getFirestore, collection, doc, getDoc, getDocs, setDoc, deleteDoc, writeBatch
@@ -1255,7 +1276,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         cb(user);
       });
     },
-    async signIn(){ await signInWithRedirect(auth, provider); },
+    async signIn(){ await signInWithPopup(auth, provider); },
     async signOut(){ await signOut(auth); },
     async loadAll(){
       const booksSnap = await getDocs(booksCol());
@@ -1343,17 +1364,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       loginError.textContent = 'Sign-in failed: ' + (e && e.message ? e.message : 'please try again.');
       loginError.style.display = 'block';
     }
-  });
-
-  // With signInWithRedirect, the actual success/failure only becomes known
-  // after Google sends the browser back here (a fresh page load) — this is
-  // what surfaces an error from that return trip, since the click handler's
-  // own try/catch only covers the initial "leaving the page" step.
-  getRedirectResult(auth).catch(function(e){
-    loginLoading.style.display = 'none';
-    googleBtn.disabled = false;
-    loginError.textContent = 'Sign-in failed: ' + (e && e.message ? e.message : 'please try again.');
-    loginError.style.display = 'block';
   });
 
   window.cloudStore.onAuthChange(function(user){
@@ -3679,6 +3689,80 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     document.getElementById('manageListsHubOverlay').style.display = 'none';
     switchView('navPlatforms');
   };
+
+  // --- Randomizer ---------------------------------------------------------
+  var RANDOMIZER_STATUS_KEY = 'lunaria_randomizer_statuses';
+  function loadRandomizerStatuses(){
+    try{
+      var raw = localStorage.getItem(RANDOMIZER_STATUS_KEY);
+      if(raw) return JSON.parse(raw);
+    }catch(e){}
+    return ['want'];
+  }
+  function saveRandomizerStatuses(list){
+    try{ localStorage.setItem(RANDOMIZER_STATUS_KEY, JSON.stringify(list)); }catch(e){}
+  }
+  function getSelectedRandomizerStatuses(){
+    return Array.prototype.slice.call(document.querySelectorAll('.randomizerStatusCb:checked')).map(function(cb){ return cb.value; });
+  }
+  function renderRandomizerResult(book){
+    var resultArea = document.getElementById('randomizerResultArea');
+    if(!book){
+      resultArea.innerHTML = '<div class="cal-empty-note">No books match the shelves you checked — try checking another one.</div>';
+      return;
+    }
+    var coverHtml = book.cover ? '<img src="' + escapeHtml(book.cover) + '" alt="" style="width:64px;height:96px;object-fit:cover;border-radius:6px;flex:none;box-shadow:0 2px 6px rgba(0,0,0,0.15);">' : '<div style="width:64px;height:96px;border-radius:6px;flex:none;background:var(--card-hover);"></div>';
+    var subBits = [];
+    if(book.author) subBits.push(escapeHtml(book.author));
+    if(book.series) subBits.push(escapeHtml(book.series) + (book.seriesOrder ? ' · Book ' + escapeHtml(String(book.seriesOrder)) : ''));
+    resultArea.innerHTML =
+      '<div style="display:flex;gap:14px;align-items:flex-start;padding:14px;border:1px solid var(--line-strong);border-radius:10px;background:var(--card-hover);">' +
+        coverHtml +
+        '<div style="min-width:0;">' +
+          '<div style="font-weight:600;font-size:15px;color:var(--ink);">' + escapeHtml(book.title) + '</div>' +
+          (subBits.length ? '<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">' + subBits.join(' · ') + '</div>' : '') +
+          '<button type="button" class="manage-link" id="randomizerViewBookBtn" style="margin-top:8px;margin-left:0;font-size:12.5px;">View book ↗</button>' +
+        '</div>' +
+      '</div>';
+    document.getElementById('randomizerViewBookBtn').onclick = function(){
+      document.getElementById('randomizerOverlay').style.display = 'none';
+      openBookView(book.id);
+    };
+  }
+  function rollRandomizer(){
+    var selected = getSelectedRandomizerStatuses();
+    saveRandomizerStatuses(selected);
+    if(!selected.length){
+      document.getElementById('randomizerResultArea').innerHTML = '<div class="cal-empty-note">Check at least one shelf first.</div>';
+      return;
+    }
+    var pool = books.filter(function(b){ return selected.indexOf(b.status || 'want') !== -1; });
+    if(!pool.length){
+      renderRandomizerResult(null);
+      return;
+    }
+    var pick = pool[Math.floor(Math.random() * pool.length)];
+    renderRandomizerResult(pick);
+  }
+  var randomizerBtn = document.getElementById('randomizerBtn');
+  if(randomizerBtn){
+    randomizerBtn.addEventListener('click', function(){
+      var saved = loadRandomizerStatuses();
+      document.querySelectorAll('.randomizerStatusCb').forEach(function(cb){ cb.checked = saved.indexOf(cb.value) !== -1; });
+      document.getElementById('randomizerResultArea').innerHTML = '';
+      document.getElementById('randomizerOverlay').style.display = 'flex';
+    });
+  }
+  document.querySelectorAll('.randomizerStatusCb').forEach(function(cb){
+    cb.addEventListener('change', function(){ saveRandomizerStatuses(getSelectedRandomizerStatuses()); });
+  });
+  document.getElementById('randomizerRollBtn').onclick = rollRandomizer;
+  document.getElementById('randomizerCloseBtn').onclick = function(){
+    document.getElementById('randomizerOverlay').style.display = 'none';
+  };
+  document.getElementById('randomizerOverlay').addEventListener('click', function(e){
+    if(e.target.id === 'randomizerOverlay') document.getElementById('randomizerOverlay').style.display = 'none';
+  });
 
   async function saveLinks(){
     try{ await window.cloudStore.saveMeta({readerLinks: readerLinks}); }catch(e){
