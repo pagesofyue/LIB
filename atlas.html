@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Atlas — a travel journal for books</title>
+<meta name="description" content="A pomodoro reading tracker: log chapters as you travel through your books, earn a passport stamp for every one you finish.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cover:#1f2e3d;
+    --cover-deep:#131d27;
+    --page:#f6efdd;
+    --page-alt:#ede2c4;
+    --ink:#2b2620;
+    --ink-soft:#6b6154;
+    --ink-faint:#948a76;
+    --stamp-red:#a83f2b;
+    --stamp-teal:#3c6e63;
+    --stamp-mustard:#bd8a2e;
+    --stamp-plum:#6c4159;
+    --gold:#b8934f;
+    --gold-soft:#e4d3a3;
+    --line:rgba(43,38,32,.22);
+    --shadow:0 10px 24px rgba(19,29,39,.16);
+    --shadow-soft:0 3px 10px rgba(19,29,39,.10);
+    --radius:3px;
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse at top left, rgba(184,147,79,.07), transparent 55%),
+      radial-gradient(ellipse at bottom right, rgba(60,110,99,.06), transparent 55%),
+      var(--page);
+    color:var(--ink);
+    font-family:'Fraunces', Georgia, serif;
+    line-height:1.5;
+    min-height:100vh;
+  }
+
+  .mono{ font-family:'Courier Prime', 'Courier New', monospace; }
+  a{ color:inherit; }
+
+  /* ---------- header ---------- */
+
+  header.cover{
+    background:
+      radial-gradient(ellipse at 20% -20%, rgba(184,147,79,.18), transparent 60%),
+      linear-gradient(180deg, var(--cover), var(--cover-deep));
+    color:var(--gold-soft);
+    padding:38px 20px 30px;
+    text-align:center;
+    position:relative;
+    border-bottom:6px solid var(--gold);
+  }
+  header.cover .compass{ width:54px; height:54px; margin:0 auto 14px; opacity:.9; }
+  header.cover h1{
+    font-size:clamp(28px, 5vw, 42px);
+    font-weight:600;
+    letter-spacing:.5px;
+    margin:0 0 6px;
+    color:#f4ead0;
+  }
+  header.cover p.tagline{
+    margin:0;
+    font-family:'Courier Prime', monospace;
+    font-size:13px;
+    letter-spacing:1.5px;
+    color:var(--gold-soft);
+    opacity:.85;
+  }
+  header.cover .issue-line{
+    margin-top:16px;
+    font-family:'Courier Prime', monospace;
+    font-size:12px;
+    color:rgba(228,211,163,.65);
+    border-top:1px solid rgba(228,211,163,.25);
+    padding-top:10px;
+    display:inline-block;
+  }
+
+  /* ---------- layout ---------- */
+
+  main{ max-width:1040px; margin:0 auto; padding:28px 18px 60px; }
+  .grid{ display:grid; grid-template-columns:1fr; gap:22px; }
+  @media(min-width:860px){ .grid{ grid-template-columns: 0.85fr 1.15fr; align-items:start; } }
+
+  section.panel{
+    background:var(--page);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow-soft);
+    padding:22px;
+    position:relative;
+  }
+  section.panel::before{
+    content:"";
+    position:absolute; left:0; top:0; bottom:0; width:4px;
+    background:linear-gradient(180deg, var(--gold), var(--stamp-plum));
+    opacity:.55;
+    border-radius:var(--radius) 0 0 var(--radius);
+  }
+
+  h2.panel-title{ font-size:20px; font-weight:600; margin:0 0 4px; padding-left:10px; }
+  p.panel-sub{
+    font-family:'Courier Prime', monospace;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin:0 0 20px;
+    padding-left:10px;
+  }
+
+  /* ---------- timer panel ---------- */
+
+  .postmark{
+    width:200px; height:200px;
+    margin:6px auto 6px;
+    border-radius:50%;
+    border:3px solid var(--ink);
+    position:relative;
+    display:flex; align-items:center; justify-content:center;
+    background:repeating-radial-gradient(circle at center, transparent 0 6px, rgba(43,38,32,.05) 6px 7px);
+  }
+  .postmark::before, .postmark::after{
+    content:""; position:absolute; left:8px; right:8px; height:0;
+    border-top:1.5px solid var(--ink);
+  }
+  .postmark::before{ top:32px; }
+  .postmark::after{ bottom:32px; }
+
+  .postmark svg.ring{
+    position:absolute; inset:-3px;
+    width:calc(100% + 6px); height:calc(100% + 6px);
+    transform:rotate(-90deg);
+  }
+  .postmark svg.ring circle{
+    fill:none;
+    stroke:var(--stamp-teal);
+    stroke-width:4;
+    stroke-linecap:round;
+    transition:stroke-dashoffset 1s linear, stroke .4s ease;
+  }
+  .postmark.urgent svg.ring circle{ stroke:var(--stamp-red); }
+  .postmark.urgent #timerDisplay{ animation:pulse 1s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ opacity:1; } 50%{ opacity:.55; } }
+
+  #timerDisplay{
+    font-family:'Courier Prime', monospace;
+    font-size:40px; font-weight:700; letter-spacing:1px;
+    position:relative; z-index:1;
+  }
+
+  .timer-book-label{
+    text-align:center; font-size:13.5px; color:var(--ink-soft);
+    min-height:18px; margin:10px 0 16px; font-style:italic;
+  }
+
+  .test-sound{
+    display:block;
+    margin:0 auto 20px;
+    background:none; border:none;
+    font-family:'Courier Prime', monospace;
+    font-size:11.5px;
+    color:var(--ink-faint);
+    text-decoration:underline;
+    cursor:pointer;
+  }
+  .test-sound:hover{ color:var(--stamp-teal); }
+
+  .field-label{
+    display:block; font-family:'Courier Prime', monospace; font-size:12px;
+    color:var(--ink-soft); margin:0 0 8px; letter-spacing:.3px;
+  }
+  .field-note{
+    font-family:'Courier Prime', monospace; font-size:11px;
+    color:var(--ink-faint); margin:-14px 0 16px;
+  }
+
+  select#activeBook{
+    width:100%; padding:10px 12px;
+    font-family:'Fraunces', serif; font-size:15px; color:var(--ink);
+    background:var(--page-alt); border:1px solid var(--line); border-radius:var(--radius);
+    margin-bottom:6px;
+  }
+
+  .durations{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+  .duration-btn{
+    font-family:'Courier Prime', monospace; font-size:13px; padding:8px 12px;
+    background:var(--page-alt); border:1px solid var(--line); border-radius:20px;
+    cursor:pointer; color:var(--ink); transition:background .15s, border-color .15s;
+  }
+  .duration-btn:hover{ border-color:var(--gold); }
+  .duration-btn.selected{ background:var(--cover); color:var(--gold-soft); border-color:var(--cover); }
+
+  .custom-duration{
+    display:flex; align-items:center; gap:8px;
+    font-family:'Courier Prime', monospace; font-size:13px; color:var(--ink-soft);
+    margin-bottom:20px;
+  }
+  .custom-duration input{
+    width:60px; padding:6px 8px; font-family:'Courier Prime', monospace;
+    border:1px solid var(--line); border-radius:var(--radius); background:var(--page-alt);
+  }
+
+  .timer-controls{ display:flex; gap:10px; justify-content:center; }
+
+  button.btn{
+    font-family:'Fraunces', serif; font-size:14.5px; font-weight:600;
+    padding:10px 20px; border-radius:20px; border:1px solid var(--cover);
+    background:var(--cover); color:var(--gold-soft); cursor:pointer;
+    transition:transform .1s ease, opacity .15s;
+  }
+  button.btn:active{ transform:scale(.97); }
+  button.btn.secondary{ background:transparent; color:var(--cover); }
+  button.btn:disabled{ opacity:.4; cursor:not-allowed; }
+  button.btn.danger{ background:transparent; color:var(--stamp-red); border-color:var(--stamp-red); }
+  button.btn.small{ padding:6px 14px; font-size:12.5px; }
+
+  .stats-strip{
+    margin-top:22px; padding-top:16px; border-top:1px dashed var(--line);
+    display:flex; justify-content:space-around; text-align:center;
+    font-family:'Courier Prime', monospace;
+  }
+  .stats-strip .stat-num{ font-size:20px; font-weight:700; color:var(--cover); display:block; }
+  .stats-strip .stat-label{ font-size:11px; color:var(--ink-soft); }
+
+  /* ---------- add book form ---------- */
+
+  form#addBookForm{ display:grid; grid-template-columns:1.3fr 1fr .8fr auto; gap:8px; margin:0 0 18px 10px; }
+  @media(max-width:520px){
+    form#addBookForm{ grid-template-columns:1fr 1fr; }
+    form#addBookForm button{ grid-column:1 / -1; }
+  }
+  form#addBookForm input{
+    padding:9px 10px; font-family:'Fraunces', serif; font-size:14px;
+    border:1px solid var(--line); background:var(--page-alt); border-radius:var(--radius);
+    color:var(--ink); width:100%;
+  }
+  form#addBookForm input::placeholder{ color:var(--ink-faint); }
+  form#addBookForm button{ padding:9px 14px; font-size:13.5px; border-radius:var(--radius); white-space:nowrap; }
+
+  .queue-controls{
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    padding-left:10px; margin-bottom:14px;
+  }
+  .queue-controls span.queue-label{
+    font-family:'Courier Prime', monospace; font-size:11.5px; color:var(--ink-faint);
+  }
+  .link-btn{
+    background:none; border:none; font-family:'Courier Prime', monospace; font-size:11.5px;
+    color:var(--stamp-teal); text-decoration:underline; cursor:pointer; padding:0;
+  }
+
+  /* ---------- library card (book row) ---------- */
+
+  .shelf{ display:flex; flex-direction:column; gap:12px; padding-left:10px; }
+
+  .card{
+    background:var(--page-alt); border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px 16px; box-shadow:var(--shadow-soft);
+  }
+  .card.not-queued{ opacity:.55; }
+
+  .card-top{ display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+  .card-top input[type=checkbox]{ accent-color:var(--cover); width:16px; height:16px; flex-shrink:0; cursor:pointer; }
+  .card-title{ font-size:16.5px; font-weight:600; }
+  .card-place{
+    font-family:'Courier Prime', monospace; font-size:11.5px; color:var(--stamp-teal);
+    letter-spacing:.4px; white-space:nowrap; margin-left:auto;
+  }
+
+  .card-progress-row{ display:flex; align-items:center; gap:10px; margin-top:10px; }
+  .progress-track{ flex:1; height:8px; background:rgba(43,38,32,.09); border-radius:5px; overflow:hidden; }
+  .progress-track .fill{
+    height:100%; background:linear-gradient(90deg, var(--gold), var(--stamp-teal));
+    border-radius:5px; transition:width .3s ease;
+  }
+  .card-progress-text{ font-family:'Courier Prime', monospace; font-size:11.5px; color:var(--ink-soft); white-space:nowrap; }
+
+  .card-actions{ margin-top:10px; display:flex; gap:6px; align-items:center; }
+  .checkin-btn{
+    font-family:'Courier Prime', monospace; font-size:12px; padding:6px 12px; border-radius:16px;
+    border:1px solid var(--cover); background:transparent; color:var(--cover); cursor:pointer;
+  }
+  .checkin-btn:hover{ background:var(--cover); color:var(--gold-soft); }
+
+  .icon-btn{
+    background:none; border:1px solid var(--line); border-radius:4px;
+    width:26px; height:26px; line-height:1; cursor:pointer; color:var(--ink-soft);
+    font-size:11px; display:flex; align-items:center; justify-content:center;
+  }
+  .icon-btn:hover{ border-color:var(--gold); color:var(--ink); }
+
+  .remove-btn{
+    font-family:'Courier Prime', monospace; font-size:12px; color:var(--ink-faint);
+    background:none; border:none; cursor:pointer; margin-left:auto;
+  }
+  .remove-btn:hover{ color:var(--stamp-red); }
+
+  .empty-note{ font-family:'Courier Prime', monospace; font-size:13px; color:var(--ink-faint); padding:10px 0; }
+
+  /* ---------- passport ---------- */
+
+  section.passport{
+    margin-top:22px; background:var(--page); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow-soft); padding:26px 22px 22px;
+  }
+  .stamp-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));
+    gap:20px; padding-left:10px; margin-top:16px;
+  }
+  .stamp{
+    width:100%; aspect-ratio:1 / 0.85; border:2.5px solid var(--stamp-color, var(--stamp-red));
+    border-radius:50% / 45%; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:10px; color:var(--stamp-color, var(--stamp-red));
+    transform:rotate(var(--tilt, -4deg)); position:relative;
+  }
+  .stamp::before{
+    content:""; position:absolute; inset:5px; border:1px dashed var(--stamp-color, var(--stamp-red));
+    border-radius:50% / 45%; opacity:.55;
+  }
+  .stamp .stamp-place{ font-family:'Fraunces', serif; font-weight:700; font-size:14.5px; line-height:1.15; }
+  .stamp .stamp-book{
+    font-family:'Courier Prime', monospace; font-size:9.5px; margin-top:4px; max-width:90%;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .stamp .stamp-date{ font-family:'Courier Prime', monospace; font-size:9px; margin-top:6px; opacity:.8; }
+
+  /* ---------- journey log ---------- */
+
+  section.journey{
+    margin-top:22px; background:var(--page); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow-soft); padding:26px 22px 22px;
+  }
+  .journey-totals{
+    display:flex; flex-wrap:wrap; gap:26px; padding-left:10px; margin:16px 0 22px;
+  }
+  .journey-totals .stat-num{ font-size:24px; font-weight:700; color:var(--cover); display:block; font-family:'Fraunces', serif; }
+  .journey-totals .stat-label{ font-family:'Courier Prime', monospace; font-size:11px; color:var(--ink-soft); }
+
+  .log-bars{ padding-left:10px; display:flex; flex-direction:column; gap:6px; }
+  .log-bar-row{ display:grid; grid-template-columns:64px 1fr 40px; align-items:center; gap:10px; }
+  .log-bar-date{ font-family:'Courier Prime', monospace; font-size:11px; color:var(--ink-soft); }
+  .log-bar-track{ height:12px; background:rgba(43,38,32,.07); border-radius:3px; overflow:hidden; }
+  .log-bar-fill{ height:100%; background:linear-gradient(90deg, var(--gold), var(--stamp-teal)); border-radius:3px; }
+  .log-bar-val{ font-family:'Courier Prime', monospace; font-size:11px; color:var(--ink-faint); text-align:right; }
+
+  .recent-finished{ padding-left:10px; margin-top:22px; }
+  .recent-finished h3{ font-size:14px; margin:0 0 10px; font-weight:600; }
+  .recent-row{
+    display:flex; justify-content:space-between; gap:10px;
+    font-family:'Courier Prime', monospace; font-size:12px; color:var(--ink-soft);
+    padding:6px 0; border-bottom:1px dashed var(--line);
+  }
+  .recent-row span.place{ color:var(--stamp-teal); }
+
+  /* ---------- footer / data controls ---------- */
+
+  footer{ max-width:1040px; margin:0 auto; padding:0 18px 50px; }
+  .data-controls{
+    display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:center;
+    padding-top:18px; border-top:1px dashed var(--line);
+  }
+  .data-note{
+    width:100%; text-align:center; font-family:'Courier Prime', monospace; font-size:11.5px;
+    color:var(--ink-faint); margin-top:12px;
+  }
+
+  /* ---------- modal (check-in) ---------- */
+
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(19,29,39,.55);
+    display:flex; align-items:center; justify-content:center; padding:20px; z-index:100;
+  }
+  .modal-overlay[hidden]{ display:none; }
+  .modal{
+    background:var(--page); border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:26px 24px; max-width:380px; width:100%; text-align:center; border:1px solid var(--line);
+  }
+  .modal h3{ margin:0 0 6px; font-size:19px; }
+  .modal p{ font-family:'Courier Prime', monospace; font-size:12.5px; color:var(--ink-soft); margin:0 0 16px; }
+
+  #checkinRows{ max-height:280px; overflow-y:auto; margin-bottom:18px; text-align:left; }
+  .checkin-row{
+    display:flex; align-items:center; gap:10px; padding:9px 4px; border-bottom:1px solid var(--line);
+  }
+  .checkin-row:last-child{ border-bottom:none; }
+  .checkin-row-label{ flex:1; font-size:13.5px; line-height:1.3; }
+  .checkin-row-label .row-place{ font-family:'Courier Prime', monospace; font-size:10.5px; color:var(--stamp-teal); display:block; }
+  .checkin-row-label .focus-tag{
+    font-family:'Courier Prime', monospace; font-size:9.5px; color:var(--gold);
+    border:1px solid var(--gold); border-radius:10px; padding:1px 6px; margin-left:6px;
+  }
+  .checkin-row input{
+    width:56px; text-align:center; font-family:'Courier Prime', monospace; font-size:15px;
+    padding:6px; border:1px solid var(--line); border-radius:var(--radius); background:var(--page-alt);
+  }
+  .modal .modal-actions{ display:flex; gap:10px; justify-content:center; }
+
+  [hidden]{ display:none !important; }
+
+  @media (prefers-reduced-motion: reduce){ *{ transition:none !important; animation:none !important; } }
+</style>
+</head>
+<body>
+
+<header class="cover">
+  <svg class="compass" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="30" cy="30" r="27" stroke="#e4d3a3" stroke-width="1.5"/>
+    <circle cx="30" cy="30" r="2" fill="#e4d3a3"/>
+    <path d="M30 6 L34 28 L30 30 L26 28 Z" fill="#e4d3a3"/>
+    <path d="M30 54 L34 32 L30 30 L26 32 Z" fill="#e4d3a3" opacity=".5"/>
+    <path d="M6 30 L28 26 L30 30 L28 34 Z" fill="#e4d3a3" opacity=".7"/>
+    <path d="M54 30 L32 26 L30 30 L32 34 Z" fill="#e4d3a3" opacity=".7"/>
+  </svg>
+  <h1>Reading Atlas</h1>
+  <p class="tagline">a travel journal for books</p>
+  <div class="issue-line mono" id="issueLine">issued —</div>
+</header>
+
+<main>
+  <div class="grid">
+
+    <!-- TIMER PANEL -->
+    <section class="panel" aria-labelledby="timerTitle">
+      <h2 class="panel-title" id="timerTitle">Journey clock</h2>
+      <p class="panel-sub">pick a book, set a duration, travel a while</p>
+
+      <div class="postmark" id="postmark">
+        <svg class="ring" viewBox="0 0 200 200">
+          <circle id="ringCircle" cx="100" cy="100" r="92"></circle>
+        </svg>
+        <span id="timerDisplay" class="mono">25:00</span>
+      </div>
+      <p class="timer-book-label" id="timerBookLabel">No book queued yet</p>
+      <button type="button" class="test-sound" id="testSound">test the chime ♪</button>
+
+      <label class="field-label" for="activeBook">Reading now — from today's queue</label>
+      <select id="activeBook"></select>
+      <p class="field-note">tick "today" on a book below to add it to the queue</p>
+
+      <label class="field-label">Duration</label>
+      <div class="durations" id="durationButtons">
+        <button type="button" class="duration-btn" data-min="10">10 min</button>
+        <button type="button" class="duration-btn" data-min="15">15 min</button>
+        <button type="button" class="duration-btn" data-min="20">20 min</button>
+        <button type="button" class="duration-btn selected" data-min="25">25 min</button>
+        <button type="button" class="duration-btn" data-min="30">30 min</button>
+        <button type="button" class="duration-btn" data-min="45">45 min</button>
+      </div>
+      <div class="custom-duration">
+        <span>or custom:</span>
+        <input type="number" id="customMinutes" min="1" max="180" placeholder="—">
+        <span>min</span>
+        <button type="button" class="checkin-btn" id="useCustom">use</button>
+      </div>
+
+      <div class="timer-controls">
+        <button class="btn" id="startPauseBtn">Start</button>
+        <button class="btn secondary" id="resetBtn">Reset</button>
+      </div>
+
+      <div class="stats-strip">
+        <div><span class="stat-num" id="statSessions">0</span><span class="stat-label">sessions today</span></div>
+        <div><span class="stat-num" id="statMinutes">0</span><span class="stat-label">minutes today</span></div>
+        <div><span class="stat-num" id="statStamps">0</span><span class="stat-label">stamps earned</span></div>
+      </div>
+    </section>
+
+    <!-- ITINERARY PANEL -->
+    <section class="panel" aria-labelledby="itineraryTitle">
+      <h2 class="panel-title" id="itineraryTitle">Today's itinerary</h2>
+      <p class="panel-sub">every book is a destination — add where you're headed</p>
+
+      <form id="addBookForm">
+        <input type="text" id="newTitle" placeholder="Book title" required>
+        <input type="text" id="newPlace" placeholder="Place (e.g. Italy)" required>
+        <input type="number" id="newChapters" placeholder="Chapters" min="1" required>
+        <button type="submit" class="btn">Add</button>
+      </form>
+
+      <div class="queue-controls">
+        <span class="queue-label">today's queue:</span>
+        <button type="button" class="link-btn" id="selectAllBtn">select all</button>
+        <button type="button" class="link-btn" id="clearQueueBtn">clear</button>
+      </div>
+
+      <div class="shelf" id="bookShelf"></div>
+      <p class="empty-note" id="emptyNote" hidden>No books yet — add your first destination above.</p>
+    </section>
+  </div>
+
+  <!-- PASSPORT -->
+  <section class="passport" aria-labelledby="passportTitle">
+    <h2 class="panel-title" id="passportTitle" style="padding-left:0">Passport</h2>
+    <p class="panel-sub" style="padding-left:0">stamps for every book you've finished</p>
+    <div class="stamp-grid" id="stampGrid"></div>
+    <p class="empty-note" id="emptyStampNote">No stamps yet — finish a book to earn your first one.</p>
+  </section>
+
+  <!-- JOURNEY LOG -->
+  <section class="journey" aria-labelledby="journeyTitle">
+    <h2 class="panel-title" id="journeyTitle" style="padding-left:0">Journey log</h2>
+    <p class="panel-sub" style="padding-left:0">your reading, tallied over time</p>
+
+    <div class="journey-totals">
+      <div><span class="stat-num" id="totalMinutes">0</span><span class="stat-label">total minutes</span></div>
+      <div><span class="stat-num" id="totalSessions">0</span><span class="stat-label">total sessions</span></div>
+      <div><span class="stat-num" id="totalBooks">0</span><span class="stat-label">books finished</span></div>
+    </div>
+
+    <div class="log-bars" id="logBars"></div>
+
+    <div class="recent-finished" id="recentFinishedWrap" hidden>
+      <h3>recently arrived</h3>
+      <div id="recentFinished"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="data-controls">
+    <button class="btn secondary" id="exportBtn">Download progress</button>
+    <label class="btn secondary" for="importFile" style="cursor:pointer;">Load progress</label>
+    <input type="file" id="importFile" accept="application/json" hidden>
+    <button class="btn danger" id="clearBtn">Clear all data</button>
+  </div>
+  <p class="data-note">Autosaves in this browser. Use "Download progress" to back up or carry your itinerary to another device — "Load progress" restores from that file.</p>
+</footer>
+
+<!-- CHECK-IN MODAL -->
+<div class="modal-overlay" id="checkinOverlay" hidden>
+  <div class="modal">
+    <h3 id="checkinTitle">Check in</h3>
+    <p id="checkinSub">What chapter are you on?</p>
+    <div id="checkinRows"></div>
+    <div class="modal-actions">
+      <button class="btn secondary" id="checkinSkip">Skip</button>
+      <button class="btn" id="checkinSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "reading-atlas-v2";
+  var STAMP_COLORS = ["--stamp-red","--stamp-teal","--stamp-mustard","--stamp-plum"];
+  var RING_R = 92;
+  var RING_C = 2 * Math.PI * RING_R;
+
+  var todayStr = function(){
+    var d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  };
+
+  function dateStrOffset(daysAgo){
+    var d = new Date();
+    d.setDate(d.getDate() - daysAgo);
+    return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  }
+
+  function defaultState(){ return { books: [], sessions: [] }; }
+
+  function loadState(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("reading-atlas-v1");
+      if(!raw) return defaultState();
+      var parsed = JSON.parse(raw);
+      if(!parsed.books) parsed.books = [];
+      if(!parsed.sessions) parsed.sessions = [];
+      parsed.books.forEach(function(b){ if(typeof b.queued === "undefined") b.queued = true; });
+      return parsed;
+    }catch(e){
+      console.error("Could not read saved progress:", e);
+      return defaultState();
+    }
+  }
+
+  function saveState(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    catch(e){ console.error("Could not save progress:", e); }
+  }
+
+  var state = loadState();
+
+  // ---------- timer state ----------
+  var selectedMinutes = 25;
+  var remainingSeconds = 25*60;
+  var timerInterval = null;
+  var isRunning = false;
+  var activeBookId = null;
+  var audioCtx = null;
+
+  // ---------- DOM refs ----------
+  var $ = function(id){ return document.getElementById(id); };
+  var activeBookSelect = $("activeBook");
+  var timerDisplay = $("timerDisplay");
+  var timerBookLabel = $("timerBookLabel");
+  var postmark = $("postmark");
+  var ringCircle = $("ringCircle");
+  var startPauseBtn = $("startPauseBtn");
+  var resetBtn = $("resetBtn");
+  var testSoundBtn = $("testSound");
+  var durationButtons = $("durationButtons");
+  var customMinutes = $("customMinutes");
+  var useCustomBtn = $("useCustom");
+  var addBookForm = $("addBookForm");
+  var bookShelf = $("bookShelf");
+  var emptyNote = $("emptyNote");
+  var selectAllBtn = $("selectAllBtn");
+  var clearQueueBtn = $("clearQueueBtn");
+  var stampGrid = $("stampGrid");
+  var emptyStampNote = $("emptyStampNote");
+  var statSessions = $("statSessions");
+  var statMinutes = $("statMinutes");
+  var statStamps = $("statStamps");
+  var totalMinutesEl = $("totalMinutes");
+  var totalSessionsEl = $("totalSessions");
+  var totalBooksEl = $("totalBooks");
+  var logBars = $("logBars");
+  var recentFinishedWrap = $("recentFinishedWrap");
+  var recentFinished = $("recentFinished");
+  var exportBtn = $("exportBtn");
+  var importFile = $("importFile");
+  var clearBtn = $("clearBtn");
+  var checkinOverlay = $("checkinOverlay");
+  var checkinTitle = $("checkinTitle");
+  var checkinSub = $("checkinSub");
+  var checkinRows = $("checkinRows");
+  var checkinSave = $("checkinSave");
+  var checkinSkip = $("checkinSkip");
+  var issueLine = document.querySelector(".issue-line");
+
+  var pendingIsSessionEnd = false;
+
+  ringCircle.setAttribute("stroke-dasharray", RING_C);
+  ringCircle.setAttribute("stroke-dashoffset", 0);
+
+  function formatDate(iso){
+    var d = new Date(iso + "T00:00:00");
+    return d.toLocaleDateString(undefined, { month:"short", day:"numeric", year:"numeric" });
+  }
+
+  issueLine.textContent = "issued " + formatDate(todayStr());
+
+  // ---------- rendering ----------
+
+  function render(desiredId){
+    renderBookSelect(desiredId);
+    renderShelf();
+    renderStamps();
+    renderStats();
+    renderJourneyLog();
+  }
+
+  function queuedUnfinished(){
+    return state.books.filter(function(b){ return !b.completed && b.queued; });
+  }
+
+  function renderBookSelect(desiredId){
+    var queue = queuedUnfinished();
+    activeBookSelect.innerHTML = "";
+
+    if(queue.length === 0){
+      var opt = document.createElement("option");
+      opt.textContent = state.books.some(function(b){ return !b.completed; }) ? "Tick a book's \"today\" box to queue it" : "Add a book to begin";
+      opt.value = "";
+      activeBookSelect.appendChild(opt);
+      activeBookSelect.disabled = true;
+      activeBookId = null;
+      startPauseBtn.disabled = true;
+      timerBookLabel.textContent = "No book queued yet";
+      return;
+    }
+
+    activeBookSelect.disabled = false;
+    startPauseBtn.disabled = false;
+
+    queue.forEach(function(b){
+      var opt = document.createElement("option");
+      opt.value = b.id;
+      opt.textContent = b.title + " — " + b.place;
+      activeBookSelect.appendChild(opt);
+    });
+
+    var target = desiredId || activeBookId;
+    if(!queue.some(function(b){ return b.id === target; })){
+      target = queue[0].id;
+    }
+    activeBookId = target;
+    activeBookSelect.value = activeBookId;
+    updateTimerBookLabel();
+  }
+
+  function updateTimerBookLabel(){
+    var book = state.books.find(function(b){ return b.id === activeBookId; });
+    timerBookLabel.textContent = book ? ("bound for " + book.place + ", via \u201c" + book.title + "\u201d") : "No book queued yet";
+  }
+
+  function renderShelf(){
+    bookShelf.innerHTML = "";
+    var inProgress = state.books.filter(function(b){ return !b.completed; });
+    emptyNote.hidden = state.books.length > 0;
+    inProgress.forEach(function(book, idx){
+      bookShelf.appendChild(buildBookCard(book, idx === 0, idx === inProgress.length - 1));
+    });
+  }
+
+  function buildBookCard(book, isFirst, isLast){
+    var card = document.createElement("div");
+    card.className = "card" + (book.queued ? "" : " not-queued");
+
+    var pct = Math.min(100, Math.round((book.currentChapter / book.totalChapters) * 100));
+
+    card.innerHTML =
+      '<div class="card-top">' +
+        '<input type="checkbox" data-queue-toggle="' + book.id + '" ' + (book.queued ? "checked" : "") + ' title="reading today">' +
+        '<span class="card-title">' + escapeHtml(book.title) + '</span>' +
+        '<span class="card-place mono">' + escapeHtml(book.place) + '</span>' +
+      '</div>' +
+      '<div class="card-progress-row">' +
+        '<div class="progress-track"><div class="fill" style="width:' + pct + '%"></div></div>' +
+        '<span class="card-progress-text">ch. ' + book.currentChapter + ' / ' + book.totalChapters + '</span>' +
+      '</div>' +
+      '<div class="card-actions">' +
+        '<button type="button" class="checkin-btn" data-checkin="' + book.id + '">Check in</button>' +
+        '<button type="button" class="icon-btn" data-move-up="' + book.id + '" ' + (isFirst ? "disabled" : "") + ' title="move up">\u25B2</button>' +
+        '<button type="button" class="icon-btn" data-move-down="' + book.id + '" ' + (isLast ? "disabled" : "") + ' title="move down">\u25BC</button>' +
+        '<button type="button" class="remove-btn" data-remove="' + book.id + '">remove</button>' +
+      '</div>';
+
+    return card;
+  }
+
+  function renderStamps(){
+    var completed = state.books.filter(function(b){ return b.completed; });
+    emptyStampNote.hidden = completed.length > 0;
+    stampGrid.innerHTML = "";
+    completed.forEach(function(book, i){
+      var stamp = document.createElement("div");
+      stamp.className = "stamp";
+      var color = STAMP_COLORS[i % STAMP_COLORS.length];
+      var tilt = ((i % 2 === 0) ? -1 : 1) * (3 + (i * 7) % 6);
+      stamp.style.setProperty("--stamp-color", "var(" + color + ")");
+      stamp.style.setProperty("--tilt", tilt + "deg");
+      stamp.innerHTML =
+        '<span class="stamp-place">' + escapeHtml(book.place) + '</span>' +
+        '<span class="stamp-book mono">' + escapeHtml(book.title) + '</span>' +
+        '<span class="stamp-date mono">' + (book.completedDate ? formatDate(book.completedDate) : "") + '</span>';
+      stampGrid.appendChild(stamp);
+    });
+  }
+
+  function renderStats(){
+    var today = todayStr();
+    var todaySessions = state.sessions.filter(function(s){ return s.date === today; });
+    var totalMinutes = todaySessions.reduce(function(sum, s){ return sum + s.minutes; }, 0);
+    statSessions.textContent = todaySessions.length;
+    statMinutes.textContent = totalMinutes;
+    statStamps.textContent = state.books.filter(function(b){ return b.completed; }).length;
+  }
+
+  function renderJourneyLog(){
+    var allMinutes = state.sessions.reduce(function(sum, s){ return sum + s.minutes; }, 0);
+    totalMinutesEl.textContent = allMinutes;
+    totalSessionsEl.textContent = state.sessions.length;
+    totalBooksEl.textContent = state.books.filter(function(b){ return b.completed; }).length;
+
+    var days = [];
+    for(var i = 13; i >= 0; i--){ days.push(dateStrOffset(i)); }
+    var perDay = days.map(function(d){
+      var mins = state.sessions.filter(function(s){ return s.date === d; })
+        .reduce(function(sum, s){ return sum + s.minutes; }, 0);
+      return { date: d, minutes: mins };
+    });
+    var maxMin = Math.max.apply(null, perDay.map(function(d){ return d.minutes; }).concat([1]));
+
+    logBars.innerHTML = "";
+    perDay.forEach(function(d){
+      var row = document.createElement("div");
+      row.className = "log-bar-row";
+      var label = new Date(d.date + "T00:00:00").toLocaleDateString(undefined, { month:"short", day:"numeric" });
+      var widthPct = Math.round((d.minutes / maxMin) * 100);
+      row.innerHTML =
+        '<span class="log-bar-date">' + label + '</span>' +
+        '<span class="log-bar-track"><span class="log-bar-fill" style="width:' + widthPct + '%"></span></span>' +
+        '<span class="log-bar-val">' + d.minutes + '</span>';
+      logBars.appendChild(row);
+    });
+
+    var recents = state.books.filter(function(b){ return b.completed; })
+      .sort(function(a,b){ return (b.completedDate || "").localeCompare(a.completedDate || ""); })
+      .slice(0, 5);
+    recentFinishedWrap.hidden = recents.length === 0;
+    recentFinished.innerHTML = "";
+    recents.forEach(function(book){
+      var row = document.createElement("div");
+      row.className = "recent-row";
+      row.innerHTML =
+        '<span>' + escapeHtml(book.title) + ' <span class="place">' + escapeHtml(book.place) + '</span></span>' +
+        '<span>' + (book.completedDate ? formatDate(book.completedDate) : "") + '</span>';
+      recentFinished.appendChild(row);
+    });
+  }
+
+  function escapeHtml(str){
+    var div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ---------- book management ----------
+
+  function addBook(title, place, totalChapters){
+    var book = {
+      id: "b_" + Date.now() + "_" + Math.random().toString(36).slice(2,7),
+      title: title.trim(),
+      place: place.trim(),
+      totalChapters: totalChapters,
+      currentChapter: 0,
+      completed: false,
+      completedDate: null,
+      addedDate: todayStr(),
+      queued: true
+    };
+    state.books.push(book);
+    saveState();
+    render();
+  }
+
+  function removeBook(id){
+    state.books = state.books.filter(function(b){ return b.id !== id; });
+    saveState();
+    render();
+  }
+
+  function toggleQueue(id, queued){
+    var book = state.books.find(function(b){ return b.id === id; });
+    if(!book) return;
+    book.queued = queued;
+    saveState();
+    render();
+  }
+
+  function setAllQueued(queued){
+    state.books.forEach(function(b){ if(!b.completed) b.queued = queued; });
+    saveState();
+    render();
+  }
+
+  function moveBook(id, dir){
+    var list = state.books;
+    var idx = list.findIndex(function(b){ return b.id === id; });
+    if(idx < 0) return;
+    var swapIdx = idx;
+    do{ swapIdx += dir; } while(swapIdx >= 0 && swapIdx < list.length && list[swapIdx].completed);
+    if(swapIdx < 0 || swapIdx >= list.length) return;
+    var tmp = list[idx];
+    list[idx] = list[swapIdx];
+    list[swapIdx] = tmp;
+    saveState();
+    render();
+  }
+
+  function checkInBook(id, chapter){
+    var book = state.books.find(function(b){ return b.id === id; });
+    if(!book) return;
+    chapter = Math.max(0, Math.min(chapter, book.totalChapters));
+    book.currentChapter = chapter;
+    if(chapter >= book.totalChapters && !book.completed){
+      book.completed = true;
+      book.completedDate = todayStr();
+    }
+    saveState();
+  }
+
+  function advanceQueue(){
+    var queue = queuedUnfinished();
+    if(queue.length === 0){ activeBookId = null; render(); return; }
+    var idx = queue.findIndex(function(b){ return b.id === activeBookId; });
+    var next = queue[(idx + 1) % queue.length] || queue[0];
+    render(next.id);
+  }
+
+  // ---------- timer ----------
+
+  function formatTime(totalSeconds){
+    var m = Math.floor(totalSeconds / 60);
+    var s = totalSeconds % 60;
+    return String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
+  }
+
+  function updateRing(){
+    var total = selectedMinutes * 60;
+    var fraction = total > 0 ? (total - remainingSeconds) / total : 0;
+    var offset = RING_C * fraction;
+    ringCircle.setAttribute("stroke-dashoffset", offset);
+    postmark.classList.toggle("urgent", remainingSeconds > 0 && remainingSeconds <= Math.max(30, total * 0.1));
+  }
+
+  function setMinutes(min){
+    selectedMinutes = min;
+    if(!isRunning){
+      remainingSeconds = min * 60;
+      timerDisplay.textContent = formatTime(remainingSeconds);
+      updateRing();
+    }
+    Array.prototype.forEach.call(durationButtons.querySelectorAll(".duration-btn"), function(btn){
+      btn.classList.toggle("selected", parseInt(btn.dataset.min,10) === min);
+    });
+  }
+
+  function tick(){
+    remainingSeconds--;
+    timerDisplay.textContent = formatTime(remainingSeconds);
+    updateRing();
+    if(remainingSeconds <= 0){ completeTimer(); }
+  }
+
+  function startTimer(){
+    if(!activeBookId){ return; }
+    ensureAudioContext();
+    isRunning = true;
+    startPauseBtn.textContent = "Pause";
+    timerInterval = setInterval(tick, 1000);
+  }
+
+  function pauseTimer(){
+    isRunning = false;
+    startPauseBtn.textContent = "Start";
+    clearInterval(timerInterval);
+  }
+
+  function resetTimer(){
+    pauseTimer();
+    remainingSeconds = selectedMinutes * 60;
+    timerDisplay.textContent = formatTime(remainingSeconds);
+    postmark.classList.remove("urgent");
+    updateRing();
+  }
+
+  function completeTimer(){
+    pauseTimer();
+    playChime();
+    var book = state.books.find(function(b){ return b.id === activeBookId; });
+    state.sessions.push({ date: todayStr(), bookId: activeBookId, minutes: selectedMinutes, ts: Date.now() });
+    saveState();
+    renderStats();
+    renderJourneyLog();
+    remainingSeconds = selectedMinutes * 60;
+    timerDisplay.textContent = formatTime(remainingSeconds);
+    updateRing();
+    if(book){ openSessionWrapup(book); }
+  }
+
+  // ---------- audio ----------
+
+  function ensureAudioContext(){
+    try{
+      if(!audioCtx){
+        var Ctx = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new Ctx();
+      }
+      if(audioCtx.state === "suspended"){ audioCtx.resume(); }
+    }catch(e){ /* audio unavailable */ }
+    return audioCtx;
+  }
+
+  function playChime(){
+    var ctx = ensureAudioContext();
+    if(!ctx) return;
+    try{
+      [880, 1320].forEach(function(freq, i){
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + i*0.18 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + i*0.18 + 0.5);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(ctx.currentTime + i*0.18);
+        osc.stop(ctx.currentTime + i*0.18 + 0.5);
+      });
+    }catch(e){ /* silently skip */ }
+  }
+
+  // ---------- check-in modal (single book or full session wrap-up) ----------
+
+  function openSessionWrapup(focusBook){
+    var queue = queuedUnfinished();
+    if(!queue.some(function(b){ return b.id === focusBook.id; })){ queue = [focusBook].concat(queue); }
+    pendingIsSessionEnd = true;
+    checkinTitle.textContent = "Session wrap-up";
+    checkinSub.textContent = "Timer's up — log where you landed in each book";
+    buildCheckinRows(queue, focusBook.id);
+    checkinOverlay.hidden = false;
+  }
+
+  function openSingleCheckin(book){
+    pendingIsSessionEnd = false;
+    checkinTitle.textContent = book.title;
+    checkinSub.textContent = "What chapter are you on?";
+    buildCheckinRows([book], null);
+    checkinOverlay.hidden = false;
+  }
+
+  function buildCheckinRows(books, focusId){
+    checkinRows.innerHTML = "";
+    books.forEach(function(book){
+      var row = document.createElement("div");
+      row.className = "checkin-row";
+      row.dataset.book = book.id;
+      row.innerHTML =
+        '<span class="checkin-row-label">' + escapeHtml(book.title) +
+          (book.id === focusId ? '<span class="focus-tag">this session</span>' : '') +
+          '<span class="row-place">' + escapeHtml(book.place) + '</span>' +
+        '</span>' +
+        '<input type="number" min="0" max="' + book.totalChapters + '" value="' + book.currentChapter + '" inputmode="numeric">';
+      checkinRows.appendChild(row);
+    });
+    var firstInput = checkinRows.querySelector("input");
+    if(firstInput) firstInput.focus();
+  }
+
+  function closeCheckin(){
+    checkinOverlay.hidden = true;
+    pendingIsSessionEnd = false;
+  }
+
+  // ---------- events ----------
+
+  durationButtons.addEventListener("click", function(e){
+    var btn = e.target.closest(".duration-btn");
+    if(!btn) return;
+    setMinutes(parseInt(btn.dataset.min,10));
+  });
+
+  useCustomBtn.addEventListener("click", function(){
+    var val = parseInt(customMinutes.value, 10);
+    if(val && val > 0 && val <= 180){
+      setMinutes(val);
+      Array.prototype.forEach.call(durationButtons.querySelectorAll(".duration-btn"), function(btn){
+        btn.classList.remove("selected");
+      });
+    }
+  });
+
+  activeBookSelect.addEventListener("change", function(){
+    activeBookId = activeBookSelect.value;
+    updateTimerBookLabel();
+  });
+
+  startPauseBtn.addEventListener("click", function(){
+    if(isRunning){ pauseTimer(); } else { startTimer(); }
+  });
+
+  resetBtn.addEventListener("click", resetTimer);
+  testSoundBtn.addEventListener("click", function(){ ensureAudioContext(); playChime(); });
+
+  addBookForm.addEventListener("submit", function(e){
+    e.preventDefault();
+    var title = $("newTitle").value;
+    var place = $("newPlace").value;
+    var chapters = parseInt($("newChapters").value, 10);
+    if(!title.trim() || !place.trim() || !chapters || chapters < 1) return;
+    addBook(title, place, chapters);
+    addBookForm.reset();
+    $("newTitle").focus();
+  });
+
+  selectAllBtn.addEventListener("click", function(){ setAllQueued(true); });
+  clearQueueBtn.addEventListener("click", function(){ setAllQueued(false); });
+
+  bookShelf.addEventListener("click", function(e){
+    var checkinBtn = e.target.closest("[data-checkin]");
+    var removeBtn = e.target.closest("[data-remove]");
+    var upBtn = e.target.closest("[data-move-up]");
+    var downBtn = e.target.closest("[data-move-down]");
+    if(checkinBtn){
+      var book = state.books.find(function(b){ return b.id === checkinBtn.dataset.checkin; });
+      if(book) openSingleCheckin(book);
+    }
+    if(removeBtn){
+      if(confirm("Remove this book from your itinerary?")) removeBook(removeBtn.dataset.remove);
+    }
+    if(upBtn) moveBook(upBtn.dataset.moveUp, -1);
+    if(downBtn) moveBook(downBtn.dataset.moveDown, 1);
+  });
+
+  bookShelf.addEventListener("change", function(e){
+    var toggle = e.target.closest("[data-queue-toggle]");
+    if(toggle) toggleQueue(toggle.dataset.queueToggle, toggle.checked);
+  });
+
+  checkinSave.addEventListener("click", function(){
+    Array.prototype.forEach.call(checkinRows.querySelectorAll(".checkin-row"), function(row){
+      var input = row.querySelector("input");
+      var val = parseInt(input.value, 10);
+      if(!isNaN(val)) checkInBook(row.dataset.book, val);
+    });
+    var wasSessionEnd = pendingIsSessionEnd;
+    closeCheckin();
+    if(wasSessionEnd){ advanceQueue(); } else { render(); }
+  });
+
+  checkinSkip.addEventListener("click", function(){
+    var wasSessionEnd = pendingIsSessionEnd;
+    closeCheckin();
+    if(wasSessionEnd){ advanceQueue(); }
+  });
+
+  checkinOverlay.addEventListener("click", function(e){
+    if(e.target === checkinOverlay) checkinSkip.click();
+  });
+
+  exportBtn.addEventListener("click", function(){
+    var blob = new Blob([JSON.stringify(state, null, 2)], { type:"application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "reading-atlas-" + todayStr() + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  importFile.addEventListener("change", function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(evt){
+      try{
+        var parsed = JSON.parse(evt.target.result);
+        if(!parsed.books || !Array.isArray(parsed.books)){
+          alert("That file doesn't look like a Reading Atlas progress file.");
+          return;
+        }
+        if(confirm("Loading this file will replace your current itinerary. Continue?")){
+          parsed.books.forEach(function(b){ if(typeof b.queued === "undefined") b.queued = true; });
+          state = { books: parsed.books || [], sessions: parsed.sessions || [] };
+          saveState();
+          render();
+        }
+      }catch(err){
+        alert("Couldn't read that file — make sure it's a Reading Atlas export.");
+      }
+      importFile.value = "";
+    };
+    reader.readAsText(file);
+  });
+
+  clearBtn.addEventListener("click", function(){
+    if(confirm("This clears every book, stamp, and session from this browser. This can't be undone — download your progress first if you want to keep it. Continue?")){
+      state = defaultState();
+      saveState();
+      render();
+    }
+  });
+
+  // ---------- init ----------
+  setMinutes(25);
+  render();
+
+})();
+</script>
+</body>
+</html>
