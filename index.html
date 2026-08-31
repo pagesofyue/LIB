@@ -798,6 +798,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         <button type="button" class="nav-dropdown-item" id="navManageLists">Manage Lists</button>
       </div>
     </div>
+    <button type="button" class="view-tab" id="randomizerBtn" title="Pick a random book">🎲 Randomizer</button>
   </div>
 
   <div id="libraryView">
@@ -844,13 +845,13 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         <div style="height:1px;background:var(--line);margin:6px 2px;"></div>
         <button id="exportBackupBtn">Download full backup (.json)</button>
         <button id="restoreBtn">Restore from backup</button>
-        <button id="importCsvBtn">Import from Goodreads/StoryGraph CSV</button>
+        <button id="importCsvBtn">Import from Goodreads/StoryGraph/CSV</button>
+        <button id="downloadCsvTemplateBtn">Download blank CSV template</button>
       </div>
       <input type="file" id="restoreInput" accept="application/json" style="display:none;">
       <input type="file" id="csvInput" accept=".csv,text/csv" style="display:none;">
     </div>
-    <button type="button" class="btn-export" id="randomizerBtn" title="Pick a random book" style="margin-right:8px;">🎲 Randomizer</button>
-    <button class="btn-add-plus" id="addBtn" title="Add book" aria-label="Add book">
+    <button type="button" class="btn-add-plus" id="addBtn" title="Add book" aria-label="Add book">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     </button>
   </div>
@@ -6443,6 +6444,30 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       .then(function(){ showBanner('Imported ' + newBooks.length + ' book' + (newBooks.length === 1 ? '' : 's') + skippedNote + '.'); })
       .catch(function(){ showBanner('Imported locally, but some books failed to sync — check your connection.'); });
   }
+
+  // ===================== CSV bulk-import template =====================
+  // Column names match exactly what importCsvText()'s findCol() looks for,
+  // so a filled-in copy of this file imports cleanly without guesswork.
+  var CSV_TEMPLATE_HEADERS = [
+    'Title', 'Author', 'Series', 'Series Number', 'Genre', 'Tropes',
+    'Status', 'Format', 'Ownership', 'Total Pages', 'Current Page',
+    'My Rating', 'Date Started', 'Date Read', 'Is ARC', 'ARC Source',
+    'Due Date', 'Borrow Due Date', 'Review Form Link', 'Now Playing', 'DNF Reason'
+  ];
+  document.getElementById('downloadCsvTemplateBtn').onclick = function(){
+    document.getElementById('exportMenu').style.display = 'none';
+    var csv = CSV_TEMPLATE_HEADERS.join(',') + '\r\n';
+    var blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'hiraya-manawari-bulk-import-template.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showBanner('Template downloaded — fill in a row per book (only Title is required), then use "Import from Goodreads/StoryGraph/CSV" to bring them in.');
+  };
 
   document.getElementById('importCsvBtn').onclick = function(){
     document.getElementById('exportMenu').style.display = 'none';
