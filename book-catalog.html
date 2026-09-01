@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book Metadata Catalog</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --paper:#F6F3EC;
+    --card:#FFFFFF;
+    --ink:#1E2A38;
+    --ink-soft:#4B5A6B;
+    --brass:#9C7A3C;
+    --brass-dim:#C7B48B;
+    --rule:#D8D2C0;
+    --err:#8B3A3A;
+    --ok:#3A6B4C;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:Georgia,'Iowan Old Style','Palatino Linotype',serif;
+    line-height:1.4;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:40px 24px 80px;}
+
+  header{
+    border-bottom:2px solid var(--ink);
+    padding-bottom:18px;
+    margin-bottom:28px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  header h1{
+    margin:0;
+    font-size:28px;
+    font-weight:normal;
+    letter-spacing:0.3px;
+  }
+  header .tag{
+    font-family:'Courier New',monospace;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    max-width:340px;
+    text-align:right;
+  }
+
+  .panel{
+    background:var(--card);
+    border:1px solid var(--rule);
+    border-radius:2px;
+    padding:20px 22px;
+    margin-bottom:22px;
+  }
+  .panel h2{
+    font-size:15px;
+    font-weight:normal;
+    margin:0 0 10px;
+    color:var(--ink-soft);
+    font-style:italic;
+  }
+
+  textarea{
+    width:100%;
+    min-height:130px;
+    font-family:'Courier New',monospace;
+    font-size:13.5px;
+    padding:12px;
+    border:1px solid var(--rule);
+    border-radius:2px;
+    background:#FCFBF8;
+    color:var(--ink);
+    resize:vertical;
+  }
+  textarea:focus{outline:2px solid var(--brass-dim);outline-offset:1px;}
+
+  .hint{font-size:12.5px;color:var(--ink-soft);margin-top:8px;}
+
+  .row-actions{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    margin-top:14px;
+    flex-wrap:wrap;
+  }
+
+  button{
+    font-family:inherit;
+    font-size:14px;
+    padding:9px 18px;
+    border-radius:2px;
+    border:1px solid var(--ink);
+    background:var(--ink);
+    color:var(--paper);
+    cursor:pointer;
+  }
+  button.secondary{
+    background:transparent;
+    color:var(--ink);
+  }
+  button:disabled{opacity:0.4;cursor:default;}
+  button:hover:not(:disabled){background:var(--brass);border-color:var(--brass);}
+  button.secondary:hover:not(:disabled){background:var(--paper);color:var(--ink);}
+
+  #status{font-family:'Courier New',monospace;font-size:12.5px;color:var(--ink-soft);}
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+    background:var(--card);
+  }
+  thead th{
+    text-align:left;
+    font-weight:normal;
+    font-style:italic;
+    color:var(--ink-soft);
+    border-bottom:1.5px solid var(--ink);
+    padding:8px 10px;
+    white-space:nowrap;
+  }
+  tbody td{
+    border-bottom:1px solid var(--rule);
+    padding:8px 10px;
+    vertical-align:top;
+  }
+  tbody tr:hover{background:#FBF9F4;}
+  td[contenteditable="true"]{cursor:text;}
+  td[contenteditable="true"]:focus{outline:2px solid var(--brass-dim);outline-offset:-2px;background:#FFFDF6;}
+
+  .col-title{min-width:170px;}
+  .col-date{min-width:90px;white-space:nowrap;}
+  .col-author{min-width:120px;}
+  .col-series{min-width:120px;}
+  .col-order{min-width:50px;text-align:center;}
+  .col-pages{min-width:60px;text-align:center;}
+  .col-source{min-width:90px;font-family:'Courier New',monospace;font-size:11.5px;}
+  .col-acquired{min-width:150px;}
+  .col-blurb{min-width:280px;max-width:420px;}
+
+  .tag-ok{color:var(--ok);}
+  .tag-warn{color:var(--brass);}
+  .tag-err{color:var(--err);}
+
+  .table-wrap{overflow-x:auto;border:1px solid var(--rule);}
+
+  footer{margin-top:26px;font-size:12px;color:var(--ink-soft);font-family:'Courier New',monospace;}
+  footer a{color:var(--brass);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Book Metadata Catalog</h1>
+    <div class="tag">fetches from the Google Books public API &middot; export to .xlsx</div>
+  </header>
+
+  <div class="panel">
+    <h2>Titles to look up</h2>
+    <textarea id="input" placeholder="One book per line.
+Optional date tag + author: [30 Aug 2026] Title | Author
+Pasted Amazon order-email subject lines work as-is.
+
+Examples:
+[30 Aug 2026] Amazon.com order of Whiteout: An MM Bisexual Out For You Sport Romance (Snowed In Book 1).
+[16 Aug 2026] Amazon.com order of Royal Retelling (Love in Laandia Book 2).
+[10 Aug 2026] Crown Princess Academy: Book 1"></textarea>
+    <div class="hint">
+      Series info in parentheses is parsed automatically — handles "Golden Son (Red Rising Saga, #2)",
+      "Out of My League (The Underdog series Book 1)", and "Not Another Love Story (Not Another Love Story Series)" style titles.
+      Pasted Amazon order-email subject lines ("Amazon.com order of ...") are also cleaned up automatically.
+      A leading date tag like <code>[30 Aug 2026]</code> is pulled into its own Date column.
+    </div>
+    <label for="sourceInput" style="display:block;font-size:12.5px;color:var(--ink-soft);margin-top:14px;margin-bottom:4px;">Acquired from (applied to every row; use <code>{date}</code> to insert each row's own date)</label>
+    <input id="sourceInput" type="text" value="Stuff Your Kindle Day — {date}"
+      style="width:100%;font-family:'Courier New',monospace;font-size:13px;padding:8px 10px;border:1px solid var(--rule);border-radius:2px;background:#FCFBF8;color:var(--ink);">
+    <div class="row-actions">
+      <button id="fetchBtn">Fetch details</button>
+      <button id="clearBtn" class="secondary">Clear table</button>
+      <span id="status"></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Results — click any cell to correct it before exporting</h2>
+    <div class="table-wrap">
+      <table id="resultsTable">
+        <thead>
+          <tr>
+            <th class="col-date">Date</th>
+            <th class="col-title">Title</th>
+            <th class="col-author">Author</th>
+            <th class="col-series">Series</th>
+            <th class="col-order">Order</th>
+            <th class="col-pages">Pages</th>
+            <th class="col-source">Page source</th>
+            <th class="col-acquired">Acquired from</th>
+            <th class="col-blurb">Blurb</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+    </div>
+    <div class="row-actions">
+      <button id="exportBtn" disabled>Download .xlsx</button>
+    </div>
+  </div>
+
+  <footer>
+    Data source: Google Books API (books.google.com). Page-count binding (ebook / paperback / hardcover) isn't a
+    field Google Books reliably exposes, so this tool prioritizes an edition flagged as an ebook when one is found,
+    otherwise falls back to whatever edition it located — check the "Page source" column and correct manually
+    where it matters. Series/order is only auto-filled when present in the pasted title text.
+  </footer>
+
+</div>
+
+<script>
+const inputEl = document.getElementById('input');
+const fetchBtn = document.getElementById('fetchBtn');
+const clearBtn = document.getElementById('clearBtn');
+const exportBtn = document.getElementById('exportBtn');
+const statusEl = document.getElementById('status');
+const tbody = document.getElementById('resultsBody');
+
+let rows = [];
+
+function cleanRawLine(line){
+  let t = line.trim();
+  // Strip Amazon order-email subject boilerplate, e.g. "Amazon.com order of X."
+  t = t.replace(/^amazon\.com order of\s+/i, '').trim();
+  // Strip a single trailing period (Amazon subjects end titles with a period)
+  t = t.replace(/\.\s*$/, '').trim();
+  return t;
+}
+
+function parseInputLines(raw){
+  return raw.split('\n').map(l => l.trim()).filter(Boolean).map(line => {
+    let dateTag = '';
+    const dateMatch = line.match(/^\[([^\]]+)\]\s*/);
+    if (dateMatch) {
+      dateTag = dateMatch[1].trim();
+      line = line.slice(dateMatch[0].length);
+    }
+    const parts = line.split('|').map(p => p.trim());
+    return { rawTitle: cleanRawLine(parts[0]), author: parts[1] || '', dateTag: dateTag };
+  });
+}
+
+// Pull series name + order out of common title formats:
+//   "Book Title (Series Name, #2)"        <- Goodreads style
+//   "Book Title (Series Name Book 2)"     <- Amazon style
+//   "Book Title - Part 1 (Series Name Series)"  <- Amazon style, no number in parens
+function extractSeries(fullTitle){
+  let title = fullTitle;
+
+  // Pattern 1: (Series Name, #N)
+  let m = title.match(/\(([^,()]+),\s*#?(\d+(?:\.\d+)?)\)\s*$/);
+  if (m) {
+    return { title: title.slice(0, m.index).trim(), series: m[1].trim(), order: m[2].trim() };
+  }
+
+  // Pattern 2: (Series Name Book N)
+  m = title.match(/\(([^()]+?)\s+Book\s+(\d+(?:\.\d+)?)\)\s*$/i);
+  if (m) {
+    const series = m[1].trim().replace(/\s+series$/i, '').trim();
+    return { title: title.slice(0, m.index).trim(), series: series, order: m[2].trim() };
+  }
+
+  // Pattern 3: (Series Name Series) with no number — check for a trailing "Part N" in the remaining title
+  m = title.match(/\(([^()]+?)\s+Series\)\s*$/i);
+  if (m) {
+    let cleanTitle = title.slice(0, m.index).trim();
+    let order = '';
+    const partMatch = cleanTitle.match(/-?\s*Part\s+(\d+(?:\.\d+)?)\s*$/i);
+    if (partMatch) {
+      order = partMatch[1];
+      cleanTitle = cleanTitle.slice(0, partMatch.index).replace(/-\s*$/, '').trim();
+    }
+    return { title: cleanTitle, series: m[1].trim(), order: order };
+  }
+
+  return { title: title, series: '', order: '' };
+}
+
+function stripHtml(html){
+  if (!html) return '';
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+}
+
+async function lookupBook(entry, acquiredFromTemplate){
+  const acquiredFrom = acquiredFromTemplate.includes('{date}')
+    ? acquiredFromTemplate.replace(/\{date\}/g, entry.dateTag || '(date unknown)')
+    : acquiredFromTemplate;
+  const parsed = extractSeries(entry.rawTitle);
+  const q = [`intitle:${parsed.title}`, entry.author ? `inauthor:${entry.author}` : ''].filter(Boolean).join('+');
+  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=10`;
+
+  let data;
+  try {
+    const res = await fetch(url);
+    data = await res.json();
+  } catch (e) {
+    return { ...parsed, author: entry.author, dateTag: entry.dateTag, pages: '', pageSource: 'error', acquiredFrom: acquiredFrom, blurb: '', found: false };
+  }
+
+  const items = (data && data.items) || [];
+  if (items.length === 0) {
+    return { ...parsed, author: entry.author, dateTag: entry.dateTag, pages: '', pageSource: 'not found', acquiredFrom: acquiredFrom, blurb: '', found: false };
+  }
+
+  // Prefer an item flagged as an ebook edition for the page count.
+  let ebookItem = items.find(it => it.saleInfo && it.saleInfo.isEbook && it.volumeInfo && it.volumeInfo.pageCount);
+  let bestItem = ebookItem || items[0];
+
+  const vi = bestItem.volumeInfo || {};
+  const pages = vi.pageCount || '';
+  const pageSource = ebookItem ? 'ebook' : (pages ? 'print (edition unspecified)' : '');
+
+  // Prefer the item with the richest description across all results
+  let blurbItem = items.find(it => it.volumeInfo && it.volumeInfo.description) || bestItem;
+  const blurb = stripHtml((blurbItem.volumeInfo || {}).description || '');
+
+  const authors = vi.authors ? vi.authors.join(', ') : entry.author;
+
+  return {
+    title: vi.title ? (vi.subtitle ? `${vi.title}: ${vi.subtitle}` : vi.title) : parsed.title,
+    author: authors,
+    series: parsed.series,
+    order: parsed.order,
+    dateTag: entry.dateTag,
+    pages: pages,
+    pageSource: pageSource,
+    acquiredFrom: acquiredFrom,
+    blurb: blurb,
+    found: true
+  };
+}
+
+function renderRow(r, idx){
+  const tr = document.createElement('tr');
+  const sourceClass = r.pageSource === 'ebook' ? 'tag-ok'
+                     : r.pageSource === 'not found' || r.pageSource === 'error' ? 'tag-err'
+                     : 'tag-warn';
+  tr.innerHTML = `
+    <td class="col-date" contenteditable="true">${escapeHtml(r.dateTag || '')}</td>
+    <td class="col-title" contenteditable="true">${escapeHtml(r.title)}</td>
+    <td class="col-author" contenteditable="true">${escapeHtml(r.author)}</td>
+    <td class="col-series" contenteditable="true">${escapeHtml(r.series)}</td>
+    <td class="col-order" contenteditable="true">${escapeHtml(r.order)}</td>
+    <td class="col-pages" contenteditable="true">${escapeHtml(String(r.pages))}</td>
+    <td class="col-source ${sourceClass}" contenteditable="true">${escapeHtml(r.pageSource)}</td>
+    <td class="col-acquired" contenteditable="true">${escapeHtml(r.acquiredFrom || '')}</td>
+    <td class="col-blurb" contenteditable="true">${escapeHtml(r.blurb)}</td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function escapeHtml(s){
+  return (s || '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+fetchBtn.addEventListener('click', async () => {
+  const entries = parseInputLines(inputEl.value);
+  if (entries.length === 0){
+    statusEl.textContent = 'Add at least one title first.';
+    return;
+  }
+
+  fetchBtn.disabled = true;
+  tbody.innerHTML = '';
+  rows = [];
+  const acquiredFromTemplate = document.getElementById('sourceInput').value.trim();
+
+  for (let i = 0; i < entries.length; i++){
+    statusEl.textContent = `Looking up ${i + 1} of ${entries.length}: ${entries[i].rawTitle}`;
+    const result = await lookupBook(entries[i], acquiredFromTemplate);
+    rows.push(result);
+    renderRow(result, i);
+    // small delay to be polite to the free API tier
+    await new Promise(r => setTimeout(r, 250));
+  }
+
+  statusEl.textContent = `Done — ${rows.length} title(s) processed.`;
+  fetchBtn.disabled = false;
+  exportBtn.disabled = rows.length === 0;
+});
+
+clearBtn.addEventListener('click', () => {
+  tbody.innerHTML = '';
+  rows = [];
+  statusEl.textContent = '';
+  exportBtn.disabled = true;
+});
+
+exportBtn.addEventListener('click', () => {
+  const trs = Array.from(tbody.querySelectorAll('tr'));
+  const exportRows = trs.map(tr => {
+    const cells = tr.querySelectorAll('td');
+    return {
+      'Date': cells[0].innerText,
+      'Title': cells[1].innerText,
+      'Author': cells[2].innerText,
+      'Series': cells[3].innerText,
+      'Order': cells[4].innerText,
+      'Pages': cells[5].innerText,
+      'Page Source': cells[6].innerText,
+      'Acquired From': cells[7].innerText,
+      'Blurb': cells[8].innerText
+    };
+  });
+  const ws = XLSX.utils.json_to_sheet(exportRows);
+  ws['!cols'] = [
+    {wch:14},{wch:28},{wch:20},{wch:20},{wch:8},{wch:8},{wch:22},{wch:26},{wch:80}
+  ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Books');
+  XLSX.writeFile(wb, 'book-catalog.xlsx');
+});
+</script>
+</body>
+</html>
