@@ -21,6 +21,8 @@
     --stamp-teal:#3c6e63;
     --stamp-mustard:#bd8a2e;
     --stamp-plum:#6c4159;
+    --stamp-navy:#2a4a6b;
+    --stamp-forest:#3f5c3a;
     --gold:#b8934f;
     --gold-soft:#e4d3a3;
     --line:rgba(43,38,32,.22);
@@ -59,6 +61,14 @@
     position:relative;
     border-bottom:6px solid var(--gold);
   }
+  header.cover .home-link{
+    position:absolute; top:16px; left:18px;
+    font-size:11.5px; letter-spacing:.3px;
+    color:var(--gold-soft); opacity:.75;
+    text-decoration:none; border-bottom:1px dotted rgba(228,211,163,.5);
+    padding-bottom:1px;
+  }
+  header.cover .home-link:hover{ opacity:1; }
   header.cover .compass{ width:54px; height:54px; margin:0 auto 14px; opacity:.9; }
   header.cover h1{
     font-size:clamp(28px, 5vw, 42px);
@@ -344,42 +354,21 @@
     display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));
     gap:20px; padding-left:10px; margin-top:16px;
   }
-  .stamp{
-    width:100%; aspect-ratio:1 / 0.85; border:2.5px solid var(--stamp-color, var(--stamp-red));
-    border-radius:50% / 45%; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    text-align:center; padding:10px; color:var(--stamp-color, var(--stamp-red));
-    transform:rotate(var(--tilt, -4deg)); position:relative;
+  .stamp-wrap{
+    width:100%; aspect-ratio:1 / 0.85; position:relative;
+    transform:rotate(var(--tilt, -4deg));
     cursor:pointer; transition:transform .15s ease;
   }
-  .stamp:hover{ transform:rotate(var(--tilt, -4deg)) scale(1.06); }
-  .stamp::before{
-    content:""; position:absolute; inset:5px; border:1px dashed var(--stamp-color, var(--stamp-red));
-    border-radius:50% / 45%; opacity:.55;
-  }
-  .stamp .stamp-place{ font-family:'Fraunces', serif; font-weight:700; font-size:14.5px; line-height:1.15; }
-  .stamp .stamp-book{
-    font-family:'Courier Prime', monospace; font-size:9.5px; margin-top:4px; max-width:90%;
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  }
-  .stamp .stamp-date{ font-family:'Courier Prime', monospace; font-size:9px; margin-top:6px; opacity:.8; }
+  .stamp-wrap:hover{ transform:rotate(var(--tilt, -4deg)) scale(1.08); }
+  .stamp-wrap svg{ width:100%; height:100%; display:block; overflow:visible; }
 
   .stamp-modal-overlay .modal{ max-width:340px; background:transparent; box-shadow:none; border:none; padding:0; }
   .stamp-large{
     width:280px; height:238px; margin:0 auto 18px;
-    border:4px solid var(--stamp-color, var(--stamp-red));
-    border-radius:50% / 45%;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    text-align:center; padding:18px; color:var(--stamp-color, var(--stamp-red));
-    background:var(--page); position:relative; box-shadow:var(--shadow);
+    filter:drop-shadow(var(--shadow));
     transform:rotate(-2deg);
   }
-  .stamp-large::before{
-    content:""; position:absolute; inset:9px; border:1.5px dashed var(--stamp-color, var(--stamp-red));
-    border-radius:50% / 45%; opacity:.55;
-  }
-  .stamp-large .stamp-place{ font-family:'Fraunces', serif; font-weight:700; font-size:28px; line-height:1.15; }
-  .stamp-large .stamp-book{ font-family:'Courier Prime', monospace; font-size:13px; margin-top:8px; max-width:88%; }
-  .stamp-large .stamp-date{ font-family:'Courier Prime', monospace; font-size:11.5px; margin-top:10px; opacity:.85; }
+  .stamp-large svg{ width:100%; height:100%; display:block; overflow:visible; }
   .stamp-modal-caption{
     text-align:center; font-family:'Courier Prime', monospace; font-size:12px;
     color:var(--page-alt); background:var(--cover); border-radius:var(--radius);
@@ -480,8 +469,17 @@
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="stampRoughen" x="-30%" y="-30%" width="160%" height="160%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="2" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.5" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
 
 <header class="cover">
+  <a class="home-link mono" href="https://lib.pagesofyue.com/">&larr; Hiraya Manawari</a>
   <svg class="compass" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="30" cy="30" r="27" stroke="#e4d3a3" stroke-width="1.5"/>
     <circle cx="30" cy="30" r="2" fill="#e4d3a3"/>
@@ -656,7 +654,6 @@
   "use strict";
 
   var STORAGE_KEY = "reading-atlas-v2";
-  var STAMP_COLORS = ["--stamp-red","--stamp-teal","--stamp-mustard","--stamp-plum"];
   var RING_R = 92;
   var RING_C = 2 * Math.PI * RING_R;
 
@@ -876,23 +873,155 @@
     emptyStampNote.hidden = completed.length > 0;
     stampGrid.innerHTML = "";
     completed.forEach(function(book, i){
-      var stamp = document.createElement("div");
-      stamp.className = "stamp";
-      stamp.dataset.book = book.id;
-      var color = STAMP_COLORS[i % STAMP_COLORS.length];
       var tilt = ((i % 2 === 0) ? -1 : 1) * (3 + (i * 7) % 6);
-      stamp.dataset.colorVar = color;
-      stamp.style.setProperty("--stamp-color", "var(" + color + ")");
-      stamp.style.setProperty("--tilt", tilt + "deg");
-      stamp.setAttribute("role", "button");
-      stamp.setAttribute("tabindex", "0");
-      stamp.title = "view stamp";
-      stamp.innerHTML =
-        '<span class="stamp-place">' + escapeHtml(book.place) + '</span>' +
-        '<span class="stamp-book mono">' + escapeHtml(book.title) + '</span>' +
-        '<span class="stamp-date mono">' + (book.completedDate ? formatDate(book.completedDate) : "") + '</span>';
-      stampGrid.appendChild(stamp);
+      var wrap = document.createElement("div");
+      wrap.className = "stamp-wrap";
+      wrap.dataset.book = book.id;
+      wrap.style.setProperty("--tilt", tilt + "deg");
+      wrap.setAttribute("role", "button");
+      wrap.setAttribute("tabindex", "0");
+      wrap.title = "view stamp";
+      wrap.innerHTML = buildStampSVG(book);
+      stampGrid.appendChild(wrap);
     });
+  }
+
+  // ---------- passport stamp artwork ----------
+
+  var STAMP_COLOR_HEX = ["#a83f2b","#3c6e63","#bd8a2e","#6c4159","#2a4a6b","#3f5c3a"];
+  var STAMP_LABELS = ["ARRIVAL","DEPARTED","DEPARTED","VISA FREE","CONTROL","ARRIVED"];
+
+  function hashStr(str, seed){
+    var h = seed || 0;
+    for(var i = 0; i < str.length; i++){ h = (h * 31 + str.charCodeAt(i)) >>> 0; }
+    return h;
+  }
+
+  function stampShapeIndex(bookId){ return hashStr(bookId, 5) % 6; }
+  function serialFor(bookId){ return String(1000 + (hashStr(bookId, 17) % 9000)); }
+
+  function planePath(cx, cy, scale, rot){
+    return '<g transform="translate(' + cx + ',' + cy + ') rotate(' + rot + ') scale(' + scale + ')">' +
+      '<path d="M9,0 L-6,6 L-2,0 L-6,-6 Z"/></g>';
+  }
+
+  function starPath(cx, cy, r){
+    var pts = [];
+    for(var i = 0; i < 5; i++){
+      var outerAngle = -Math.PI/2 + i * (2*Math.PI/5);
+      var innerAngle = outerAngle + Math.PI/5;
+      pts.push([cx + r*Math.cos(outerAngle), cy + r*Math.sin(outerAngle)]);
+      pts.push([cx + r*0.42*Math.cos(innerAngle), cy + r*0.42*Math.sin(innerAngle)]);
+    }
+    return '<polygon points="' + pts.map(function(p){ return p[0].toFixed(1)+","+p[1].toFixed(1); }).join(" ") + '"/>';
+  }
+
+  function fitAttr(text, maxLen, width){
+    return text.length > maxLen ? ' textLength="' + width + '" lengthAdjust="spacingAndGlyphs"' : '';
+  }
+
+  function buildStampSVG(book){
+    var shape = stampShapeIndex(book.id);
+    var color = STAMP_COLOR_HEX[shape];
+    var label = STAMP_LABELS[shape];
+    var serial = serialFor(book.id);
+    var place = escapeHtml(book.place.toUpperCase());
+    var title = escapeHtml(book.title);
+    var date = book.completedDate ? formatDate(book.completedDate) : "";
+    var W = 200, H = 170, cx = 100, cy = 85;
+
+    var shapeMarkup = "", textMarkup = "";
+
+    if(shape === 0){
+      // rectangle
+      shapeMarkup =
+        '<rect x="14" y="14" width="172" height="142" rx="6"/>' +
+        '<rect x="24" y="24" width="152" height="122" rx="4" stroke-dasharray="3 3"/>' +
+        planePath(100, 38, 1.6, 0);
+      textMarkup =
+        '<text x="100" y="58" text-anchor="middle" class="s-label">' + label + '</text>' +
+        '<text x="100" y="96" text-anchor="middle" class="s-place"' + fitAttr(place, 11, 148) + '>' + place + '</text>' +
+        '<text x="100" y="116" text-anchor="middle" class="s-title"' + fitAttr(title, 20, 140) + '>' + title + '</text>' +
+        '<text x="100" y="134" text-anchor="middle" class="s-date">' + date + '</text>' +
+        '<text x="24" y="150" class="s-serial">' + serial + '</text>';
+    } else if(shape === 1){
+      // oval
+      shapeMarkup =
+        '<ellipse cx="100" cy="85" rx="92" ry="71"/>' +
+        '<ellipse cx="100" cy="85" rx="80" ry="60" stroke-dasharray="3 3"/>' +
+        planePath(100, 42, 1.5, 0);
+      textMarkup =
+        '<text x="100" y="62" text-anchor="middle" class="s-label">' + label + '</text>' +
+        '<text x="100" y="96" text-anchor="middle" class="s-place"' + fitAttr(place, 10, 130) + '>' + place + '</text>' +
+        '<text x="100" y="116" text-anchor="middle" class="s-title"' + fitAttr(title, 18, 122) + '>' + title + '</text>' +
+        '<text x="100" y="134" text-anchor="middle" class="s-date">' + date + '</text>';
+    } else if(shape === 2){
+      // triangle
+      shapeMarkup =
+        '<path d="M100,16 L182,152 L18,152 Z" stroke-linejoin="round"/>' +
+        '<path d="M100,34 L168,142 L32,142 Z" stroke-linejoin="round" stroke-dasharray="3 3"/>' +
+        planePath(100, 68, 1.4, 0);
+      textMarkup =
+        '<text x="100" y="46" text-anchor="middle" class="s-serial-c">' + serial + '</text>' +
+        '<text x="100" y="102" text-anchor="middle" class="s-place"' + fitAttr(place, 9, 110) + '>' + place + '</text>' +
+        '<text x="100" y="120" text-anchor="middle" class="s-title"' + fitAttr(title, 16, 100) + '>' + title + '</text>' +
+        '<text x="100" y="138" text-anchor="middle" class="s-label-sm">' + label + '</text>';
+    } else if(shape === 3){
+      // circle with star ring
+      var stars = "";
+      for(var s = 0; s < 10; s++){
+        var ang = (s / 10) * 2 * Math.PI;
+        stars += starPath(cx + 78*Math.cos(ang), cy + 78*Math.sin(ang), 5);
+      }
+      shapeMarkup =
+        '<circle cx="100" cy="85" r="78"/>' +
+        '<circle cx="100" cy="85" r="64" stroke-dasharray="3 3"/>' +
+        '<g class="s-stars">' + stars + '</g>' +
+        planePath(100, 48, 1.4, 0);
+      textMarkup =
+        '<text x="100" y="92" text-anchor="middle" class="s-place"' + fitAttr(place, 9, 100) + '>' + place + '</text>' +
+        '<text x="100" y="110" text-anchor="middle" class="s-title"' + fitAttr(title, 15, 96) + '>' + title + '</text>' +
+        '<text x="100" y="127" text-anchor="middle" class="s-date-sm">' + date + '</text>';
+    } else if(shape === 4){
+      // double circle "control" stamp
+      shapeMarkup =
+        '<circle cx="100" cy="85" r="78"/>' +
+        '<circle cx="100" cy="85" r="66" stroke-dasharray="3 3"/>';
+      textMarkup =
+        '<text x="52" y="92" text-anchor="middle" class="s-x">\u00D7</text>' +
+        '<text x="148" y="92" text-anchor="middle" class="s-x">\u00D7</text>' +
+        '<text x="100" y="76" text-anchor="middle" class="s-place"' + fitAttr(place, 8, 84) + '>' + place + '</text>' +
+        '<text x="100" y="96" text-anchor="middle" class="s-title"' + fitAttr(title, 14, 90) + '>' + title + '</text>' +
+        '<text x="100" y="115" text-anchor="middle" class="s-date-sm">' + date + '</text>' +
+        '<text x="100" y="132" text-anchor="middle" class="s-label-sm">' + label + '</text>';
+    } else {
+      // diamond (rotated square, sized so its rotated bounding box stays inside the 200x170 viewBox)
+      shapeMarkup =
+        '<g transform="rotate(45 100 85)"><rect x="48" y="33" width="104" height="104" rx="4"/></g>' +
+        '<g transform="rotate(45 100 85)"><rect x="58" y="43" width="84" height="84" rx="3" stroke-dasharray="3 3"/></g>' +
+        planePath(100, 40, 1.1, 0);
+      textMarkup =
+        '<text x="100" y="55" text-anchor="middle" class="s-serial-c">' + serial + '</text>' +
+        '<text x="100" y="90" text-anchor="middle" class="s-place"' + fitAttr(place, 10, 122) + '>' + place + '</text>' +
+        '<text x="100" y="107" text-anchor="middle" class="s-title"' + fitAttr(title, 15, 88) + '>' + title + '</text>' +
+        '<text x="100" y="124" text-anchor="middle" class="s-label-sm">' + label + '</text>';
+    }
+
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="color:' + color + '">' +
+      '<g fill="none" stroke="currentColor" stroke-width="3.5" filter="url(#stampRoughen)" opacity=".92">' + shapeMarkup + '</g>' +
+      '<g fill="currentColor" stroke="none">' + textMarkup + '</g>' +
+      '<style>' +
+        '.s-label{font:700 8.5px \'Courier Prime\',monospace;letter-spacing:1px;}' +
+        '.s-label-sm{font:700 7.5px \'Courier Prime\',monospace;letter-spacing:.8px;}' +
+        '.s-place{font:700 19px \'Fraunces\',serif;}' +
+        '.s-title{font:9px \'Courier Prime\',monospace;}' +
+        '.s-date{font:10px \'Courier Prime\',monospace;}' +
+        '.s-date-sm{font:8.5px \'Courier Prime\',monospace;}' +
+        '.s-serial{font:8px \'Courier Prime\',monospace;opacity:.75;}' +
+        '.s-serial-c{font:9px \'Courier Prime\',monospace;opacity:.8;}' +
+        '.s-x{font:700 15px \'Fraunces\',serif;}' +
+      '</style>' +
+    '</svg>';
   }
 
   function renderStats(){
@@ -1524,12 +1653,8 @@
     if(e.target === checkinOverlay) checkinSkip.click();
   });
 
-  function openStamp(book, colorVar){
-    stampLarge.style.setProperty("--stamp-color", "var(" + colorVar + ")");
-    stampLarge.innerHTML =
-      '<span class="stamp-place">' + escapeHtml(book.place) + '</span>' +
-      '<span class="stamp-book mono">' + escapeHtml(book.title) + '</span>' +
-      '<span class="stamp-date mono">' + (book.completedDate ? formatDate(book.completedDate) : "") + '</span>';
+  function openStamp(book){
+    stampLarge.innerHTML = buildStampSVG(book);
     var sessionCount = state.chapterLog.filter(function(l){ return l.bookId === book.id; }).length;
     stampCaption.textContent = book.totalChapters + " chapters \u00B7 " + sessionCount + " session" + (sessionCount === 1 ? "" : "s") + " logged";
     stampOverlay.hidden = false;
@@ -1538,20 +1663,21 @@
   function closeStamp(){ stampOverlay.hidden = true; }
 
   stampGrid.addEventListener("click", function(e){
-    var el = e.target.closest(".stamp[data-book]");
+    var el = e.target.closest(".stamp-wrap[data-book]");
     if(!el) return;
     var book = state.books.find(function(b){ return b.id === el.dataset.book; });
-    if(book) openStamp(book, el.dataset.colorVar);
+    if(book) openStamp(book);
   });
 
   stampGrid.addEventListener("keydown", function(e){
     if(e.key !== "Enter" && e.key !== " ") return;
-    var el = e.target.closest(".stamp[data-book]");
+    var el = e.target.closest(".stamp-wrap[data-book]");
     if(!el) return;
     e.preventDefault();
     var book = state.books.find(function(b){ return b.id === el.dataset.book; });
-    if(book) openStamp(book, el.dataset.colorVar);
+    if(book) openStamp(book);
   });
+
 
   stampClose.addEventListener("click", closeStamp);
   stampOverlay.addEventListener("click", function(e){
