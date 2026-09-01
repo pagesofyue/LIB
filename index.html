@@ -255,7 +255,7 @@ body[data-theme="velaris"] .reader-intro p{color:#D2C6F1;text-shadow:0 1px 6px r
 .header p{margin:0;color:var(--muted);font-size:14px;}
 
 .view-nav{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;position:relative;z-index:5;}
-.view-tab{border:1px solid var(--line-strong);background:var(--card);border-radius:20px;padding:7px 16px;font-size:13px;font-family:var(--font-body);color:var(--muted);cursor:pointer;}
+.view-tab{border:1px solid var(--line-strong);background:var(--card);border-radius:20px;padding:7px 16px;font-size:13px;font-family:var(--font-body);color:var(--muted);cursor:pointer;text-decoration:none;display:inline-block;}
 .view-tab.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
 .nav-dropdown{position:relative;}
 .nav-dropdown-trigger{border:1px solid var(--line-strong);background:var(--card);border-radius:20px;padding:7px 16px;font-size:13px;font-family:var(--font-body);color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
@@ -293,6 +293,7 @@ body[data-theme="velaris"] .reader-intro p{color:#D2C6F1;text-shadow:0 1px 6px r
 .banner{background:var(--card);border:1px solid var(--dnf-deep);color:var(--dnf-deep);border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:16px;display:none;}
 
 .stats{display:flex;flex-wrap:wrap;justify-content:center;align-items:stretch;gap:12px;margin-bottom:22px;max-width:100%;}
+.stats-row-primary,.stats-row-secondary{display:contents;}
 
 .series-group{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:14px;}
 .series-group h3{font-family:var(--font-display);font-size:17px;margin:0 0 10px;}
@@ -411,6 +412,23 @@ table.arc-table tr:last-child td{border-bottom:none;}
   .toolbar-scroll{overflow-x:visible;flex-wrap:wrap;flex:1 1 100%;}
   .toolbar-scroll > *{flex:1 1 140px;}
   .toolbar-scroll .search-wrap{flex:1 1 100%;}
+
+  /* Compact the top-right badge row into one horizontal line instead of a
+     tall stacked column: shrink labels down to just their icon/emoji. */
+  .header-right{flex-direction:row;flex-wrap:wrap;justify-content:flex-end;gap:6px;}
+  .sync-badge, .notif-badge{padding:6px 8px;}
+  .badge-label{display:none;}
+  #themeSelect{width:38px;padding:6px 2px;text-align:center;text-overflow:clip;}
+  .account-row .account-name{display:none;}
+  .account-row img{width:22px;height:22px;}
+
+  /* Stats: force a firm 3-then-2 layout instead of organic wrapping, so it
+     reads as two clean rows rather than a tall pile. */
+  .stats{flex-wrap:nowrap;flex-direction:column;}
+  .stats-row-primary, .stats-row-secondary{display:flex;gap:8px;width:100%;}
+  .stats-row-primary .stat, .stats-row-secondary .stat{flex:1 1 0;min-width:0;padding:10px 8px;}
+  .stat .num{font-size:20px;}
+  .stat .label{font-size:11px;}
 }
 .sort-dropdown, .export-wrap, .btn-add{flex:none;}
 .search-wrap{position:relative;flex:0 0 170px;min-width:170px;}
@@ -761,18 +779,18 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       </div>
     </div>
     <div class="header-right">
-      <div class="sync-badge"><span class="sync-dot" id="syncDot"></span><span id="syncText">Synced</span></div>
+      <div class="sync-badge"><span class="sync-dot" id="syncDot"></span><span id="syncText" class="badge-label">Synced</span></div>
       <select id="themeSelect" class="notif-badge" title="Choose a seasonal theme">
-        <option value="">Lunaria</option>
-        <option value="winter">Winter</option>
-        <option value="spring">Spring</option>
-        <option value="summer">Summer</option>
-        <option value="fall">Fall</option>
-        <option value="under-the-sea">Under the Sea</option>
-        <option value="velaris">Velaris</option>
-        <option value="wisteria">Wisteria</option>
+        <option value="">🎨 Lunaria</option>
+        <option value="winter">❄️ Winter</option>
+        <option value="spring">🌸 Spring</option>
+        <option value="summer">☀️ Summer</option>
+        <option value="fall">🍂 Fall</option>
+        <option value="under-the-sea">🌊 Under the Sea</option>
+        <option value="velaris">🌌 Velaris</option>
+        <option value="wisteria">💜 Wisteria</option>
       </select>
-      <button type="button" class="notif-badge" id="icsExportBtn">📅 Export to Calendar (.ics)</button>
+      <button type="button" class="notif-badge" id="icsExportBtn"><span class="badge-emoji">📅</span><span class="badge-label"> Export to Calendar (.ics)</span></button>
       <div class="account-row" id="accountRow"></div>
     </div>
   </div>
@@ -799,6 +817,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       </div>
     </div>
     <button type="button" class="view-tab" id="randomizerBtn" title="Pick a random book">🎲 Randomizer</button>
+    <a class="view-tab" href="https://lib.pagesofyue.com/atlas.html" target="_blank" rel="noopener">🗺️ Atlas</a>
   </div>
 
   <div id="libraryView">
@@ -1377,8 +1396,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       appRoot.style.display = 'block';
       const accountRow = document.getElementById('accountRow');
       accountRow.innerHTML = (user.photoURL ? '<img src="' + user.photoURL + '" alt="">' : '') +
-        '<span>' + (user.displayName || user.email || '') + '</span>' +
-        '<button class="signout-link" id="signOutBtn">Sign out</button>';
+        '<span class="account-name">' + (user.displayName || user.email || '') + '</span>' +
+        '<button class="signout-link" id="signOutBtn" title="Sign out"><span class="signout-icon">🚪</span><span class="badge-label">Sign out</span></button>';
       document.getElementById('signOutBtn').onclick = function(){ window.cloudStore.signOut(); };
       if(window.LunariaApp && window.LunariaApp.init) window.LunariaApp.init();
     } else {
@@ -1954,9 +1973,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
     var el = document.getElementById('stats');
     el.innerHTML =
-      '<div class="stat clickable-stat" id="statReading"><div class="num">' + reading + '</div><div class="label">Currently reading</div></div>' +
-      '<div class="stat clickable-stat' + (dueSoon > 0 ? ' alert' : '') + '" id="statDueSoon"><div class="num">' + dueSoon + '</div><div class="label">Due within ' + DUE_SOON_DAYS + ' days</div></div>' +
-      '<div class="stat clickable-stat' + (needsReview > 0 ? ' alert' : '') + '" id="statNeedsReview"><div class="num">' + needsReview + '</div><div class="label">For review</div></div>' +
+      '<div class="stats-row-primary">' +
+        '<div class="stat clickable-stat" id="statReading"><div class="num">' + reading + '</div><div class="label">Currently reading</div></div>' +
+        '<div class="stat clickable-stat' + (dueSoon > 0 ? ' alert' : '') + '" id="statDueSoon"><div class="num">' + dueSoon + '</div><div class="label">Due within ' + DUE_SOON_DAYS + ' days</div></div>' +
+        '<div class="stat clickable-stat' + (needsReview > 0 ? ' alert' : '') + '" id="statNeedsReview"><div class="num">' + needsReview + '</div><div class="label">For review</div></div>' +
+      '</div>' +
+      '<div class="stats-row-secondary">' +
       '<div class="stat clickable-stat" id="statFinished">' +
         '<div class="num">' + finishedCount + '</div>' +
         '<div class="stat-label-row">' +
@@ -1976,6 +1998,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
             '<button type="button" data-scope="month" class="' + (pagesReadScope === 'month' ? 'active' : '') + '">Month</button>' +
           '</div>' +
         '</div>' +
+      '</div>' +
       '</div>';
 
     document.getElementById('statReading').onclick = function(){
