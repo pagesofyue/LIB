@@ -150,16 +150,44 @@
   .postmark.urgent #timerDisplay{ animation:pulse 1s ease-in-out infinite; }
   @keyframes pulse{ 0%,100%{ opacity:1; } 50%{ opacity:.55; } }
 
+  .postmark svg.icon-layer{
+    position:absolute; inset:-3px;
+    width:calc(100% + 6px); height:calc(100% + 6px);
+    pointer-events:none;
+  }
+  .icon-layer #travelIcon{ transition:transform 1s linear; }
+  .icon-layer #travelIcon path{ fill:var(--gold); stroke:var(--page); stroke-width:1; }
+  .postmark.urgent .icon-layer #travelIcon path{ fill:var(--stamp-red); }
+
   #timerDisplay{
     font-family:'Courier Prime', monospace;
     font-size:40px; font-weight:700; letter-spacing:1px;
     position:relative; z-index:1;
   }
 
-  .timer-book-label{
-    text-align:center; font-size:13.5px; color:var(--ink-soft);
-    min-height:18px; margin:10px 0 16px; font-style:italic;
+  .now-boarding{
+    text-align:center;
+    margin:12px 0 6px;
+    padding:10px 12px;
+    background:var(--page-alt);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
   }
+  .nb-label{
+    display:block; font-size:10.5px; color:var(--ink-faint); letter-spacing:.4px; margin-bottom:3px;
+  }
+  .nb-title{ display:block; font-size:16px; font-weight:600; }
+  .nb-caption{ display:block; font-size:11.5px; color:var(--stamp-teal); font-style:italic; margin-top:2px; }
+
+  .nb-controls{ text-align:center; margin:8px 0 14px; }
+
+  .rotation-strip{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin:0 0 6px; }
+  .rotation-chip{
+    font-family:'Courier Prime', monospace; font-size:10.5px; padding:4px 9px;
+    border-radius:12px; border:1px solid var(--line); color:var(--ink-soft); background:var(--page-alt);
+  }
+  .rotation-chip.current{ border-color:var(--gold); color:var(--ink); background:var(--page); font-weight:700; }
+  .rotation-chip.done::before{ content:"\2713 "; color:var(--stamp-teal); }
 
   .test-sound{
     display:block;
@@ -179,15 +207,16 @@
   }
   .field-note{
     font-family:'Courier Prime', monospace; font-size:11px;
-    color:var(--ink-faint); margin:-14px 0 16px;
+    color:var(--ink-faint); margin:6px 0 16px; text-align:center;
   }
 
   select#activeBook{
     width:100%; padding:10px 12px;
     font-family:'Fraunces', serif; font-size:15px; color:var(--ink);
     background:var(--page-alt); border:1px solid var(--line); border-radius:var(--radius);
-    margin-bottom:6px;
+    margin:0 0 16px;
   }
+
 
   .durations{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
   .duration-btn{
@@ -360,6 +389,8 @@
   }
   .recent-row span.place{ color:var(--stamp-teal); }
 
+  .card-download-row{ padding-left:10px; margin-top:20px; }
+
   /* ---------- footer / data controls ---------- */
 
   footer{ max-width:1040px; margin:0 auto; padding:0 18px 50px; }
@@ -436,14 +467,25 @@
         <svg class="ring" viewBox="0 0 200 200">
           <circle id="ringCircle" cx="100" cy="100" r="92"></circle>
         </svg>
+        <svg class="icon-layer" viewBox="0 0 200 200">
+          <g id="travelIcon"><path d="M9,0 L-6,6 L-2,0 L-6,-6 Z"></path></g>
+        </svg>
         <span id="timerDisplay" class="mono">25:00</span>
       </div>
-      <p class="timer-book-label" id="timerBookLabel">No book queued yet</p>
       <button type="button" class="test-sound" id="testSound">test the chime ♪</button>
 
-      <label class="field-label" for="activeBook">Reading now — from today's queue</label>
-      <select id="activeBook"></select>
-      <p class="field-note">tick "today" on a book below to add it to the queue</p>
+      <div class="now-boarding">
+        <span class="nb-label mono">now boarding</span>
+        <span class="nb-title" id="nbTitle">Add a book to begin</span>
+        <span class="nb-caption mono" id="nbCaption"></span>
+      </div>
+      <div class="nb-controls">
+        <button type="button" class="link-btn" id="changeBookBtn">change book</button>
+      </div>
+      <select id="activeBook" hidden></select>
+
+      <div class="rotation-strip" id="rotationStrip"></div>
+      <p class="field-note" id="rotationNote" hidden>tap a book's "today" box below to add it to the rotation — ✓ means you've already read it today</p>
 
       <label class="field-label">Duration</label>
       <div class="durations" id="durationButtons">
@@ -521,6 +563,10 @@
       <h3>recently arrived</h3>
       <div id="recentFinished"></div>
     </div>
+
+    <div class="card-download-row">
+      <button type="button" class="btn secondary" id="downloadCardBtn">Download today's library card</button>
+    </div>
   </section>
 </main>
 
@@ -567,7 +613,7 @@
     return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
   }
 
-  function defaultState(){ return { books: [], sessions: [] }; }
+  function defaultState(){ return { books: [], sessions: [], chapterLog: [] }; }
 
   function loadState(){
     try{
@@ -576,6 +622,7 @@
       var parsed = JSON.parse(raw);
       if(!parsed.books) parsed.books = [];
       if(!parsed.sessions) parsed.sessions = [];
+      if(!parsed.chapterLog) parsed.chapterLog = [];
       parsed.books.forEach(function(b){ if(typeof b.queued === "undefined") b.queued = true; });
       return parsed;
     }catch(e){
@@ -596,16 +643,22 @@
   var remainingSeconds = 25*60;
   var timerInterval = null;
   var isRunning = false;
-  var activeBookId = null;
+  var sessionEndTimestamp = null;
+  var activeBookId = state.activeBookId || null;
   var audioCtx = null;
 
   // ---------- DOM refs ----------
   var $ = function(id){ return document.getElementById(id); };
   var activeBookSelect = $("activeBook");
   var timerDisplay = $("timerDisplay");
-  var timerBookLabel = $("timerBookLabel");
+  var nbTitle = $("nbTitle");
+  var nbCaption = $("nbCaption");
+  var changeBookBtn = $("changeBookBtn");
+  var rotationStrip = $("rotationStrip");
+  var rotationNote = $("rotationNote");
   var postmark = $("postmark");
   var ringCircle = $("ringCircle");
+  var travelIcon = $("travelIcon");
   var startPauseBtn = $("startPauseBtn");
   var resetBtn = $("resetBtn");
   var testSoundBtn = $("testSound");
@@ -629,6 +682,7 @@
   var recentFinishedWrap = $("recentFinishedWrap");
   var recentFinished = $("recentFinished");
   var exportBtn = $("exportBtn");
+  var downloadCardBtn = $("downloadCardBtn");
   var importFile = $("importFile");
   var clearBtn = $("clearBtn");
   var checkinOverlay = $("checkinOverlay");
@@ -659,6 +713,8 @@
     renderStamps();
     renderStats();
     renderJourneyLog();
+    renderRotationStrip();
+    saveState();
   }
 
   function queuedUnfinished(){
@@ -671,16 +727,22 @@
 
     if(queue.length === 0){
       var opt = document.createElement("option");
-      opt.textContent = state.books.some(function(b){ return !b.completed; }) ? "Tick a book's \"today\" box to queue it" : "Add a book to begin";
+      opt.textContent = "—";
       opt.value = "";
       activeBookSelect.appendChild(opt);
       activeBookSelect.disabled = true;
       activeBookId = null;
+      state.activeBookId = null;
       startPauseBtn.disabled = true;
-      timerBookLabel.textContent = "No book queued yet";
+      nbTitle.textContent = state.books.some(function(b){ return !b.completed; }) ? "Tick a book's \"today\" box below" : "Add a book to begin";
+      nbCaption.textContent = "";
+      changeBookBtn.hidden = true;
+      rotationNote.hidden = false;
       return;
     }
 
+    changeBookBtn.hidden = false;
+    rotationNote.hidden = true;
     activeBookSelect.disabled = false;
     startPauseBtn.disabled = false;
 
@@ -696,13 +758,17 @@
       target = queue[0].id;
     }
     activeBookId = target;
+    state.activeBookId = target;
     activeBookSelect.value = activeBookId;
-    updateTimerBookLabel();
+    updateNowBoarding();
   }
 
-  function updateTimerBookLabel(){
+  function updateNowBoarding(){
     var book = state.books.find(function(b){ return b.id === activeBookId; });
-    timerBookLabel.textContent = book ? ("bound for " + book.place + ", via \u201c" + book.title + "\u201d") : "No book queued yet";
+    if(book){
+      nbTitle.textContent = book.title;
+      nbCaption.textContent = "flying to " + book.place;
+    }
   }
 
   function renderShelf(){
@@ -766,6 +832,21 @@
     statSessions.textContent = todaySessions.length;
     statMinutes.textContent = totalMinutes;
     statStamps.textContent = state.books.filter(function(b){ return b.completed; }).length;
+  }
+
+  function renderRotationStrip(){
+    var queue = queuedUnfinished();
+    var today = todayStr();
+    var todaySessions = state.sessions.filter(function(s){ return s.date === today; });
+    rotationStrip.innerHTML = "";
+    queue.forEach(function(book){
+      var readToday = todaySessions.some(function(s){ return s.bookId === book.id; });
+      var chip = document.createElement("span");
+      chip.className = "rotation-chip" + (book.id === activeBookId ? " current" : "") + (readToday ? " done" : "");
+      chip.title = book.title;
+      chip.textContent = book.place;
+      rotationStrip.appendChild(chip);
+    });
   }
 
   function renderJourneyLog(){
@@ -874,6 +955,17 @@
     var book = state.books.find(function(b){ return b.id === id; });
     if(!book) return;
     chapter = Math.max(0, Math.min(chapter, book.totalChapters));
+    var previous = book.currentChapter;
+    if(chapter !== previous){
+      state.chapterLog.push({
+        id: "l_" + Date.now() + "_" + Math.random().toString(36).slice(2,7),
+        date: todayStr(),
+        bookId: id,
+        fromChapter: previous,
+        toChapter: chapter,
+        ts: Date.now()
+      });
+    }
     book.currentChapter = chapter;
     if(chapter >= book.totalChapters && !book.completed){
       book.completed = true;
@@ -904,6 +996,16 @@
     var offset = RING_C * fraction;
     ringCircle.setAttribute("stroke-dashoffset", offset);
     postmark.classList.toggle("urgent", remainingSeconds > 0 && remainingSeconds <= Math.max(30, total * 0.1));
+    updateTravelIcon(fraction);
+  }
+
+  function updateTravelIcon(fraction){
+    var theta = (-90 + fraction * 360) * Math.PI / 180;
+    var r = 92;
+    var x = 100 + r * Math.cos(theta);
+    var y = 100 + r * Math.sin(theta);
+    var rot = fraction * 360;
+    travelIcon.setAttribute("transform", "translate(" + x.toFixed(2) + "," + y.toFixed(2) + ") rotate(" + rot.toFixed(2) + ")");
   }
 
   function setMinutes(min){
@@ -919,7 +1021,9 @@
   }
 
   function tick(){
-    remainingSeconds--;
+    if(!sessionEndTimestamp) return;
+    var secsLeft = Math.round((sessionEndTimestamp - Date.now()) / 1000);
+    remainingSeconds = Math.max(0, secsLeft);
     timerDisplay.textContent = formatTime(remainingSeconds);
     updateRing();
     if(remainingSeconds <= 0){ completeTimer(); }
@@ -930,6 +1034,7 @@
     ensureAudioContext();
     isRunning = true;
     startPauseBtn.textContent = "Pause";
+    sessionEndTimestamp = Date.now() + remainingSeconds * 1000;
     timerInterval = setInterval(tick, 1000);
   }
 
@@ -937,6 +1042,7 @@
     isRunning = false;
     startPauseBtn.textContent = "Start";
     clearInterval(timerInterval);
+    sessionEndTimestamp = null;
   }
 
   function resetTimer(){
@@ -960,6 +1066,12 @@
     updateRing();
     if(book){ openSessionWrapup(book); }
   }
+
+  document.addEventListener("visibilitychange", function(){
+    if(document.visibilityState === "visible" && isRunning && sessionEndTimestamp){
+      tick();
+    }
+  });
 
   // ---------- audio ----------
 
@@ -1036,7 +1148,188 @@
     pendingIsSessionEnd = false;
   }
 
+  // ---------- library card image ----------
+
+  function chapterRangeLabel(entry){
+    if(entry.fromChapter === 0){
+      return "started at ch. 1, read to ch. " + entry.toChapter;
+    }
+    return "ch. " + entry.fromChapter + " \u2192 " + entry.toChapter;
+  }
+
+  function wrapAndFit(ctx, text, maxWidth, baseFont){
+    ctx.font = baseFont;
+    if(ctx.measureText(text).width <= maxWidth) return text;
+    var out = text;
+    while(out.length > 3 && ctx.measureText(out + "\u2026").width > maxWidth){
+      out = out.slice(0, -1);
+    }
+    return out + "\u2026";
+  }
+
+  function buildTodayCardData(){
+    var today = todayStr();
+    var todaysLog = state.chapterLog.filter(function(l){ return l.date === today; });
+    var bookIds = [];
+    todaysLog.forEach(function(l){ if(bookIds.indexOf(l.bookId) === -1) bookIds.push(l.bookId); });
+
+    return bookIds.map(function(bid){
+      var book = state.books.find(function(b){ return b.id === bid; });
+      if(!book) return null;
+      var entries = todaysLog.filter(function(l){ return l.bookId === bid; }).sort(function(a,b){ return a.ts - b.ts; });
+      var startOfDay = entries.length ? entries[0].fromChapter : book.currentChapter;
+      var pct = Math.min(100, Math.round((book.currentChapter / book.totalChapters) * 100));
+      return {
+        title: book.title,
+        place: book.place,
+        totalChapters: book.totalChapters,
+        startOfDay: startOfDay,
+        current: book.currentChapter,
+        percent: pct,
+        completed: book.completed,
+        entries: entries
+      };
+    }).filter(Boolean);
+  }
+
+  function downloadLibraryCard(){
+    var data = buildTodayCardData();
+    var today = todayStr();
+    var todaySessions = state.sessions.filter(function(s){ return s.date === today; });
+    var totalMinutesToday = todaySessions.reduce(function(sum, s){ return sum + s.minutes; }, 0);
+
+    if(data.length === 0){
+      alert("No reading logged today yet — check in on a book first.");
+      return;
+    }
+
+    var ready = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+    ready.then(function(){ renderCardCanvas(data, today, todaySessions.length, totalMinutesToday); });
+  }
+
+  function renderCardCanvas(data, today, sessionCount, totalMinutesToday){
+    var W = 860;
+    var padX = 60;
+    var y = 0;
+
+    // First pass on an offscreen canvas just to measure total height
+    var measure = document.createElement("canvas").getContext("2d");
+    y = 250;
+    data.forEach(function(book){
+      y += 66;
+      measure.font = "12px 'Courier Prime', monospace";
+      y += book.entries.length * 24;
+      y += 34;
+    });
+    y += 90;
+    var H = Math.max(600, y);
+
+    var canvas = document.createElement("canvas");
+    canvas.width = W;
+    canvas.height = H;
+    var ctx = canvas.getContext("2d");
+
+    // background
+    ctx.fillStyle = "#f6efdd";
+    ctx.fillRect(0, 0, W, H);
+
+    // double border frame
+    ctx.strokeStyle = "#b8934f";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(18, 18, W - 36, H - 36);
+    ctx.strokeStyle = "rgba(43,38,32,.35)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(28, 28, W - 56, H - 56);
+
+    var cx = W / 2;
+    var cursorY = 78;
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#6c4159";
+    ctx.font = "12px 'Courier Prime', monospace";
+    ctx.fillText("R E A D I N G   A T L A S   \u00B7   L I B R A R Y   C A R D", cx, cursorY);
+
+    cursorY += 40;
+    ctx.fillStyle = "#2b2620";
+    ctx.font = "600 34px 'Fraunces', serif";
+    ctx.fillText(formatDate(today), cx, cursorY);
+
+    cursorY += 22;
+    ctx.fillStyle = "#6b6154";
+    ctx.font = "11px 'Courier Prime', monospace";
+    ctx.fillText(sessionCount + " session" + (sessionCount === 1 ? "" : "s") + "  \u00B7  " + totalMinutesToday + " minutes today", cx, cursorY);
+
+    cursorY += 26;
+    ctx.strokeStyle = "rgba(43,38,32,.3)";
+    ctx.setLineDash([4,4]);
+    ctx.beginPath();
+    ctx.moveTo(padX, cursorY);
+    ctx.lineTo(W - padX, cursorY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    cursorY += 40;
+    ctx.textAlign = "left";
+
+    data.forEach(function(book, idx){
+      // title + place
+      ctx.font = "600 21px 'Fraunces', serif";
+      ctx.fillStyle = "#2b2620";
+      var titleText = wrapAndFit(ctx, book.title + (book.completed ? " \u2014 arrived" : ""), 520, "600 21px 'Fraunces', serif");
+      ctx.fillText(titleText, padX, cursorY);
+
+      ctx.textAlign = "right";
+      ctx.font = "12px 'Courier Prime', monospace";
+      ctx.fillStyle = "#3c6e63";
+      ctx.fillText(book.place, W - padX, cursorY);
+      ctx.textAlign = "left";
+
+      cursorY += 22;
+      ctx.font = "12px 'Courier Prime', monospace";
+      ctx.fillStyle = "#6b6154";
+      var summary = "started ch. " + (book.startOfDay === 0 ? 1 : book.startOfDay) + "  \u00B7  now ch. " + book.current + " / " + book.totalChapters + "  \u00B7  " + book.percent + "% complete";
+      ctx.fillText(summary, padX, cursorY);
+
+      cursorY += 22;
+      book.entries.forEach(function(entry, i){
+        ctx.font = "12px 'Courier Prime', monospace";
+        ctx.fillStyle = "#948a76";
+        ctx.fillText("session " + (i + 1) + "  \u2014  " + chapterRangeLabel(entry), padX + 16, cursorY);
+        cursorY += 24;
+      });
+
+      cursorY += 12;
+      if(idx < data.length - 1){
+        ctx.strokeStyle = "rgba(43,38,32,.18)";
+        ctx.setLineDash([3,4]);
+        ctx.beginPath();
+        ctx.moveTo(padX, cursorY);
+        ctx.lineTo(W - padX, cursorY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        cursorY += 26;
+      }
+    });
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#948a76";
+    ctx.font = "10.5px 'Courier Prime', monospace";
+    ctx.fillText("reading atlas \u00B7 " + formatDate(today), cx, H - 34);
+
+    canvas.toBlob(function(blob){
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "reading-atlas-card-" + today + ".png";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, "image/png");
+  }
+
   // ---------- events ----------
+
 
   durationButtons.addEventListener("click", function(e){
     var btn = e.target.closest(".duration-btn");
@@ -1056,7 +1349,16 @@
 
   activeBookSelect.addEventListener("change", function(){
     activeBookId = activeBookSelect.value;
-    updateTimerBookLabel();
+    state.activeBookId = activeBookId;
+    updateNowBoarding();
+    renderRotationStrip();
+    saveState();
+    activeBookSelect.hidden = true;
+  });
+
+  changeBookBtn.addEventListener("click", function(){
+    activeBookSelect.hidden = !activeBookSelect.hidden;
+    if(!activeBookSelect.hidden) activeBookSelect.focus();
   });
 
   startPauseBtn.addEventListener("click", function(){
@@ -1134,6 +1436,8 @@
     URL.revokeObjectURL(url);
   });
 
+  downloadCardBtn.addEventListener("click", downloadLibraryCard);
+
   importFile.addEventListener("change", function(e){
     var file = e.target.files[0];
     if(!file) return;
@@ -1147,7 +1451,7 @@
         }
         if(confirm("Loading this file will replace your current itinerary. Continue?")){
           parsed.books.forEach(function(b){ if(typeof b.queued === "undefined") b.queued = true; });
-          state = { books: parsed.books || [], sessions: parsed.sessions || [] };
+          state = { books: parsed.books || [], sessions: parsed.sessions || [], chapterLog: parsed.chapterLog || [] };
           saveState();
           render();
         }
