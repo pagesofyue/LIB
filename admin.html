@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Archivist — A Reading Library</title>
+<title>The Archivist — Admin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Cinzel:wght@500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -108,15 +108,16 @@
     letter-spacing:0.14em;
     text-decoration:none;
   }
-  .admin-entry{
-    margin-left:0.7rem;
-    color: rgba(250,248,253,0.14);
-    text-decoration:none;
-    font-size:1rem;
-    line-height:1;
-    transition:color .2s;
+  .admin-badge{
+    font-family:'Inter', sans-serif;
+    font-size:0.62rem;
+    font-weight:600;
+    letter-spacing:0.12em;
+    color:var(--night-deep);
+    background:var(--starlight);
+    padding:0.2rem 0.5rem;
+    border-radius:4px;
   }
-  .admin-entry:hover{ color:var(--starlight); }
   .nav-links{ display:flex; gap:2.2rem; align-items:center; }
   .nav-item{ position:relative; display:flex; align-items:center; }
   .nav-label-group{ display:flex; align-items:center; gap:0.15rem; }
@@ -414,23 +415,24 @@
 <div id="pinGate" class="pin-gate">
   <div class="pin-card">
     <div class="pin-eyebrow">The Archivist</div>
-    <h2>Private Collection</h2>
-    <p>Enter your PIN to continue.</p>
-    <form id="pinForm" onsubmit="submitPin(); return false;">
-      <input type="password" inputmode="numeric" id="pinInput" placeholder="PIN" autocomplete="off">
-      <button type="submit">Unlock</button>
+    <h2>Admin Access</h2>
+    <p>Enter your admin code to continue.</p>
+    <form id="pinForm" onsubmit="submitAdminPin(); return false;">
+      <input type="password" inputmode="text" id="pinInput" placeholder="Code" autocomplete="off">
+      <button type="submit" id="pinSubmitBtn">Unlock</button>
     </form>
-    <div id="pinError" class="pin-error">Incorrect PIN — try again.</div>
+    <div id="pinError" class="pin-error">Incorrect code — try again.</div>
   </div>
 </div>
 
 <nav>
   <div class="nav-inner">
-    <div style="display:flex; align-items:center;">
+    <div style="display:flex; align-items:center; gap:0.6rem;">
       <a href="#" class="brand" onclick="showTab('home');return false;">THE ARCHIVIST</a>
-      <a href="admin.html" class="admin-entry" aria-label="Admin">·</a>
+      <span class="admin-badge">ADMIN</span>
     </div>
     <div class="nav-links">
+      <a href="index.html" class="nav-label" style="opacity:0.7;">← Public view</a>
       <div class="nav-item"><button onclick="showTab('home');return false;">Home</button></div>
       <div class="nav-item" id="nav-backlist">
         <div class="nav-label-group">
@@ -473,34 +475,99 @@
 
 <script>
 /* ============================================================
-   PIN GATE
-   Casual privacy, not real security — the check runs client-side,
-   so anyone who views page source can find the PIN. Good enough to
-   keep the site off search engines and out of casual view.
+   ADMIN GATE
+   Casual privacy, not real security — checks run client-side.
+   Accepts: the main site PIN, any code in the Support sheet's
+   "Admin Codes" column (no expiry), or a code in "Temporary
+   Access" whose matching "Expiry" date (same row) hasn't passed.
    ============================================================ */
 const SITE_PIN = '16330315';
-const PIN_STORAGE_KEY = 'archivist_unlock_until';
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+const ADMIN_STORAGE_KEY = 'archivist_admin_until';
 
-function isUnlocked(){
-  const until = Number(localStorage.getItem(PIN_STORAGE_KEY) || 0);
+// Paste your "Support" sheet's published CSV link here (File > Share >
+// Publish to web > select the Support sheet > CSV format).
+const SUPPORT_CSV_URL = 'PASTE_YOUR_SUPPORT_SHEET_CSV_URL_HERE';
+
+function isAdminUnlocked(){
+  const until = Number(localStorage.getItem(ADMIN_STORAGE_KEY) || 0);
   return Date.now() < until;
 }
 
-function submitPin(){
+function grantAdminAccess(untilTimestamp){
+  localStorage.setItem(ADMIN_STORAGE_KEY, String(untilTimestamp));
+  document.getElementById('pinGate').style.display = 'none';
+}
+
+async function loadSupportCodes(){
+  const res = await fetch(SUPPORT_CSV_URL);
+  if(!res.ok) throw new Error('Could not reach the Support sheet');
+  const text = await res.text();
+  const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
+  const adminCodes = [];
+  const tempCodes = []; // { code, expiry: Date|null }
+  parsed.data.forEach(row => {
+    const admin = (row['Admin Codes'] || '').trim();
+    if(admin) adminCodes.push(admin);
+    const temp = (row['Temporary Access'] || '').trim();
+    if(temp){
+      const expiryRaw = (row['Expiry'] || '').trim();
+      const expiry = expiryRaw ? new Date(expiryRaw + 'T23:59:59') : null;
+      tempCodes.push({ code: temp, expiry });
+    }
+  });
+  return { adminCodes, tempCodes };
+}
+
+async function submitAdminPin(){
   const input = document.getElementById('pinInput');
   const err = document.getElementById('pinError');
-  if(input.value.trim() === SITE_PIN){
-    localStorage.setItem(PIN_STORAGE_KEY, String(Date.now() + WEEK_MS));
-    document.getElementById('pinGate').style.display = 'none';
-  } else {
+  const btn = document.getElementById('pinSubmitBtn');
+  const value = input.value.trim();
+  if(!value) return;
+
+  err.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Checking…';
+
+  try{
+    // 30-day admin session for the master PIN or a permanent admin code
+    const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+    if(value === SITE_PIN){
+      grantAdminAccess(Date.now() + THIRTY_DAYS_MS);
+      return;
+    }
+
+    const { adminCodes, tempCodes } = await loadSupportCodes();
+
+    if(adminCodes.includes(value)){
+      grantAdminAccess(Date.now() + THIRTY_DAYS_MS);
+      return;
+    }
+
+    const match = tempCodes.find(t => t.code === value);
+    if(match){
+      if(match.expiry && match.expiry.getTime() > Date.now()){
+        grantAdminAccess(match.expiry.getTime());
+        return;
+      }
+      err.textContent = 'This access code has expired.';
+    } else {
+      err.textContent = 'Incorrect code — try again.';
+    }
     err.style.display = 'block';
     input.value = '';
     input.focus();
+  } catch(e){
+    err.textContent = 'Could not verify that code right now — check your connection and try again.';
+    err.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Unlock';
   }
 }
 
-if(isUnlocked()){
+if(isAdminUnlocked()){
   document.getElementById('pinGate').style.display = 'none';
 } else {
   document.getElementById('pinInput').focus();
@@ -644,6 +711,8 @@ function renderBookCard(book){
         <div class="num">Book ${book.seriesOrder}</div>
         <div class="t">${book.title}</div>
       </div>
+      ${book.downloadURL ? `<a class="download-btn" href="${book.downloadURL}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Download</a>` : ''}
+      ${book.audiobookURL ? `<a class="audiobook-btn" href="${book.audiobookURL}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Audiobook</a>` : ''}
     </div>`;
 }
 
