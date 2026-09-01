@@ -237,7 +237,7 @@
     border:1px solid var(--line); border-radius:var(--radius); background:var(--page-alt);
   }
 
-  .timer-controls{ display:flex; gap:10px; justify-content:center; }
+  .timer-controls{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
 
   button.btn{
     font-family:'Fraunces', serif; font-size:14.5px; font-weight:600;
@@ -349,7 +349,9 @@
     border-radius:50% / 45%; display:flex; flex-direction:column; align-items:center; justify-content:center;
     text-align:center; padding:10px; color:var(--stamp-color, var(--stamp-red));
     transform:rotate(var(--tilt, -4deg)); position:relative;
+    cursor:pointer; transition:transform .15s ease;
   }
+  .stamp:hover{ transform:rotate(var(--tilt, -4deg)) scale(1.06); }
   .stamp::before{
     content:""; position:absolute; inset:5px; border:1px dashed var(--stamp-color, var(--stamp-red));
     border-radius:50% / 45%; opacity:.55;
@@ -360,6 +362,34 @@
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
   .stamp .stamp-date{ font-family:'Courier Prime', monospace; font-size:9px; margin-top:6px; opacity:.8; }
+
+  .stamp-modal-overlay .modal{ max-width:340px; background:transparent; box-shadow:none; border:none; padding:0; }
+  .stamp-large{
+    width:280px; height:238px; margin:0 auto 18px;
+    border:4px solid var(--stamp-color, var(--stamp-red));
+    border-radius:50% / 45%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:18px; color:var(--stamp-color, var(--stamp-red));
+    background:var(--page); position:relative; box-shadow:var(--shadow);
+    transform:rotate(-2deg);
+  }
+  .stamp-large::before{
+    content:""; position:absolute; inset:9px; border:1.5px dashed var(--stamp-color, var(--stamp-red));
+    border-radius:50% / 45%; opacity:.55;
+  }
+  .stamp-large .stamp-place{ font-family:'Fraunces', serif; font-weight:700; font-size:28px; line-height:1.15; }
+  .stamp-large .stamp-book{ font-family:'Courier Prime', monospace; font-size:13px; margin-top:8px; max-width:88%; }
+  .stamp-large .stamp-date{ font-family:'Courier Prime', monospace; font-size:11.5px; margin-top:10px; opacity:.85; }
+  .stamp-modal-caption{
+    text-align:center; font-family:'Courier Prime', monospace; font-size:12px;
+    color:var(--page-alt); background:var(--cover); border-radius:var(--radius);
+    padding:10px 16px; margin:0 0 14px;
+  }
+  .stamp-modal-close{
+    display:block; margin:0 auto; background:none; border:none;
+    font-family:'Courier Prime', monospace; font-size:12px; color:var(--page-alt);
+    text-decoration:underline; cursor:pointer;
+  }
 
   /* ---------- journey log ---------- */
 
@@ -515,6 +545,7 @@
 
       <div class="timer-controls">
         <button class="btn" id="startPauseBtn">Start</button>
+        <button class="btn secondary" id="finishBtn" disabled>Finish now</button>
         <button class="btn secondary" id="resetBtn">Reset</button>
       </div>
 
@@ -611,6 +642,15 @@
   </div>
 </div>
 
+<!-- STAMP MODAL -->
+<div class="modal-overlay stamp-modal-overlay" id="stampOverlay" hidden>
+  <div class="modal">
+    <div class="stamp-large" id="stampLarge"></div>
+    <p class="stamp-modal-caption" id="stampCaption"></p>
+    <button type="button" class="stamp-modal-close" id="stampClose">close</button>
+  </div>
+</div>
+
 <script>
 (function(){
   "use strict";
@@ -678,6 +718,7 @@
   var ringCircle = $("ringCircle");
   var travelIcon = $("travelIcon");
   var startPauseBtn = $("startPauseBtn");
+  var finishBtn = $("finishBtn");
   var resetBtn = $("resetBtn");
   var testSoundBtn = $("testSound");
   var durationButtons = $("durationButtons");
@@ -709,6 +750,10 @@
   var checkinRows = $("checkinRows");
   var checkinSave = $("checkinSave");
   var checkinSkip = $("checkinSkip");
+  var stampOverlay = $("stampOverlay");
+  var stampLarge = $("stampLarge");
+  var stampCaption = $("stampCaption");
+  var stampClose = $("stampClose");
   var issueLine = document.querySelector(".issue-line");
 
   var pendingIsSessionEnd = false;
@@ -756,6 +801,7 @@
       nbCaption.textContent = "";
       changeBookBtn.hidden = true;
       rotationNote.hidden = false;
+      updateFinishButtonState();
       return;
     }
 
@@ -779,6 +825,7 @@
     state.activeBookId = target;
     activeBookSelect.value = activeBookId;
     updateNowBoarding();
+    updateFinishButtonState();
   }
 
   function updateNowBoarding(){
@@ -831,10 +878,15 @@
     completed.forEach(function(book, i){
       var stamp = document.createElement("div");
       stamp.className = "stamp";
+      stamp.dataset.book = book.id;
       var color = STAMP_COLORS[i % STAMP_COLORS.length];
       var tilt = ((i % 2 === 0) ? -1 : 1) * (3 + (i * 7) % 6);
+      stamp.dataset.colorVar = color;
       stamp.style.setProperty("--stamp-color", "var(" + color + ")");
       stamp.style.setProperty("--tilt", tilt + "deg");
+      stamp.setAttribute("role", "button");
+      stamp.setAttribute("tabindex", "0");
+      stamp.title = "view stamp";
       stamp.innerHTML =
         '<span class="stamp-place">' + escapeHtml(book.place) + '</span>' +
         '<span class="stamp-book mono">' + escapeHtml(book.title) + '</span>' +
@@ -1036,6 +1088,12 @@
     Array.prototype.forEach.call(durationButtons.querySelectorAll(".duration-btn"), function(btn){
       btn.classList.toggle("selected", parseInt(btn.dataset.min,10) === min);
     });
+    updateFinishButtonState();
+  }
+
+  function updateFinishButtonState(){
+    var hasElapsed = remainingSeconds < selectedMinutes * 60;
+    finishBtn.disabled = !activeBookId || !(isRunning || hasElapsed);
   }
 
   function tick(){
@@ -1044,6 +1102,7 @@
     remainingSeconds = Math.max(0, secsLeft);
     timerDisplay.textContent = formatTime(remainingSeconds);
     updateRing();
+    updateFinishButtonState();
     if(remainingSeconds <= 0){ completeTimer(); }
   }
 
@@ -1054,6 +1113,7 @@
     startPauseBtn.textContent = "Pause";
     sessionEndTimestamp = Date.now() + remainingSeconds * 1000;
     timerInterval = setInterval(tick, 1000);
+    updateFinishButtonState();
   }
 
   function pauseTimer(){
@@ -1061,6 +1121,7 @@
     startPauseBtn.textContent = "Start";
     clearInterval(timerInterval);
     sessionEndTimestamp = null;
+    updateFinishButtonState();
   }
 
   function resetTimer(){
@@ -1069,6 +1130,7 @@
     timerDisplay.textContent = formatTime(remainingSeconds);
     postmark.classList.remove("urgent");
     updateRing();
+    updateFinishButtonState();
   }
 
   function completeTimer(){
@@ -1082,6 +1144,25 @@
     remainingSeconds = selectedMinutes * 60;
     timerDisplay.textContent = formatTime(remainingSeconds);
     updateRing();
+    updateFinishButtonState();
+    if(book){ openSessionWrapup(book); }
+  }
+
+  function finishSessionEarly(){
+    if(finishBtn.disabled) return;
+    var elapsedSeconds = (selectedMinutes * 60) - remainingSeconds;
+    var elapsedMinutes = Math.max(1, Math.round(elapsedSeconds / 60));
+    var book = state.books.find(function(b){ return b.id === activeBookId; });
+    pauseTimer();
+    state.sessions.push({ date: todayStr(), bookId: activeBookId, minutes: elapsedMinutes, ts: Date.now() });
+    saveState();
+    renderStats();
+    renderJourneyLog();
+    remainingSeconds = selectedMinutes * 60;
+    timerDisplay.textContent = formatTime(remainingSeconds);
+    postmark.classList.remove("urgent");
+    updateRing();
+    updateFinishButtonState();
     if(book){ openSessionWrapup(book); }
   }
 
@@ -1384,6 +1465,7 @@
   });
 
   resetBtn.addEventListener("click", resetTimer);
+  finishBtn.addEventListener("click", finishSessionEarly);
   testSoundBtn.addEventListener("click", function(){ ensureAudioContext(); playChime(); });
 
   addBookForm.addEventListener("submit", function(e){
@@ -1440,6 +1522,43 @@
 
   checkinOverlay.addEventListener("click", function(e){
     if(e.target === checkinOverlay) checkinSkip.click();
+  });
+
+  function openStamp(book, colorVar){
+    stampLarge.style.setProperty("--stamp-color", "var(" + colorVar + ")");
+    stampLarge.innerHTML =
+      '<span class="stamp-place">' + escapeHtml(book.place) + '</span>' +
+      '<span class="stamp-book mono">' + escapeHtml(book.title) + '</span>' +
+      '<span class="stamp-date mono">' + (book.completedDate ? formatDate(book.completedDate) : "") + '</span>';
+    var sessionCount = state.chapterLog.filter(function(l){ return l.bookId === book.id; }).length;
+    stampCaption.textContent = book.totalChapters + " chapters \u00B7 " + sessionCount + " session" + (sessionCount === 1 ? "" : "s") + " logged";
+    stampOverlay.hidden = false;
+  }
+
+  function closeStamp(){ stampOverlay.hidden = true; }
+
+  stampGrid.addEventListener("click", function(e){
+    var el = e.target.closest(".stamp[data-book]");
+    if(!el) return;
+    var book = state.books.find(function(b){ return b.id === el.dataset.book; });
+    if(book) openStamp(book, el.dataset.colorVar);
+  });
+
+  stampGrid.addEventListener("keydown", function(e){
+    if(e.key !== "Enter" && e.key !== " ") return;
+    var el = e.target.closest(".stamp[data-book]");
+    if(!el) return;
+    e.preventDefault();
+    var book = state.books.find(function(b){ return b.id === el.dataset.book; });
+    if(book) openStamp(book, el.dataset.colorVar);
+  });
+
+  stampClose.addEventListener("click", closeStamp);
+  stampOverlay.addEventListener("click", function(e){
+    if(e.target === stampOverlay) closeStamp();
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && !stampOverlay.hidden) closeStamp();
   });
 
   exportBtn.addEventListener("click", function(){
