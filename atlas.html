@@ -403,6 +403,16 @@
     color:var(--ink-faint); margin-top:12px;
   }
 
+  .sync-controls{
+    display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:center;
+    padding-top:16px; margin-top:16px; border-top:1px dashed var(--line);
+  }
+  .sync-controls input#syncCode{
+    padding:7px 10px; font-family:'Courier Prime', monospace; font-size:12px;
+    border:1px solid var(--line); border-radius:var(--radius); background:var(--page-alt);
+    color:var(--ink); width:170px;
+  }
+
   /* ---------- modal (check-in) ---------- */
 
   .modal-overlay{
@@ -578,6 +588,14 @@
     <button class="btn danger" id="clearBtn">Clear all data</button>
   </div>
   <p class="data-note">Autosaves in this browser. Use "Download progress" to back up or carry your itinerary to another device — "Load progress" restores from that file.</p>
+
+  <div class="sync-controls">
+    <span class="queue-label">cloud sync (optional):</span>
+    <input type="text" id="syncCode" class="mono" placeholder="sync code">
+    <button type="button" class="btn secondary small" id="pushSyncBtn">Push to cloud</button>
+    <button type="button" class="btn secondary small" id="pullSyncBtn">Pull from cloud</button>
+  </div>
+  <p class="data-note" id="syncStatus">not synced yet — use the same code on every device</p>
 </footer>
 
 <!-- CHECK-IN MODAL -->
@@ -1471,11 +1489,118 @@
     }
   });
 
+  // ---------- cloud sync hook (used by the Firebase module script) ----------
+  window.ReadingAtlas = {
+    getState: function(){
+      return {
+        books: state.books,
+        sessions: state.sessions,
+        chapterLog: state.chapterLog,
+        activeBookId: state.activeBookId
+      };
+    },
+    loadFromRemote: function(remote){
+      if(!remote || !Array.isArray(remote.books)) return false;
+      remote.books.forEach(function(b){ if(typeof b.queued === "undefined") b.queued = true; });
+      state = {
+        books: remote.books || [],
+        sessions: remote.sessions || [],
+        chapterLog: remote.chapterLog || []
+      };
+      activeBookId = remote.activeBookId || null;
+      state.activeBookId = activeBookId;
+      saveState();
+      render();
+      return true;
+    }
+  };
+
   // ---------- init ----------
   setMinutes(25);
   render();
 
 })();
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBFod4Z9VXjmVvWtpiJQWHNxeN9A7qLvg0",
+    authDomain: "atlas-c5a78.firebaseapp.com",
+    projectId: "atlas-c5a78",
+    storageBucket: "atlas-c5a78.firebasestorage.app",
+    messagingSenderId: "1006536848308",
+    appId: "1:1006536848308:web:23415d43090c7cd120f8e1"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const SYNC_CODE_KEY = "reading-atlas-sync-code";
+  var codeInput = document.getElementById("syncCode");
+  var pushBtn = document.getElementById("pushSyncBtn");
+  var pullBtn = document.getElementById("pullSyncBtn");
+  var syncStatus = document.getElementById("syncStatus");
+
+  codeInput.value = localStorage.getItem(SYNC_CODE_KEY) || "";
+
+  codeInput.addEventListener("change", function(){
+    localStorage.setItem(SYNC_CODE_KEY, codeInput.value.trim());
+  });
+
+  function setStatus(msg, isError){
+    syncStatus.textContent = msg;
+    syncStatus.style.color = isError ? "#a83f2b" : "";
+  }
+
+  pushBtn.addEventListener("click", async function(){
+    var code = codeInput.value.trim();
+    if(!code){ setStatus("enter a sync code first", true); return; }
+    localStorage.setItem(SYNC_CODE_KEY, code);
+    if(!window.ReadingAtlas){ setStatus("app isn't ready yet — try again in a moment", true); return; }
+
+    var appState = window.ReadingAtlas.getState();
+    pushBtn.disabled = true;
+    setStatus("pushing\u2026");
+    try{
+      await setDoc(doc(db, "atlasSync", code), {
+        books: appState.books || [],
+        sessions: appState.sessions || [],
+        chapterLog: appState.chapterLog || [],
+        activeBookId: appState.activeBookId || null,
+        updatedAt: serverTimestamp()
+      });
+      setStatus("pushed just now");
+    }catch(e){
+      console.error(e);
+      setStatus("push failed \u2014 check the sync code and your connection", true);
+    }
+    pushBtn.disabled = false;
+  });
+
+  pullBtn.addEventListener("click", async function(){
+    var code = codeInput.value.trim();
+    if(!code){ setStatus("enter a sync code first", true); return; }
+    localStorage.setItem(SYNC_CODE_KEY, code);
+    pullBtn.disabled = true;
+    setStatus("pulling\u2026");
+    try{
+      var snap = await getDoc(doc(db, "atlasSync", code));
+      if(!snap.exists()){
+        setStatus("no cloud data found for this code yet \u2014 push from another device first", true);
+      } else if(confirm("Loading cloud progress will replace what's on this device. Continue?")){
+        var ok = window.ReadingAtlas.loadFromRemote(snap.data());
+        setStatus(ok ? "pulled just now" : "that cloud data looked invalid", !ok);
+      } else {
+        setStatus("pull cancelled");
+      }
+    }catch(e){
+      console.error(e);
+      setStatus("pull failed \u2014 check the sync code and your connection", true);
+    }
+    pullBtn.disabled = false;
+  });
 </script>
 </body>
 </html>
