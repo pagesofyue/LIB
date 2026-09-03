@@ -275,6 +275,7 @@
   @media(max-width:520px){
     form#addBookForm{ grid-template-columns:1fr 1fr; }
     form#addBookForm button{ grid-column:1 / -1; }
+    form#addBookForm .place-field-wrap{ grid-column:1 / -1; }
   }
   form#addBookForm input{
     padding:9px 10px; font-family:'Fraunces', serif; font-size:14px;
@@ -283,6 +284,21 @@
   }
   form#addBookForm input::placeholder{ color:var(--ink-faint); }
   form#addBookForm button{ padding:9px 14px; font-size:13.5px; border-radius:var(--radius); white-space:nowrap; }
+
+  .place-field-wrap{ display:flex; gap:6px; min-width:0; }
+  .place-field-wrap input{ flex:1 1 auto; min-width:0; }
+  .randomize-btn{
+    flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center;
+    width:36px; height:36px;
+    padding:0; font-size:16px; line-height:1;
+    border:1px solid var(--line); background:var(--page-alt); color:var(--stamp-teal);
+    border-radius:var(--radius); cursor:pointer;
+    transition:transform .15s ease, background .15s ease;
+  }
+  .randomize-btn:hover{ background:var(--page); color:var(--stamp-plum); }
+  .randomize-btn:active{ transform:rotate(18deg); }
+  .randomize-btn:focus-visible{ outline:2px solid var(--gold); outline-offset:1px; }
 
   .queue-controls{
     display:flex; align-items:center; gap:14px; flex-wrap:wrap;
@@ -609,7 +625,10 @@
 
       <form id="addBookForm">
         <input type="text" id="newTitle" placeholder="Book title" required>
-        <input type="text" id="newPlace" placeholder="Place (e.g. Italy)" required>
+        <div class="place-field-wrap">
+          <input type="text" id="newPlace" placeholder="Place (e.g. Maranello, Italy)" required>
+          <button type="button" class="randomize-btn" id="randomizePlaceBtn" title="Pick a random city" aria-label="Pick a random city">&#127760;</button>
+        </div>
         <input type="number" id="newChapters" placeholder="Chapters" min="1" required>
         <button type="submit" class="btn">Add</button>
       </form>
@@ -773,6 +792,7 @@
   var customMinutes = $("customMinutes");
   var useCustomBtn = $("useCustom");
   var addBookForm = $("addBookForm");
+  var randomizePlaceBtn = $("randomizePlaceBtn");
   var bookShelf = $("bookShelf");
   var emptyNote = $("emptyNote");
   var selectAllBtn = $("selectAllBtn");
@@ -1714,6 +1734,58 @@
   resetBtn.addEventListener("click", resetTimer);
   finishBtn.addEventListener("click", finishSessionEarly);
   testSoundBtn.addEventListener("click", function(){ ensureAudioContext(); playChime(); });
+
+  // ---------- city randomizer ----------
+  var WORLD_CITIES = [
+    "Maranello, Italy","Rome, Italy","Florence, Italy","Venice, Italy","Naples, Italy","Bologna, Italy",
+    "Madrid, Spain","Barcelona, Spain","Seville, Spain","Granada, Spain","Valencia, Spain",
+    "Paris, France","Lyon, France","Marseille, France","Nice, France","Avignon, France",
+    "Berlin, Germany","Munich, Germany","Hamburg, Germany","Dresden, Germany",
+    "Amsterdam, Netherlands","Rotterdam, Netherlands","Bruges, Belgium","Brussels, Belgium",
+    "Lisbon, Portugal","Porto, Portugal","Vienna, Austria","Salzburg, Austria",
+    "Zurich, Switzerland","Geneva, Switzerland","Interlaken, Switzerland",
+    "Prague, Czech Republic","Budapest, Hungary","Krakow, Poland","Warsaw, Poland",
+    "Copenhagen, Denmark","Stockholm, Sweden","Oslo, Norway","Bergen, Norway","Helsinki, Finland","Reykjavik, Iceland",
+    "Dublin, Ireland","Edinburgh, Scotland","London, England","Oxford, England","Bath, England","Cardiff, Wales",
+    "Athens, Greece","Santorini, Greece","Dubrovnik, Croatia","Ljubljana, Slovenia",
+    "Istanbul, Turkey","Cappadocia, Turkey","Moscow, Russia","St. Petersburg, Russia",
+    "Marrakech, Morocco","Fez, Morocco","Cairo, Egypt","Luxor, Egypt",
+    "Cape Town, South Africa","Johannesburg, South Africa","Nairobi, Kenya","Zanzibar City, Tanzania",
+    "Accra, Ghana","Lagos, Nigeria","Addis Ababa, Ethiopia","Tunis, Tunisia","Dakar, Senegal",
+    "Tokyo, Japan","Kyoto, Japan","Osaka, Japan","Hiroshima, Japan","Sapporo, Japan",
+    "Seoul, South Korea","Busan, South Korea","Beijing, China","Shanghai, China","Xi'an, China","Hong Kong, China",
+    "Taipei, Taiwan","Hanoi, Vietnam","Ho Chi Minh City, Vietnam","Bangkok, Thailand","Chiang Mai, Thailand",
+    "Siem Reap, Cambodia","Luang Prabang, Laos","Yangon, Myanmar","Singapore, Singapore","Kuala Lumpur, Malaysia",
+    "Bali, Indonesia","Jakarta, Indonesia","Manila, Philippines","Cebu City, Philippines",
+    "Mumbai, India","Delhi, India","Jaipur, India","Agra, India","Varanasi, India","Kerala, India",
+    "Kathmandu, Nepal","Colombo, Sri Lanka","Male, Maldives","Dubai, United Arab Emirates","Doha, Qatar",
+    "Amman, Jordan","Petra, Jordan","Jerusalem, Israel","Tel Aviv, Israel","Muscat, Oman",
+    "Sydney, Australia","Melbourne, Australia","Brisbane, Australia","Perth, Australia",
+    "Auckland, New Zealand","Queenstown, New Zealand","Suva, Fiji",
+    "New York City, United States","San Francisco, United States","Chicago, United States","New Orleans, United States",
+    "Seattle, United States","Austin, United States","Miami, United States","Boston, United States",
+    "Toronto, Canada","Vancouver, Canada","Montreal, Canada","Quebec City, Canada",
+    "Mexico City, Mexico","Oaxaca, Mexico","Cancun, Mexico","Guadalajara, Mexico",
+    "Havana, Cuba","San Juan, Puerto Rico","Nassau, Bahamas","Kingston, Jamaica",
+    "Bogota, Colombia","Cartagena, Colombia","Lima, Peru","Cusco, Peru",
+    "Quito, Ecuador","Rio de Janeiro, Brazil","Sao Paulo, Brazil","Salvador, Brazil",
+    "Buenos Aires, Argentina","Mendoza, Argentina","Santiago, Chile","Patagonia, Chile",
+    "Montevideo, Uruguay","La Paz, Bolivia"
+  ];
+  function randomWorldCity(){
+    return WORLD_CITIES[Math.floor(Math.random() * WORLD_CITIES.length)];
+  }
+  if(randomizePlaceBtn){
+    randomizePlaceBtn.addEventListener("click", function(){
+      var placeInput = $("newPlace");
+      var next = randomWorldCity();
+      if(WORLD_CITIES.length > 1){
+        while(next === placeInput.value){ next = randomWorldCity(); }
+      }
+      placeInput.value = next;
+      placeInput.focus();
+    });
+  }
 
   addBookForm.addEventListener("submit", function(e){
     e.preventDefault();
