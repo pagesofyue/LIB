@@ -360,6 +360,58 @@
 
   .empty-note{ font-family:'Courier Prime', monospace; font-size:13px; color:var(--ink-faint); padding:10px 0; }
 
+  /* ---------- detour toggle + zone ---------- */
+
+  .detour-btn{
+    font-family:'Courier Prime', monospace; font-size:11px; padding:5px 11px;
+    border-radius:14px; border:1px dashed var(--stamp-mustard); background:transparent;
+    color:var(--stamp-mustard); cursor:pointer; white-space:nowrap;
+  }
+  .detour-btn:hover{ background:rgba(189,138,46,.12); }
+
+  section.detour-zone{
+    margin:4px 0 18px 10px; padding:14px 16px;
+    border:1px dashed var(--stamp-mustard); border-radius:var(--radius);
+    background:rgba(189,138,46,.07);
+  }
+  section.detour-zone h3{
+    margin:0 0 3px; font-size:14px; font-weight:600; color:var(--stamp-mustard);
+  }
+  section.detour-zone h3::before{ content:"\21AA  "; }
+  p.detour-sub{
+    font-family:'Courier Prime', monospace; font-size:11px; color:var(--ink-faint); margin:0 0 12px;
+  }
+  .detour-shelf{ display:flex; flex-direction:column; gap:8px; }
+  .detour-card{
+    background:var(--page); border:1px dashed var(--line); border-radius:var(--radius);
+    padding:9px 12px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  }
+  .detour-card .card-title{ font-size:14px; font-weight:600; flex:1 1 auto; }
+  .detour-card .card-place{
+    font-family:'Courier Prime', monospace; font-size:11px; color:var(--stamp-teal); letter-spacing:.3px;
+  }
+  .detour-card button{
+    font-family:'Courier Prime', monospace; font-size:11px; padding:5px 11px; border-radius:14px;
+    border:1px solid var(--stamp-teal); background:transparent; color:var(--stamp-teal);
+    cursor:pointer; white-space:nowrap;
+  }
+  .detour-card button:hover{ background:var(--stamp-teal); color:var(--page); }
+
+  /* ---------- edit book modal ---------- */
+
+  #editBookOverlay .modal{ max-width:360px; text-align:left; }
+  #editBookOverlay .modal h3{ text-align:center; }
+  #editBookOverlay .modal p{ text-align:center; }
+  .edit-field{ margin-bottom:12px; }
+  .edit-field label{
+    display:block; font-family:'Courier Prime', monospace; font-size:11px;
+    color:var(--ink-soft); margin-bottom:4px; letter-spacing:.3px;
+  }
+  .edit-field input{
+    width:100%; padding:9px 10px; font-family:'Fraunces', serif; font-size:14px;
+    border:1px solid var(--line); background:var(--page-alt); border-radius:var(--radius); color:var(--ink);
+  }
+
   /* ---------- passport ---------- */
 
   section.passport{
@@ -443,6 +495,81 @@
     text-decoration:underline; cursor:pointer;
   }
   .stamp-modal-close:hover{ color:var(--stamp-teal); }
+
+  /* ---------- full passport spread ---------- */
+
+  .passport-book-overlay{
+    z-index:90;
+    background:radial-gradient(ellipse at center, rgba(31,46,61,.85), rgba(10,15,20,.96));
+    padding:20px;
+  }
+  .passport-book{
+    position:relative;
+    max-width:1080px; width:100%; margin:auto;
+    background:var(--page);
+    border-radius:4px;
+    box-shadow:0 30px 70px rgba(0,0,0,.55);
+    padding:20px 16px 16px;
+    max-height:calc(100vh - 40px);
+    overflow:auto;
+  }
+  .passport-book-close{
+    position:absolute; top:10px; right:12px; z-index:5;
+    width:30px; height:30px; border-radius:50%;
+    border:1px solid var(--line); background:var(--page-alt);
+    color:var(--ink-soft); font-size:18px; line-height:28px; padding:0;
+    cursor:pointer;
+  }
+  .passport-book-close:hover{ color:var(--stamp-red); border-color:var(--stamp-red); }
+
+  .passport-book-spread{
+    display:grid; grid-template-columns:1fr auto 1fr;
+  }
+  @media(max-width:720px){
+    .passport-book-spread{ grid-template-columns:1fr; }
+    .passport-book-gutter{ display:none; }
+  }
+  .passport-book-gutter{
+    width:2px; align-self:stretch;
+    background:linear-gradient(180deg, transparent, rgba(43,38,32,.2) 10%, rgba(43,38,32,.2) 90%, transparent);
+    box-shadow:0 0 16px 5px rgba(43,38,32,.08);
+  }
+  .passport-book-page{
+    position:relative; min-height:560px; padding:36px 8px 10px;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(60,110,99,.16), transparent 24%),
+      radial-gradient(circle at 55% 10%, rgba(189,138,46,.16), transparent 22%),
+      radial-gradient(circle at 82% 32%, rgba(168,63,43,.13), transparent 24%),
+      radial-gradient(circle at 28% 58%, rgba(42,74,107,.15), transparent 26%),
+      radial-gradient(circle at 76% 74%, rgba(108,65,89,.13), transparent 24%),
+      radial-gradient(circle at 16% 86%, rgba(63,92,58,.13), transparent 22%),
+      repeating-linear-gradient(0deg, rgba(43,38,32,.045) 0 1px, transparent 1px 32px);
+  }
+  .passport-book-page .pg-no{
+    position:absolute; top:10px;
+    font-family:'Courier Prime', monospace; font-size:13px; color:var(--ink-faint); letter-spacing:1px;
+  }
+  .passport-book-page.left .pg-no{ left:10px; }
+  .passport-book-page.right .pg-no{ right:10px; }
+
+  .pb-stamp{
+    position:absolute;
+    transform:rotate(var(--rot, 0deg));
+    filter:drop-shadow(0 3px 7px rgba(19,29,39,.28));
+    cursor:pointer;
+    transition:transform .15s ease, filter .15s ease;
+  }
+  .pb-stamp:hover{
+    transform:rotate(var(--rot, 0deg)) scale(1.07);
+    filter:drop-shadow(0 6px 14px rgba(19,29,39,.35));
+    z-index:99 !important;
+  }
+  .pb-stamp svg{ width:100%; height:auto; display:block; overflow:visible; }
+
+  .passport-book #emptyPassportBookNote{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:80%; text-align:center; margin:0;
+  }
 
   /* ---------- journey log ---------- */
 
@@ -641,6 +768,12 @@
 
       <div class="shelf" id="bookShelf"></div>
       <p class="empty-note" id="emptyNote" hidden>No books yet — add your first destination above.</p>
+
+      <section class="detour-zone" id="detourSection" hidden aria-labelledby="detourTitle">
+        <h3 id="detourTitle">Detour</h3>
+        <p class="detour-sub mono">set aside temporarily — return a book to bring it back to your itinerary</p>
+        <div class="detour-shelf" id="detourShelf"></div>
+      </section>
     </section>
   </div>
 
@@ -648,6 +781,7 @@
   <section class="passport" aria-labelledby="passportTitle">
     <h2 class="panel-title" id="passportTitle" style="padding-left:0">Passport</h2>
     <p class="panel-sub" style="padding-left:0">stamps for every book you've finished</p>
+    <button type="button" class="link-btn mono" id="openPassportBtn" style="display:block; margin:-8px 0 14px;">view full passport spread &rarr;</button>
     <p class="passport-page-label">pp. <span id="stampPageNo">1</span>&ndash;<span id="stampPageNo2">2</span></p>
     <div class="stamp-grid" id="stampGrid"></div>
     <p class="empty-note" id="emptyStampNote">No stamps yet — finish a book to earn your first one.</p>
@@ -719,6 +853,47 @@
   </div>
 </div>
 
+<!-- EDIT BOOK MODAL -->
+<div class="modal-overlay" id="editBookOverlay" hidden>
+  <div class="modal">
+    <h3>Edit destination</h3>
+    <p>Update the title, place, or chapter count.</p>
+    <div class="edit-field">
+      <label for="editTitle">Book title</label>
+      <input type="text" id="editTitle">
+    </div>
+    <div class="edit-field">
+      <label for="editPlace">Place</label>
+      <input type="text" id="editPlace">
+    </div>
+    <div class="edit-field">
+      <label for="editChapters">Total chapters</label>
+      <input type="number" id="editChapters" min="1">
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" id="editCancel">Cancel</button>
+      <button class="btn" id="editSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- FULL PASSPORT SPREAD -->
+<div class="modal-overlay passport-book-overlay" id="passportBookOverlay" hidden>
+  <div class="passport-book" id="passportBook">
+    <button type="button" class="passport-book-close" id="passportBookClose" aria-label="Close passport">&times;</button>
+    <div class="passport-book-spread">
+      <div class="passport-book-page left" id="passportPageLeft">
+        <span class="pg-no mono" id="pbPageNoLeft">10</span>
+      </div>
+      <div class="passport-book-gutter"></div>
+      <div class="passport-book-page right" id="passportPageRight">
+        <span class="pg-no mono" id="pbPageNoRight">11</span>
+      </div>
+    </div>
+    <p class="empty-note" id="emptyPassportBookNote" hidden>No stamps yet — finish a book to fill these pages.</p>
+  </div>
+</div>
+
 <script>
 (function(){
   "use strict";
@@ -748,7 +923,7 @@
       if(!parsed.books) parsed.books = [];
       if(!parsed.sessions) parsed.sessions = [];
       if(!parsed.chapterLog) parsed.chapterLog = [];
-      parsed.books.forEach(function(b){ if(typeof b.queued === "undefined") b.queued = true; });
+      parsed.books.forEach(function(b){ if(typeof b.queued === "undefined") b.queued = true; if(typeof b.detour === "undefined") b.detour = false; });
       return parsed;
     }catch(e){
       console.error("Could not read saved progress:", e);
@@ -771,6 +946,7 @@
   var sessionEndTimestamp = null;
   var activeBookId = state.activeBookId || null;
   var audioCtx = null;
+  var editingBookId = null;
 
   // ---------- DOM refs ----------
   var $ = function(id){ return document.getElementById(id); };
@@ -823,6 +999,20 @@
   var stampLarge = $("stampLarge");
   var stampCaption = $("stampCaption");
   var stampClose = $("stampClose");
+  var detourSection = $("detourSection");
+  var detourShelf = $("detourShelf");
+  var editBookOverlay = $("editBookOverlay");
+  var editTitle = $("editTitle");
+  var editPlace = $("editPlace");
+  var editChapters = $("editChapters");
+  var editSave = $("editSave");
+  var editCancel = $("editCancel");
+  var openPassportBtn = $("openPassportBtn");
+  var passportBookOverlay = $("passportBookOverlay");
+  var passportBookClose = $("passportBookClose");
+  var passportPageLeft = $("passportPageLeft");
+  var passportPageRight = $("passportPageRight");
+  var emptyPassportBookNote = $("emptyPassportBookNote");
   var issueLine = document.querySelector(".issue-line");
 
   var pendingIsSessionEnd = false;
@@ -842,6 +1032,7 @@
   function render(desiredId){
     renderBookSelect(desiredId);
     renderShelf();
+    renderDetourShelf();
     renderStamps();
     renderStats();
     renderJourneyLog();
@@ -850,7 +1041,7 @@
   }
 
   function queuedUnfinished(){
-    return state.books.filter(function(b){ return !b.completed && b.queued; });
+    return state.books.filter(function(b){ return !b.completed && b.queued && !b.detour; });
   }
 
   function renderBookSelect(desiredId){
@@ -907,10 +1098,33 @@
 
   function renderShelf(){
     bookShelf.innerHTML = "";
-    var inProgress = state.books.filter(function(b){ return !b.completed; });
-    emptyNote.hidden = state.books.length > 0;
+    var inProgress = state.books.filter(function(b){ return !b.completed && !b.detour; });
+    var hasDetours = state.books.some(function(b){ return b.detour && !b.completed; });
+    if(inProgress.length === 0){
+      emptyNote.hidden = false;
+      emptyNote.textContent = (state.books.length === 0)
+        ? "No books yet — add your first destination above."
+        : (hasDetours ? "Everything's on a detour right now — return one below to keep reading." : "No books yet — add your first destination above.");
+    } else {
+      emptyNote.hidden = true;
+    }
     inProgress.forEach(function(book, idx){
       bookShelf.appendChild(buildBookCard(book, idx === 0, idx === inProgress.length - 1));
+    });
+  }
+
+  function renderDetourShelf(){
+    var detours = state.books.filter(function(b){ return b.detour && !b.completed; });
+    detourSection.hidden = detours.length === 0;
+    detourShelf.innerHTML = "";
+    detours.forEach(function(book){
+      var row = document.createElement("div");
+      row.className = "detour-card";
+      row.innerHTML =
+        '<span class="card-title">' + escapeHtml(book.title) + '</span>' +
+        '<span class="card-place mono">' + escapeHtml(book.place) + '</span>' +
+        '<button type="button" data-undetour="' + book.id + '">back to itinerary</button>';
+      detourShelf.appendChild(row);
     });
   }
 
@@ -932,6 +1146,8 @@
       '</div>' +
       '<div class="card-actions">' +
         '<button type="button" class="checkin-btn" data-checkin="' + book.id + '">Check in</button>' +
+        '<button type="button" class="icon-btn" data-edit="' + book.id + '" title="edit details" aria-label="edit details">\u270E</button>' +
+        '<button type="button" class="detour-btn" data-detour="' + book.id + '" title="set aside as a detour">Detour</button>' +
         '<button type="button" class="icon-btn" data-move-up="' + book.id + '" ' + (isFirst ? "disabled" : "") + ' title="move up">\u25B2</button>' +
         '<button type="button" class="icon-btn" data-move-down="' + book.id + '" ' + (isLast ? "disabled" : "") + ' title="move down">\u25BC</button>' +
         '<button type="button" class="remove-btn" data-remove="' + book.id + '">remove</button>' +
@@ -1161,6 +1377,55 @@
     '</svg>';
   }
 
+  // ---------- full passport spread ----------
+
+  function renderPassportBook(){
+    var completed = state.books.filter(function(b){ return b.completed; });
+    passportPageLeft.querySelectorAll(".pb-stamp").forEach(function(n){ n.remove(); });
+    passportPageRight.querySelectorAll(".pb-stamp").forEach(function(n){ n.remove(); });
+    emptyPassportBookNote.hidden = completed.length > 0;
+
+    var pages = Math.max(1, Math.ceil(completed.length / 8));
+    $("pbPageNoLeft").textContent = String(pages * 2 - 1);
+    $("pbPageNoRight").textContent = String(pages * 2);
+
+    completed.forEach(function(book, i){
+      var h = hashStr(book.id, 41);
+      var page = (i % 2 === 0) ? passportPageLeft : passportPageRight;
+      var leftPct = 6 + (h % 58);
+      var topPct = 14 + ((h >> 6) % 62);
+      var rot = -20 + (h % 41);
+      var size = 116 + (h % 34);
+      var wrap = document.createElement("div");
+      wrap.className = "pb-stamp";
+      wrap.dataset.book = book.id;
+      wrap.style.left = leftPct + "%";
+      wrap.style.top = topPct + "%";
+      wrap.style.width = size + "px";
+      wrap.style.setProperty("--rot", rot + "deg");
+      wrap.style.zIndex = String(i + 1);
+      wrap.setAttribute("role", "button");
+      wrap.setAttribute("tabindex", "0");
+      wrap.title = "view stamp";
+      wrap.innerHTML = buildStampSVG(book);
+      page.appendChild(wrap);
+    });
+  }
+
+  function openPassportBook(){
+    renderPassportBook();
+    passportBookOverlay.hidden = false;
+  }
+
+  function closePassportBook(){ passportBookOverlay.hidden = true; }
+
+  function handlePassportStampClick(e){
+    var el = e.target.closest(".pb-stamp[data-book]");
+    if(!el) return;
+    var book = state.books.find(function(b){ return b.id === el.dataset.book; });
+    if(book) openStamp(book);
+  }
+
   function renderStats(){
     var today = todayStr();
     var todaySessions = state.sessions.filter(function(s){ return s.date === today; });
@@ -1246,7 +1511,8 @@
       completed: false,
       completedDate: null,
       addedDate: todayStr(),
-      queued: true
+      queued: true,
+      detour: false
     };
     state.books.push(book);
     saveState();
@@ -1270,6 +1536,50 @@
   function setAllQueued(queued){
     state.books.forEach(function(b){ if(!b.completed) b.queued = queued; });
     saveState();
+    render();
+  }
+
+  function toggleDetour(id, detour){
+    var book = state.books.find(function(b){ return b.id === id; });
+    if(!book) return;
+    book.detour = detour;
+    saveState();
+    render();
+  }
+
+  function openEditBook(book){
+    editingBookId = book.id;
+    editTitle.value = book.title;
+    editPlace.value = book.place;
+    editChapters.value = book.totalChapters;
+    editBookOverlay.hidden = false;
+    editTitle.focus();
+  }
+
+  function closeEditBook(){
+    editBookOverlay.hidden = true;
+    editingBookId = null;
+  }
+
+  function saveEditBook(){
+    var book = state.books.find(function(b){ return b.id === editingBookId; });
+    if(!book){ closeEditBook(); return; }
+    var title = editTitle.value.trim();
+    var place = editPlace.value.trim();
+    var chapters = parseInt(editChapters.value, 10);
+    if(!title || !place || !chapters || chapters < 1){
+      alert("Please fill in a title, place, and a valid chapter count.");
+      return;
+    }
+    book.title = title;
+    book.place = place;
+    book.totalChapters = chapters;
+    if(book.currentChapter > chapters) book.currentChapter = chapters;
+    var wasCompleted = book.completed;
+    book.completed = book.totalChapters > 0 && book.currentChapter >= book.totalChapters;
+    if(book.completed && !wasCompleted) book.completedDate = todayStr();
+    if(!book.completed) book.completedDate = null;
+    closeEditBook();
     render();
   }
 
@@ -1806,6 +2116,8 @@
     var removeBtn = e.target.closest("[data-remove]");
     var upBtn = e.target.closest("[data-move-up]");
     var downBtn = e.target.closest("[data-move-down]");
+    var editBtn = e.target.closest("[data-edit]");
+    var detourBtn = e.target.closest("[data-detour]");
     if(checkinBtn){
       var book = state.books.find(function(b){ return b.id === checkinBtn.dataset.checkin; });
       if(book) openSingleCheckin(book);
@@ -1815,11 +2127,35 @@
     }
     if(upBtn) moveBook(upBtn.dataset.moveUp, -1);
     if(downBtn) moveBook(downBtn.dataset.moveDown, 1);
+    if(editBtn){
+      var editingBook = state.books.find(function(b){ return b.id === editBtn.dataset.edit; });
+      if(editingBook) openEditBook(editingBook);
+    }
+    if(detourBtn){
+      toggleDetour(detourBtn.dataset.detour, true);
+    }
   });
 
   bookShelf.addEventListener("change", function(e){
     var toggle = e.target.closest("[data-queue-toggle]");
     if(toggle) toggleQueue(toggle.dataset.queueToggle, toggle.checked);
+  });
+
+  detourShelf.addEventListener("click", function(e){
+    var backBtn = e.target.closest("[data-undetour]");
+    if(backBtn) toggleDetour(backBtn.dataset.undetour, false);
+  });
+
+  editSave.addEventListener("click", saveEditBook);
+  editCancel.addEventListener("click", closeEditBook);
+  editBookOverlay.addEventListener("click", function(e){
+    if(e.target === editBookOverlay) closeEditBook();
+  });
+  editBookOverlay.addEventListener("keydown", function(e){
+    if(e.key === "Enter" && document.activeElement && document.activeElement.tagName === "INPUT"){
+      e.preventDefault();
+      saveEditBook();
+    }
   });
 
   checkinSave.addEventListener("click", function(){
@@ -1878,6 +2214,21 @@
   });
   document.addEventListener("keydown", function(e){
     if(e.key === "Escape" && !stampOverlay.hidden) closeStamp();
+    if(e.key === "Escape" && !passportBookOverlay.hidden) closePassportBook();
+  });
+
+  openPassportBtn.addEventListener("click", openPassportBook);
+  passportBookClose.addEventListener("click", closePassportBook);
+  passportBookOverlay.addEventListener("click", function(e){
+    if(e.target === passportBookOverlay) closePassportBook();
+  });
+  passportPageLeft.addEventListener("click", handlePassportStampClick);
+  passportPageRight.addEventListener("click", handlePassportStampClick);
+  passportPageLeft.addEventListener("keydown", function(e){
+    if(e.key === "Enter" || e.key === " "){ e.preventDefault(); handlePassportStampClick(e); }
+  });
+  passportPageRight.addEventListener("keydown", function(e){
+    if(e.key === "Enter" || e.key === " "){ e.preventDefault(); handlePassportStampClick(e); }
   });
 
   exportBtn.addEventListener("click", function(){
@@ -1906,7 +2257,7 @@
           return;
         }
         if(confirm("Loading this file will replace your current itinerary. Continue?")){
-          parsed.books.forEach(function(b){ if(typeof b.queued === "undefined") b.queued = true; });
+          parsed.books.forEach(function(b){ if(typeof b.queued === "undefined") b.queued = true; if(typeof b.detour === "undefined") b.detour = false; });
           state = { books: parsed.books || [], sessions: parsed.sessions || [], chapterLog: parsed.chapterLog || [] };
           saveState();
           render();
@@ -1939,7 +2290,7 @@
     },
     loadFromRemote: function(remote){
       if(!remote || !Array.isArray(remote.books)) return false;
-      remote.books.forEach(function(b){ if(typeof b.queued === "undefined") b.queued = true; });
+      remote.books.forEach(function(b){ if(typeof b.queued === "undefined") b.queued = true; if(typeof b.detour === "undefined") b.detour = false; });
       state = {
         books: remote.books || [],
         sessions: remote.sessions || [],
