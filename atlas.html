@@ -571,6 +571,22 @@
     width:80%; text-align:center; margin:0;
   }
 
+  .passport-export-row{
+    text-align:center; margin:0 0 12px; font-size:11px;
+  }
+  .passport-export-row .link-btn{ font-size:11px; }
+  .passport-export-sep{ color:var(--ink-faint); margin:0 8px; }
+
+  @media print{
+    body *{ visibility:hidden; }
+    #passportBookOverlay, #passportBookOverlay *{ visibility:visible; }
+    #passportBookOverlay{
+      position:absolute; inset:0; background:#fff !important; padding:0; display:block;
+    }
+    .passport-book{ box-shadow:none; max-height:none; overflow:visible; margin:0; }
+    .passport-book-close, .passport-export-row{ display:none !important; }
+  }
+
   /* ---------- journey log ---------- */
 
   section.journey{
@@ -599,7 +615,7 @@
   }
   .recent-row span.place{ color:var(--stamp-teal); }
 
-  .card-download-row{ padding-left:10px; margin-top:20px; }
+  .card-download-row{ padding-left:10px; margin-top:20px; display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px; }
 
   /* ---------- footer / data controls ---------- */
 
@@ -809,6 +825,7 @@
       <label class="field-label" for="cardDate" style="display:inline-block; margin-right:8px;">card date</label>
       <input type="date" id="cardDate" class="mono" style="font-family:'Courier Prime', monospace; padding:6px 8px; border:1px solid var(--line); border-radius:var(--radius); background:var(--page-alt); color:var(--ink);">
       <button type="button" class="btn secondary" id="downloadCardBtn">Download library card</button>
+      <button type="button" class="btn secondary" id="downloadDetailedLogBtn">Download detailed log</button>
     </div>
   </section>
 </main>
@@ -881,6 +898,11 @@
 <div class="modal-overlay passport-book-overlay" id="passportBookOverlay" hidden>
   <div class="passport-book" id="passportBook">
     <button type="button" class="passport-book-close" id="passportBookClose" aria-label="Close passport">&times;</button>
+    <div class="passport-export-row">
+      <button type="button" class="link-btn mono" id="downloadPassportImageBtn">download as image</button>
+      <span class="passport-export-sep">&middot;</span>
+      <button type="button" class="link-btn mono" id="printPassportBtn">print / save as PDF</button>
+    </div>
     <div class="passport-book-spread">
       <div class="passport-book-page left" id="passportPageLeft">
         <span class="pg-no mono" id="pbPageNoLeft">10</span>
@@ -986,6 +1008,7 @@
   var recentFinished = $("recentFinished");
   var exportBtn = $("exportBtn");
   var downloadCardBtn = $("downloadCardBtn");
+  var downloadDetailedLogBtn = $("downloadDetailedLogBtn");
   var cardDateInput = $("cardDate");
   var importFile = $("importFile");
   var clearBtn = $("clearBtn");
@@ -1013,6 +1036,8 @@
   var passportPageLeft = $("passportPageLeft");
   var passportPageRight = $("passportPageRight");
   var emptyPassportBookNote = $("emptyPassportBookNote");
+  var downloadPassportImageBtn = $("downloadPassportImageBtn");
+  var printPassportBtn = $("printPassportBtn");
   var issueLine = document.querySelector(".issue-line");
 
   var pendingIsSessionEnd = false;
@@ -1180,7 +1205,7 @@
 
   // ---------- passport stamp artwork ----------
 
-  var STAMP_COLOR_HEX = ["#a83f2b","#3c6e63","#bd8a2e","#6c4159","#2a4a6b","#3f5c3a","#a8632b","#3a5f6e","#5c4a80"];
+  var STAMP_COLOR_HEX = ["#8a3323","#2f5a50","#8f6118","#5a3348","#213d59","#33492f","#8f5322","#2f4d58","#4a3c6b"];
   var STAMP_LABELS = ["ARRIVAL","DEPARTED","DEPARTED","VISA FREE","CONTROL","ARRIVED","CLEARED","CUSTOMS","TRANSIT"];
 
   function hashStr(str, seed){
@@ -1238,7 +1263,9 @@
     return text.length > maxLen ? ' textLength="' + width + '" lengthAdjust="spacingAndGlyphs"' : '';
   }
 
-  function buildStampSVG(book){
+  function buildStampSVG(book, opts){
+    opts = opts || {};
+    var standalone = !!opts.standalone;
     var shape = stampShapeIndex(book.id);
     var color = STAMP_COLOR_HEX[shape];
     var label = STAMP_LABELS[shape];
@@ -1247,6 +1274,7 @@
     var title = escapeHtml(book.title);
     var date = book.completedDate ? formatDate(book.completedDate) : "";
     var W = 200, H = 170, cx = 100, cy = 85;
+    var filterId = standalone ? ("roughen_" + book.id.replace(/[^a-zA-Z0-9]/g, "")) : "stampRoughen";
 
     var shapeMarkup = "", textMarkup = "";
 
@@ -1360,24 +1388,44 @@
         '<text x="100" y="127" text-anchor="middle" class="s-date-sm">' + date + '</text>';
     }
 
+    var defsMarkup = standalone
+      ? ('<defs><filter id="' + filterId + '" x="-30%" y="-30%" width="160%" height="160%">' +
+          '<feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="2" seed="7" result="noise"/>' +
+          '<feDisplacementMap in="SourceGraphic" in2="noise" scale="3.5" xChannelSelector="R" yChannelSelector="G"/>' +
+        '</filter></defs>')
+      : "";
+
     return '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="color:' + color + '">' +
-      '<g fill="none" stroke="currentColor" stroke-width="3.5" filter="url(#stampRoughen)" opacity=".92">' + shapeMarkup + '</g>' +
+      defsMarkup +
+      '<g fill="rgba(246,239,221,.62)" stroke="currentColor" stroke-width="3.5" filter="url(#' + filterId + ')" opacity=".94">' + shapeMarkup + '</g>' +
+      '<g fill="#fdf8ea" stroke="#fdf8ea" stroke-width="3" stroke-linejoin="round" opacity=".95">' + textMarkup + '</g>' +
       '<g fill="currentColor" stroke="none">' + textMarkup + '</g>' +
       '<style>' +
         '.s-label{font:700 8.5px \'Courier Prime\',monospace;letter-spacing:1px;}' +
         '.s-label-sm{font:700 7.5px \'Courier Prime\',monospace;letter-spacing:.8px;}' +
         '.s-place{font:700 19px \'Fraunces\',serif;}' +
-        '.s-title{font:9px \'Courier Prime\',monospace;}' +
-        '.s-date{font:10px \'Courier Prime\',monospace;}' +
-        '.s-date-sm{font:8.5px \'Courier Prime\',monospace;}' +
-        '.s-serial{font:8px \'Courier Prime\',monospace;opacity:.75;}' +
-        '.s-serial-c{font:9px \'Courier Prime\',monospace;opacity:.8;}' +
+        '.s-title{font:600 9px \'Courier Prime\',monospace;}' +
+        '.s-date{font:700 10px \'Courier Prime\',monospace;}' +
+        '.s-date-sm{font:700 8.5px \'Courier Prime\',monospace;}' +
+        '.s-serial{font:700 8px \'Courier Prime\',monospace;opacity:.85;}' +
+        '.s-serial-c{font:700 9px \'Courier Prime\',monospace;opacity:.9;}' +
         '.s-x{font:700 15px \'Fraunces\',serif;}' +
       '</style>' +
     '</svg>';
   }
 
   // ---------- full passport spread ----------
+
+  function computeStampLayout(book, index){
+    var h = hashStr(book.id, 41);
+    return {
+      page: (index % 2 === 0) ? "left" : "right",
+      leftPct: 6 + (h % 58),
+      topPct: 14 + ((h >> 6) % 62),
+      rot: -20 + (h % 41),
+      size: 116 + (h % 34)
+    };
+  }
 
   function renderPassportBook(){
     var completed = state.books.filter(function(b){ return b.completed; });
@@ -1390,19 +1438,15 @@
     $("pbPageNoRight").textContent = String(pages * 2);
 
     completed.forEach(function(book, i){
-      var h = hashStr(book.id, 41);
-      var page = (i % 2 === 0) ? passportPageLeft : passportPageRight;
-      var leftPct = 6 + (h % 58);
-      var topPct = 14 + ((h >> 6) % 62);
-      var rot = -20 + (h % 41);
-      var size = 116 + (h % 34);
+      var layout = computeStampLayout(book, i);
+      var page = (layout.page === "left") ? passportPageLeft : passportPageRight;
       var wrap = document.createElement("div");
       wrap.className = "pb-stamp";
       wrap.dataset.book = book.id;
-      wrap.style.left = leftPct + "%";
-      wrap.style.top = topPct + "%";
-      wrap.style.width = size + "px";
-      wrap.style.setProperty("--rot", rot + "deg");
+      wrap.style.left = layout.leftPct + "%";
+      wrap.style.top = layout.topPct + "%";
+      wrap.style.width = layout.size + "px";
+      wrap.style.setProperty("--rot", layout.rot + "deg");
       wrap.style.zIndex = String(i + 1);
       wrap.setAttribute("role", "button");
       wrap.setAttribute("tabindex", "0");
@@ -1424,6 +1468,147 @@
     if(!el) return;
     var book = state.books.find(function(b){ return b.id === el.dataset.book; });
     if(book) openStamp(book);
+  }
+
+  function svgStringToImage(svgString){
+    return new Promise(function(resolve, reject){
+      var img = new Image();
+      img.onload = function(){ resolve(img); };
+      img.onerror = reject;
+      img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgString);
+    });
+  }
+
+  function downloadPassportImage(){
+    var completed = state.books.filter(function(b){ return b.completed; });
+    if(completed.length === 0){
+      alert("No stamps yet — finish a book to fill these pages.");
+      return;
+    }
+
+    var PAGE_W = 640, PAGE_H = 760, GUTTER = 26, MARGIN = 34;
+    var W = MARGIN * 2 + PAGE_W * 2 + GUTTER;
+    var H = MARGIN * 2 + PAGE_H;
+
+    var pages = Math.max(1, Math.ceil(completed.length / 8));
+    var pageNoLeft = pages * 2 - 1;
+    var pageNoRight = pages * 2;
+
+    var jobs = completed.map(function(book, i){
+      var layout = computeStampLayout(book, i);
+      return svgStringToImage(buildStampSVG(book, { standalone: true })).then(function(img){
+        return { img: img, layout: layout, i: i };
+      });
+    });
+
+    var ready = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+
+    Promise.all([ready, Promise.all(jobs)]).then(function(results){
+      var stamps = results[1];
+      var canvas = document.createElement("canvas");
+      canvas.width = W;
+      canvas.height = H;
+      var ctx = canvas.getContext("2d");
+
+      // page background
+      ctx.fillStyle = "#f6efdd";
+      ctx.fillRect(0, 0, W, H);
+
+      function paintPageBlobs(x0, y0){
+        var blobs = [
+          { x: 0.12, y: 0.16, r: 130, c: "rgba(60,110,99,.16)" },
+          { x: 0.55, y: 0.08, r: 120, c: "rgba(189,138,46,.16)" },
+          { x: 0.82, y: 0.3, r: 130, c: "rgba(168,63,43,.13)" },
+          { x: 0.28, y: 0.56, r: 150, c: "rgba(42,74,107,.15)" },
+          { x: 0.76, y: 0.72, r: 140, c: "rgba(108,65,89,.13)" },
+          { x: 0.16, y: 0.86, r: 120, c: "rgba(63,92,58,.13)" }
+        ];
+        blobs.forEach(function(b){
+          var bx = x0 + b.x * PAGE_W, by = y0 + b.y * PAGE_H;
+          var grad = ctx.createRadialGradient(bx, by, 0, bx, by, b.r);
+          grad.addColorStop(0, b.c);
+          grad.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.fillStyle = grad;
+          ctx.fillRect(x0, y0, PAGE_W, PAGE_H);
+        });
+        ctx.strokeStyle = "rgba(43,38,32,.045)";
+        ctx.lineWidth = 1;
+        for(var ly = y0; ly < y0 + PAGE_H; ly += 32){
+          ctx.beginPath();
+          ctx.moveTo(x0, ly);
+          ctx.lineTo(x0 + PAGE_W, ly);
+          ctx.stroke();
+        }
+      }
+
+      var leftX = MARGIN, rightX = MARGIN + PAGE_W + GUTTER, topY = MARGIN;
+      paintPageBlobs(leftX, topY);
+      paintPageBlobs(rightX, topY);
+
+      // gutter fold shadow
+      var gutterGrad = ctx.createLinearGradient(leftX + PAGE_W, 0, rightX, 0);
+      gutterGrad.addColorStop(0, "rgba(43,38,32,0)");
+      gutterGrad.addColorStop(0.5, "rgba(43,38,32,.16)");
+      gutterGrad.addColorStop(1, "rgba(43,38,32,0)");
+      ctx.fillStyle = gutterGrad;
+      ctx.fillRect(leftX + PAGE_W, topY, GUTTER, PAGE_H);
+
+      // page numbers
+      ctx.fillStyle = "#948a76";
+      ctx.font = "13px 'Courier Prime', monospace";
+      ctx.textAlign = "left";
+      ctx.fillText(String(pageNoLeft), leftX + 4, topY + 20);
+      ctx.textAlign = "right";
+      ctx.fillText(String(pageNoRight), rightX + PAGE_W - 4, topY + 20);
+
+      // outer border frame
+      ctx.strokeStyle = "#b8934f";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(6, 6, W - 12, H - 12);
+
+      // stamps
+      stamps.forEach(function(s){
+        var pageX = (s.layout.page === "left") ? leftX : rightX;
+        var w = s.layout.size;
+        var h = w * (170 / 200);
+        var cx = pageX + (s.layout.leftPct / 100) * PAGE_W + w / 2;
+        var cy = topY + (s.layout.topPct / 100) * PAGE_H + h / 2;
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(s.layout.rot * Math.PI / 180);
+        ctx.shadowColor = "rgba(19,29,39,.3)";
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 3;
+        ctx.drawImage(s.img, -w / 2, -h / 2, w, h);
+        ctx.restore();
+      });
+
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#948a76";
+      ctx.font = "10.5px 'Courier Prime', monospace";
+      ctx.fillText("reading atlas \u00B7 passport", W / 2, H - 14);
+
+      canvas.toBlob(function(blob){
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = "reading-atlas-passport.png";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, "image/png");
+    }).catch(function(err){
+      console.error(err);
+      alert("Something went wrong creating the passport image. Please try again.");
+    });
+  }
+
+  function printPassportBook(){
+    if(passportBookOverlay.hidden){
+      openPassportBook();
+    }
+    setTimeout(function(){ window.print(); }, 50);
   }
 
   function renderStats(){
@@ -2004,6 +2189,159 @@
     }, "image/png");
   }
 
+  function buildDetailedLogDataForDate(dateStr){
+    var daySessions = state.sessions.filter(function(s){ return s.date === dateStr; })
+      .sort(function(a, b){ return a.ts - b.ts; });
+    var rows = daySessions.map(function(s){
+      var book = state.books.find(function(b){ return b.id === s.bookId; });
+      return {
+        time: new Date(s.ts).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }),
+        minutes: s.minutes,
+        title: book ? book.title : "(removed book)",
+        place: book ? book.place : ""
+      };
+    });
+    var totalMinutesThatDay = daySessions.reduce(function(sum, s){ return sum + s.minutes; }, 0);
+    var allTimeMinutes = state.sessions.reduce(function(sum, s){ return sum + s.minutes; }, 0);
+    return {
+      rows: rows,
+      totalMinutesThatDay: totalMinutesThatDay,
+      sessionCountThatDay: daySessions.length,
+      allTimeMinutes: allTimeMinutes,
+      allTimeSessions: state.sessions.length
+    };
+  }
+
+  function downloadDetailedLog(){
+    var chosenDate = (cardDateInput && cardDateInput.value) ? cardDateInput.value : todayStr();
+    var data = buildDetailedLogDataForDate(chosenDate);
+
+    if(data.rows.length === 0){
+      alert("No reading sessions logged on " + formatDate(chosenDate) + " — pick a different date or check in on a book first.");
+      return;
+    }
+
+    var ready = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+    ready.then(function(){ renderDetailedLogCanvas(data, chosenDate); });
+  }
+
+  function renderDetailedLogCanvas(data, today){
+    var W = 860;
+    var padX = 60;
+
+    var y = 230 + data.rows.length * 30 + 130;
+    var H = Math.max(560, y);
+
+    var canvas = document.createElement("canvas");
+    canvas.width = W;
+    canvas.height = H;
+    var ctx = canvas.getContext("2d");
+
+    ctx.fillStyle = "#f6efdd";
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.strokeStyle = "#b8934f";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(18, 18, W - 36, H - 36);
+    ctx.strokeStyle = "rgba(43,38,32,.35)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(28, 28, W - 56, H - 56);
+
+    var cx = W / 2;
+    var cursorY = 78;
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#6c4159";
+    ctx.font = "12px 'Courier Prime', monospace";
+    ctx.fillText("R E A D I N G   A T L A S   \u00B7   S E S S I O N   L O G", cx, cursorY);
+
+    cursorY += 40;
+    ctx.fillStyle = "#2b2620";
+    ctx.font = "600 34px 'Fraunces', serif";
+    ctx.fillText(formatDate(today), cx, cursorY);
+
+    cursorY += 22;
+    ctx.fillStyle = "#6b6154";
+    ctx.font = "11px 'Courier Prime', monospace";
+    ctx.fillText(data.sessionCountThatDay + " session" + (data.sessionCountThatDay === 1 ? "" : "s") + "  \u00B7  " + data.totalMinutesThatDay + " minutes total that day", cx, cursorY);
+
+    cursorY += 26;
+    ctx.strokeStyle = "rgba(43,38,32,.3)";
+    ctx.setLineDash([4,4]);
+    ctx.beginPath();
+    ctx.moveTo(padX, cursorY);
+    ctx.lineTo(W - padX, cursorY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    cursorY += 34;
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#948a76";
+    ctx.font = "600 11px 'Courier Prime', monospace";
+    ctx.fillText("TIME", padX, cursorY);
+    ctx.fillText("BOOK", padX + 100, cursorY);
+    ctx.textAlign = "right";
+    ctx.fillText("MINUTES", W - padX, cursorY);
+    ctx.textAlign = "left";
+
+    cursorY += 12;
+    ctx.strokeStyle = "rgba(43,38,32,.18)";
+    ctx.beginPath();
+    ctx.moveTo(padX, cursorY);
+    ctx.lineTo(W - padX, cursorY);
+    ctx.stroke();
+
+    cursorY += 24;
+    data.rows.forEach(function(row){
+      ctx.font = "12px 'Courier Prime', monospace";
+      ctx.fillStyle = "#6b6154";
+      ctx.fillText(row.time, padX, cursorY);
+
+      ctx.fillStyle = "#2b2620";
+      ctx.font = "600 13px 'Fraunces', serif";
+      var label = wrapAndFit(ctx, row.title + (row.place ? "  \u2014  " + row.place : ""), 470, "600 13px 'Fraunces', serif");
+      ctx.fillText(label, padX + 100, cursorY);
+
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#3c6e63";
+      ctx.font = "600 13px 'Courier Prime', monospace";
+      ctx.fillText(row.minutes + " min", W - padX, cursorY);
+      ctx.textAlign = "left";
+
+      cursorY += 30;
+    });
+
+    cursorY += 10;
+    ctx.strokeStyle = "rgba(43,38,32,.3)";
+    ctx.setLineDash([4,4]);
+    ctx.beginPath();
+    ctx.moveTo(padX, cursorY);
+    ctx.lineTo(W - padX, cursorY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    cursorY += 34;
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#2b2620";
+    ctx.font = "600 16px 'Fraunces', serif";
+    ctx.fillText("All-time: " + data.allTimeSessions + " session" + (data.allTimeSessions === 1 ? "" : "s") + "  \u00B7  " + data.allTimeMinutes + " minutes read", cx, cursorY);
+
+    ctx.fillStyle = "#948a76";
+    ctx.font = "10.5px 'Courier Prime', monospace";
+    ctx.fillText("reading atlas \u00B7 " + formatDate(today), cx, H - 34);
+
+    canvas.toBlob(function(blob){
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "reading-atlas-detailed-log-" + today + ".png";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, "image/png");
+  }
+
   // ---------- events ----------
 
 
@@ -2182,7 +2520,9 @@
   function openStamp(book){
     stampLarge.innerHTML = buildStampSVG(book);
     var sessionCount = state.chapterLog.filter(function(l){ return l.bookId === book.id; }).length;
-    stampCaption.textContent = book.totalChapters + " chapters \u00B7 " + sessionCount + " session" + (sessionCount === 1 ? "" : "s") + " logged";
+    var totalMinutesForBook = state.sessions.filter(function(s){ return s.bookId === book.id; })
+      .reduce(function(sum, s){ return sum + s.minutes; }, 0);
+    stampCaption.textContent = book.totalChapters + " chapters \u00B7 " + sessionCount + " session" + (sessionCount === 1 ? "" : "s") + " logged \u00B7 " + totalMinutesForBook + " min total";
     stampOverlay.hidden = false;
     stampLarge.classList.remove("stamp-anim");
     void stampLarge.offsetWidth; // force reflow so the animation replays every time
@@ -2231,6 +2571,9 @@
     if(e.key === "Enter" || e.key === " "){ e.preventDefault(); handlePassportStampClick(e); }
   });
 
+  downloadPassportImageBtn.addEventListener("click", downloadPassportImage);
+  printPassportBtn.addEventListener("click", printPassportBook);
+
   exportBtn.addEventListener("click", function(){
     var blob = new Blob([JSON.stringify(state, null, 2)], { type:"application/json" });
     var url = URL.createObjectURL(blob);
@@ -2244,6 +2587,7 @@
   });
 
   downloadCardBtn.addEventListener("click", downloadLibraryCard);
+  downloadDetailedLogBtn.addEventListener("click", downloadDetailedLog);
 
   importFile.addEventListener("change", function(e){
     var file = e.target.files[0];
