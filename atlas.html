@@ -1421,7 +1421,7 @@
     return {
       page: (index % 2 === 0) ? "left" : "right",
       leftPct: 6 + (h % 58),
-      topPct: 14 + ((h >> 6) % 62),
+      topPct: 14 + ((h >>> 6) % 62),
       rot: -20 + (h % 41),
       size: 116 + (h % 34)
     };
