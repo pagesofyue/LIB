@@ -353,6 +353,10 @@ body[data-theme="velaris"] .reader-intro p{color:#D2C6F1;text-shadow:0 1px 6px r
 .stat-scope-toggle{display:flex;font-family:var(--font-mono);font-size:10px;border:1px solid var(--line-strong);border-radius:20px;overflow:hidden;flex:none;}
 .stat-scope-toggle button{border:none;background:none;padding:3px 8px;cursor:pointer;color:var(--muted);font-family:var(--font-mono);font-size:10px;}
 .stat-scope-toggle button.active{background:var(--accent);color:var(--card);}
+.due-soon-settings{position:relative;flex:none;}
+.due-soon-gear-btn{border:1px solid var(--line-strong);background:var(--card);border-radius:50%;width:18px;height:18px;line-height:1;font-size:11px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
+.due-soon-gear-btn:hover{color:var(--ink);border-color:var(--accent);}
+.due-soon-panel{left:auto;right:0;min-width:200px;}
 .format-tabs{display:flex;flex-wrap:wrap;gap:4px;font-family:var(--font-mono);font-size:10px;margin:2px 0 8px;}
 .format-tabs button{border:1px solid var(--line-strong);background:var(--card);border-radius:12px;padding:2px 7px;cursor:pointer;color:var(--muted);font-family:var(--font-mono);font-size:10px;white-space:nowrap;}
 .format-tabs button.active{background:var(--accent);color:var(--card);border-color:var(--accent);}
@@ -1612,6 +1616,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       isARC: !!b.isARC,
       arcSource: b.arcSource || '',
       dueDate: b.dueDate || '',
+      noDeadline: !!b.noDeadline,
       arcFormLink: b.arcFormLink || '',
       platformId: b.platformId || ''
     };
@@ -1636,6 +1641,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         target.isARC = true;
         target.arcSource = b.arcSource || '';
         target.dueDate = b.dueDate || '';
+        target.noDeadline = !!b.noDeadline;
         target.arcFormLink = b.arcFormLink || '';
         if(target.type !== 'Paperback' && !target.platformId) target.platformId = b.platformId || '';
       }
@@ -1975,7 +1981,20 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     el.innerHTML =
       '<div class="stats-row-primary">' +
         '<div class="stat clickable-stat" id="statReading"><div class="num">' + reading + '</div><div class="label">Currently reading</div></div>' +
-        '<div class="stat clickable-stat' + (dueSoon > 0 ? ' alert' : '') + '" id="statDueSoon"><div class="num">' + dueSoon + '</div><div class="label">Due within ' + DUE_SOON_DAYS + ' days</div></div>' +
+        '<div class="stat clickable-stat' + (dueSoon > 0 ? ' alert' : '') + '" id="statDueSoon">' +
+          '<div class="num">' + dueSoon + '</div>' +
+          '<div class="stat-label-row">' +
+            '<div class="label">Due within ' + DUE_SOON_DAYS + ' days</div>' +
+            '<div class="due-soon-settings" id="dueSoonSettingsWrap">' +
+              '<button type="button" class="due-soon-gear-btn" id="dueSoonGearBtn" title="Choose what counts as due">⚙</button>' +
+              '<div class="sort-dropdown-panel due-soon-panel" id="dueSoonPanel" style="display:none;">' +
+                '<p class="sort-dropdown-hint">Off by default — paused or abandoned books don\'t count as due.</p>' +
+                '<label class="sort-check-row"><input type="checkbox" id="dueSoonIncludeHoldCb"' + (dueSoonIncludeHold ? ' checked' : '') + '><span class="sort-badge"></span>Include On Hold</label>' +
+                '<label class="sort-check-row"><input type="checkbox" id="dueSoonIncludeDnfCb"' + (dueSoonIncludeDnf ? ' checked' : '') + '><span class="sort-badge"></span>Include DNF</label>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
         '<div class="stat clickable-stat' + (needsReview > 0 ? ' alert' : '') + '" id="statNeedsReview"><div class="num">' + needsReview + '</div><div class="label">For review</div></div>' +
       '</div>' +
       '<div class="stats-row-secondary">' +
@@ -2007,12 +2026,30 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       dueSoonFilterActive = false;
       render();
     };
-    document.getElementById('statDueSoon').onclick = function(){
+    document.getElementById('statDueSoon').onclick = function(e){
+      if(e.target.closest('.due-soon-settings')) return;
       switchView('navLibrary');
       activeStatus = 'all';
       dueSoonFilterActive = true;
       render();
     };
+    document.getElementById('dueSoonGearBtn').onclick = function(e){
+      e.stopPropagation();
+      var panel = document.getElementById('dueSoonPanel');
+      panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    };
+    document.getElementById('dueSoonIncludeHoldCb').addEventListener('click', function(e){ e.stopPropagation(); });
+    document.getElementById('dueSoonIncludeDnfCb').addEventListener('click', function(e){ e.stopPropagation(); });
+    document.getElementById('dueSoonIncludeHoldCb').addEventListener('change', function(){
+      dueSoonIncludeHold = this.checked;
+      saveDueSoonPrefs();
+      render();
+    });
+    document.getElementById('dueSoonIncludeDnfCb').addEventListener('change', function(){
+      dueSoonIncludeDnf = this.checked;
+      saveDueSoonPrefs();
+      render();
+    });
     document.getElementById('statNeedsReview').onclick = function(){
       switchView('navReviews');
     };
@@ -2103,6 +2140,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       type: b.format, status: b.status, totalPages: b.totalPages, currentPage: b.currentPage,
       ownership: b.ownership, borrowDueDate: b.borrowDueDate, dnfReason: b.dnfReason, cover: b.cover,
       rating: b.rating || 0, isARC: !!b.isARC, arcSource: b.arcSource || '', dueDate: b.dueDate || '',
+      noDeadline: !!b.noDeadline,
       arcFormLink: b.arcFormLink || '', platformId: b.platformId || ''
     }] : [];
   }
@@ -2131,14 +2169,43 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     return withPages || finished[0] || null;
   }
 
+  // Whether the aggregate "due" calculations (stats card, calendar, sorting)
+  // count formats that are On Hold and/or DNF as still due. Off by default —
+  // pausing or abandoning a copy means it's no longer really "due" — but the
+  // person can opt back in via the checklist next to the Due Soon stat.
+  var dueSoonIncludeHold = false;
+  var dueSoonIncludeDnf = false;
+  try{
+    var savedDueSoonPrefs = JSON.parse(localStorage.getItem('hiraya_dueSoonPrefs') || '{}');
+    dueSoonIncludeHold = !!savedDueSoonPrefs.includeHold;
+    dueSoonIncludeDnf = !!savedDueSoonPrefs.includeDnf;
+  }catch(e){}
+  function saveDueSoonPrefs(){
+    try{ localStorage.setItem('hiraya_dueSoonPrefs', JSON.stringify({includeHold: dueSoonIncludeHold, includeDnf: dueSoonIncludeDnf})); }catch(e){}
+  }
+
+  // Last calendar day of the given month (defaults to the current month),
+  // as a YYYY-MM-DD string. Used as the rolling "deadline" for ARC copies
+  // marked No Deadline: it's always this month's end while unread, then
+  // automatically becomes next month's end once this month passes.
+  function endOfMonthISO(d){
+    d = d || new Date();
+    var last = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+    return last.getFullYear() + '-' + pad2(last.getMonth() + 1) + '-' + pad2(last.getDate());
+  }
+
   function effectiveDueDate(b){
     var candidates = [];
     formatInstancesOf(b).forEach(function(f){
-      if(f.isARC && f.dueDate && f.status !== 'finished' && f.status !== 'dnf'){
+      if(f.status === 'finished') return;
+      if(f.status === 'dnf' && !dueSoonIncludeDnf) return;
+      if(f.status === 'hold' && !dueSoonIncludeHold) return;
+      if(f.isARC && f.noDeadline){
+        candidates.push(endOfMonthISO());
+      } else if(f.isARC && f.dueDate){
         candidates.push(f.dueDate);
       }
-      if(f.type === 'Paperback' && f.ownership === 'Borrowed' && f.borrowDueDate &&
-         f.status !== 'finished' && f.status !== 'dnf' && f.status !== 'hold' && f.status !== 'requested'){
+      if(f.type === 'Paperback' && f.ownership === 'Borrowed' && f.borrowDueDate && f.status !== 'requested'){
         candidates.push(f.borrowDueDate);
       }
     });
@@ -2314,7 +2381,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       type: b.format || '', status: b.status || 'want', cover: b.cover || '',
       totalPages: b.totalPages, currentPage: b.currentPage, ownership: b.ownership,
       borrowDueDate: b.borrowDueDate, dnfReason: b.dnfReason, rating: b.rating || 0, platformId: b.platformId || '',
-      isARC: !!b.isARC, arcSource: b.arcSource || '', dueDate: b.dueDate || '', arcFormLink: b.arcFormLink || ''
+      isARC: !!b.isARC, arcSource: b.arcSource || '', dueDate: b.dueDate || '', noDeadline: !!b.noDeadline, arcFormLink: b.arcFormLink || ''
     };
     var unit = af.type === 'Audiobook' ? 'chapters' : 'pages';
     var progressHtml = '';
@@ -2326,7 +2393,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
     var showDueStamp = af.status !== 'finished' && af.status !== 'dnf' && af.status !== 'hold' && af.status !== 'requested';
     var stampHtml = '';
-    if(showDueStamp && af.isARC && af.dueDate){
+    if(showDueStamp && af.isARC && af.noDeadline){
+      stampHtml = '<div class="stamp"><span class="lbl">no deadline</span><span>' + fmtShort(endOfMonthISO()) + '</span></div>';
+    } else if(showDueStamp && af.isARC && af.dueDate){
       var d = daysUntil(af.dueDate);
       var overdue = d !== null && d < 0;
       stampHtml = '<div class="stamp' + (overdue ? ' overdue' : '') + '"><span class="lbl">' + (overdue ? 'overdue' : 'due back') + '</span><span>' + fmtShort(af.dueDate) + '</span></div>';
@@ -2919,7 +2988,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
               '</div>' +
               '<div class="field">' +
                 '<label>Review due date</label>' +
-                '<input type="date" class="fmtDueDate" data-type="' + escapeHtml(type) + '" id="fmtDueDate_' + key + '" value="' + (st.dueDate || '') + '" lang="en-US">' +
+                '<input type="date" class="fmtDueDate" data-type="' + escapeHtml(type) + '" id="fmtDueDate_' + key + '" value="' + (st.dueDate || '') + '" lang="en-US"' + (st.noDeadline ? ' disabled' : '') + '>' +
+                '<div class="checkbox-row" style="margin-top:6px;">' +
+                  '<input type="checkbox" class="fmtNoDeadline" data-type="' + escapeHtml(type) + '" id="fmtNoDeadline_' + key + '"' + (st.noDeadline ? ' checked' : '') + '>' +
+                  '<label for="fmtNoDeadline_' + key + '" style="font-weight:normal;">No deadline <span style="color:var(--muted);">(auto-set to end of month, rolls forward until read)</span></label>' +
+                '</div>' +
               '</div>' +
             '</div>' +
             '<div class="field">' +
@@ -3034,6 +3107,14 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
           formatPanelState[type].dueDate = this.value;
         });
       }
+      var noDeadlineEl = document.getElementById('fmtNoDeadline_' + key);
+      if(noDeadlineEl){
+        noDeadlineEl.addEventListener('change', function(){
+          formatPanelState[type] = formatPanelState[type] || {};
+          formatPanelState[type].noDeadline = this.checked;
+          if(dueDateEl) dueDateEl.disabled = this.checked;
+        });
+      }
       var formLinkEl = document.getElementById('fmtArcFormLink_' + key);
       if(formLinkEl){
         formLinkEl.addEventListener('input', function(){
@@ -3097,6 +3178,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       var isArcEl = document.getElementById('fmtIsArc_' + key);
       var arcSourceEl = document.getElementById('fmtArcSource_' + key);
       var dueDateEl = document.getElementById('fmtDueDate_' + key);
+      var noDeadlineEl = document.getElementById('fmtNoDeadline_' + key);
       var formLinkEl = document.getElementById('fmtArcFormLink_' + key);
       var platformIdEl = document.getElementById('fmtPlatformId_' + key);
       if(totalEl) formatPanelState[type].totalPages = totalEl.value ? Number(totalEl.value) : null;
@@ -3107,6 +3189,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       if(isArcEl) formatPanelState[type].isARC = isArcEl.checked;
       if(arcSourceEl) formatPanelState[type].arcSource = arcSourceEl.value;
       if(dueDateEl) formatPanelState[type].dueDate = dueDateEl.value;
+      if(noDeadlineEl) formatPanelState[type].noDeadline = noDeadlineEl.checked;
       if(formLinkEl) formatPanelState[type].arcFormLink = formLinkEl.value.trim();
       if(platformIdEl) formatPanelState[type].platformId = platformIdEl.value.trim();
     });
@@ -3136,6 +3219,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         isARC: isArc,
         arcSource: isArc ? (st.arcSource || '') : '',
         dueDate: isArc ? (st.dueDate || '') : '',
+        noDeadline: isArc ? !!st.noDeadline : false,
         arcFormLink: isArc ? (st.arcFormLink || '') : '',
         platformId: (type !== 'Paperback' && isArc) ? (st.platformId || '') : ''
       };
@@ -3165,6 +3249,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         isARC: !!f.isARC,
         arcSource: f.arcSource || '',
         dueDate: f.dueDate || '',
+        noDeadline: !!f.noDeadline,
         arcFormLink: f.arcFormLink || ''
       };
     });
@@ -3221,6 +3306,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     data.isARC = !!arcPrimary;
     data.arcSource = arcPrimary ? (arcPrimary.arcSource || '') : '';
     data.dueDate = arcPrimary ? (arcPrimary.dueDate || '') : '';
+    data.noDeadline = arcPrimary ? !!arcPrimary.noDeadline : false;
     data.arcFormLink = arcPrimary ? (arcPrimary.arcFormLink || '') : '';
     data.platformId = arcPrimary ? (arcPrimary.platformId || '') : '';
     return data;
@@ -3438,6 +3524,16 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     if(!wrap.contains(e.target)){
       document.getElementById('sortDropdownPanel').style.display = 'none';
       document.getElementById('sortDropdownBtn').classList.remove('open');
+    }
+  });
+
+  // Due Soon settings panel lives inside #stats, which renderStats() rebuilds
+  // from scratch, so this closer is delegated rather than bound to one element.
+  document.addEventListener('click', function(e){
+    var wrap = document.getElementById('dueSoonSettingsWrap');
+    if(wrap && !wrap.contains(e.target)){
+      var panel = document.getElementById('dueSoonPanel');
+      if(panel) panel.style.display = 'none';
     }
   });
 
@@ -4217,7 +4313,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     if(b.tropes && b.tropes.length) rows += '<div class="detail-row"><span class="dl">Tropes</span><span class="dv">' + escapeHtml(b.tropes.join(', ')) + '</span></div>';
     if(b.isARC){
       rows += '<div class="detail-row"><span class="dl">ARC source</span><span class="dv">' + escapeHtml(b.arcSource || '—') + '</span></div>';
-      if(b.dueDate) rows += '<div class="detail-row"><span class="dl">Review Due Date</span><span class="dv">' + fmtDate(b.dueDate) + '</span></div>';
+      if(b.noDeadline) rows += '<div class="detail-row"><span class="dl">Review Due Date</span><span class="dv">No deadline (' + fmtDate(endOfMonthISO()) + ')</span></div>';
+      else if(b.dueDate) rows += '<div class="detail-row"><span class="dl">Review Due Date</span><span class="dv">' + fmtDate(b.dueDate) + '</span></div>';
     }
     if(b.nowPlaying) rows += '<div class="detail-row"><span class="dl">Now playing</span><span class="dv">🎵 ' + escapeHtml(b.nowPlaying) + '</span></div>';
 
@@ -4826,8 +4923,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     }
     if(b.isARC || bvEditingField === 'dueDate'){
       arcRows += field('dueDate', 'Due Date',
-        '<input type="date" id="bvInput_dueDate" value="' + (b.dueDate || '') + '">',
-        bvValueOrEmpty(b.dueDate ? fmtDate(b.dueDate) : '', !b.dueDate, '—'));
+        '<input type="date" id="bvInput_dueDate" value="' + (b.dueDate || '') + '"' + (b.noDeadline ? ' disabled' : '') + '>' +
+        '<div class="checkbox-row" style="margin-top:6px;"><input type="checkbox" id="bvInput_noDeadline"' + (b.noDeadline ? ' checked' : '') + '><label for="bvInput_noDeadline" style="font-weight:normal;">No deadline</label></div>',
+        bvValueOrEmpty(b.noDeadline ? ('No deadline (' + fmtDate(endOfMonthISO()) + ')') : (b.dueDate ? fmtDate(b.dueDate) : ''), !b.dueDate && !b.noDeadline, '—'));
     }
 
     var blurbBody;
@@ -4885,6 +4983,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       b.arcSource = document.getElementById('bvInput_arcSource').value.trim();
     } else if(key === 'dueDate'){
       b.dueDate = document.getElementById('bvInput_dueDate').value;
+      b.noDeadline = document.getElementById('bvInput_noDeadline').checked;
     } else if(key === 'blurb'){
       b.blurb = document.getElementById('bvInput_blurb').value;
     }
