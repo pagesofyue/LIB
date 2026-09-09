@@ -495,6 +495,9 @@
     text-decoration:underline; cursor:pointer;
   }
   .stamp-modal-close:hover{ color:var(--stamp-teal); }
+  .stamp-modal-actions{ display:flex; align-items:center; justify-content:center; }
+  .stamp-modal-actions .stamp-modal-close{ margin:0; }
+  .stamp-modal-sep{ color:var(--ink-faint); margin:0 8px; }
 
   /* ---------- full passport spread ---------- */
 
@@ -614,6 +617,8 @@
     padding:6px 0; border-bottom:1px dashed var(--line);
   }
   .recent-row span.place{ color:var(--stamp-teal); }
+  .recent-row-right{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .recent-row-right .icon-btn{ font-size:12px; padding:0; }
 
   .card-download-row{ padding-left:10px; margin-top:20px; display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px; }
 
@@ -866,7 +871,11 @@
   <div class="modal">
     <div class="stamp-large" id="stampLarge"></div>
     <p class="stamp-modal-caption" id="stampCaption"></p>
-    <button type="button" class="stamp-modal-close" id="stampClose">close page</button>
+    <div class="stamp-modal-actions">
+      <button type="button" class="stamp-modal-close" id="stampEdit">edit details</button>
+      <span class="stamp-modal-sep">&middot;</span>
+      <button type="button" class="stamp-modal-close" id="stampClose">close page</button>
+    </div>
   </div>
 </div>
 
@@ -969,6 +978,7 @@
   var activeBookId = state.activeBookId || null;
   var audioCtx = null;
   var editingBookId = null;
+  var currentStampBookId = null;
 
   // ---------- DOM refs ----------
   var $ = function(id){ return document.getElementById(id); };
@@ -1022,6 +1032,7 @@
   var stampLarge = $("stampLarge");
   var stampCaption = $("stampCaption");
   var stampClose = $("stampClose");
+  var stampEdit = $("stampEdit");
   var detourSection = $("detourSection");
   var detourShelf = $("detourShelf");
   var editBookOverlay = $("editBookOverlay");
@@ -1673,7 +1684,10 @@
       row.className = "recent-row";
       row.innerHTML =
         '<span>' + escapeHtml(book.title) + ' <span class="place">' + escapeHtml(book.place) + '</span></span>' +
-        '<span>' + (book.completedDate ? formatDate(book.completedDate) : "") + '</span>';
+        '<span class="recent-row-right">' +
+          '<span>' + (book.completedDate ? formatDate(book.completedDate) : "") + '</span>' +
+          '<button type="button" class="icon-btn" data-edit-finished="' + book.id + '" title="edit details" aria-label="edit details">\u270E</button>' +
+        '</span>';
       recentFinished.appendChild(row);
     });
   }
@@ -2496,6 +2510,13 @@
     }
   });
 
+  recentFinished.addEventListener("click", function(e){
+    var btn = e.target.closest("[data-edit-finished]");
+    if(!btn) return;
+    var book = state.books.find(function(b){ return b.id === btn.dataset.editFinished; });
+    if(book) openEditBook(book);
+  });
+
   checkinSave.addEventListener("click", function(){
     Array.prototype.forEach.call(checkinRows.querySelectorAll(".checkin-row"), function(row){
       var input = row.querySelector("input");
@@ -2518,6 +2539,7 @@
   });
 
   function openStamp(book){
+    currentStampBookId = book.id;
     stampLarge.innerHTML = buildStampSVG(book);
     var sessionCount = state.chapterLog.filter(function(l){ return l.bookId === book.id; }).length;
     var totalMinutesForBook = state.sessions.filter(function(s){ return s.bookId === book.id; })
@@ -2529,7 +2551,7 @@
     stampLarge.classList.add("stamp-anim");
   }
 
-  function closeStamp(){ stampOverlay.hidden = true; }
+  function closeStamp(){ stampOverlay.hidden = true; currentStampBookId = null; }
 
   stampGrid.addEventListener("click", function(e){
     var el = e.target.closest(".stamp-wrap[data-book]");
@@ -2549,6 +2571,12 @@
 
 
   stampClose.addEventListener("click", closeStamp);
+  stampEdit.addEventListener("click", function(){
+    var book = state.books.find(function(b){ return b.id === currentStampBookId; });
+    if(!book) return;
+    closeStamp();
+    openEditBook(book);
+  });
   stampOverlay.addEventListener("click", function(e){
     if(e.target === stampOverlay) closeStamp();
   });
