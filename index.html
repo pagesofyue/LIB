@@ -1891,6 +1891,24 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     return Math.round((d - today) / 86400000);
   }
 
+  // The Sunday that closes out the current week (today itself, if today is
+  // already Sunday). "Due within the week" means due on or before this date.
+  function endOfWeekDate(){
+    var d = new Date(); d.setHours(0,0,0,0);
+    var day = d.getDay(); // 0 = Sunday .. 6 = Saturday
+    var add = day === 0 ? 0 : (7 - day);
+    d.setDate(d.getDate() + add);
+    return d;
+  }
+  function daysUntilWeekEnd(){
+    var end = endOfWeekDate();
+    var today = new Date(); today.setHours(0,0,0,0);
+    return Math.round((end - today) / 86400000);
+  }
+  function weekEndLabel(){
+    return endOfWeekDate().toLocaleDateString('en-US', {month:'short', day:'numeric'});
+  }
+
   function fmtDate(dateStr){
     if(!dateStr) return '';
     var d = new Date(dateStr + 'T00:00:00');
@@ -1957,7 +1975,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var reading = books.reduce(function(sum, b){
       return sum + formatInstancesOf(b).filter(function(f){ return f.status === 'reading'; }).length;
     }, 0);
-    var dueSoon = getDueSoonBooks(DUE_SOON_DAYS).length;
+    var dueSoon = getDueSoonBooks(DUE_SOON_DAYS_VALUE()).length;
     var needsReview = books.filter(function(b){ return bookHasAnyFinished(b) && !(b.review && b.review.trim()); }).length;
     var now = new Date();
     var thisYear = now.getFullYear();
@@ -1984,7 +2002,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         '<div class="stat clickable-stat' + (dueSoon > 0 ? ' alert' : '') + '" id="statDueSoon">' +
           '<div class="num">' + dueSoon + '</div>' +
           '<div class="stat-label-row">' +
-            '<div class="label">Due within ' + DUE_SOON_DAYS + ' days</div>' +
+            '<div class="label">Due within the week (thru ' + weekEndLabel() + ')</div>' +
             '<div class="due-soon-settings" id="dueSoonSettingsWrap">' +
               '<button type="button" class="due-soon-gear-btn" id="dueSoonGearBtn" title="Choose what counts as due">⚙</button>' +
               '<div class="sort-dropdown-panel due-soon-panel" id="dueSoonPanel" style="display:none;">' +
@@ -2215,7 +2233,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
   window.lunariaEffectiveDueDate = effectiveDueDate;
 
-  var DUE_SOON_DAYS = 7;
+  // "Due soon" now means "due by the end of this week" (this Sunday), not a
+  // rolling 7-day window — recomputed on each read since it changes daily.
+  function DUE_SOON_DAYS_VALUE(){ return daysUntilWeekEnd(); }
 
   function getDueSoonBooks(days){
     return books.filter(function(b){
@@ -2295,7 +2315,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         var due = effectiveDueDate(b);
         if(!due) return false;
         var d = daysUntil(due);
-        if(d === null || d > DUE_SOON_DAYS) return false;
+        if(d === null || d > DUE_SOON_DAYS_VALUE()) return false;
       }
       if(search){
         var hay = [b.title, b.author, b.series, b.review, (b.tropes||[]).join(' ')].join(' ').toLowerCase();
