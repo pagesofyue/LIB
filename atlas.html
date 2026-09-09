@@ -411,6 +411,11 @@
     width:100%; padding:9px 10px; font-family:'Fraunces', serif; font-size:14px;
     border:1px solid var(--line); background:var(--page-alt); border-radius:var(--radius); color:var(--ink);
   }
+  .edit-field-row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .edit-field-hint{
+    font-family:'Courier Prime', monospace; font-size:11px; color:var(--stamp-mustard);
+    line-height:1.5; margin:-4px 0 12px;
+  }
 
   /* ---------- passport ---------- */
 
@@ -883,7 +888,7 @@
 <div class="modal-overlay" id="editBookOverlay" hidden>
   <div class="modal">
     <h3>Edit destination</h3>
-    <p>Update the title, place, or chapter count.</p>
+    <p>Update the title, place, progress, or chapter count.</p>
     <div class="edit-field">
       <label for="editTitle">Book title</label>
       <input type="text" id="editTitle">
@@ -892,10 +897,17 @@
       <label for="editPlace">Place</label>
       <input type="text" id="editPlace">
     </div>
-    <div class="edit-field">
-      <label for="editChapters">Total chapters</label>
-      <input type="number" id="editChapters" min="1">
+    <div class="edit-field-row">
+      <div class="edit-field">
+        <label for="editCurrentChapter">Current chapter</label>
+        <input type="number" id="editCurrentChapter" min="0">
+      </div>
+      <div class="edit-field">
+        <label for="editChapters">Total chapters</label>
+        <input type="number" id="editChapters" min="1">
+      </div>
     </div>
+    <p class="edit-field-hint" id="editArrivedHint" hidden>This book has already arrived &mdash; lowering the current chapter below the total will send it back to your itinerary.</p>
     <div class="modal-actions">
       <button class="btn secondary" id="editCancel">Cancel</button>
       <button class="btn" id="editSave">Save</button>
@@ -1038,7 +1050,9 @@
   var editBookOverlay = $("editBookOverlay");
   var editTitle = $("editTitle");
   var editPlace = $("editPlace");
+  var editCurrentChapter = $("editCurrentChapter");
   var editChapters = $("editChapters");
+  var editArrivedHint = $("editArrivedHint");
   var editSave = $("editSave");
   var editCancel = $("editCancel");
   var openPassportBtn = $("openPassportBtn");
@@ -1750,9 +1764,20 @@
     editingBookId = book.id;
     editTitle.value = book.title;
     editPlace.value = book.place;
+    editCurrentChapter.value = book.currentChapter;
     editChapters.value = book.totalChapters;
+    updateEditArrivedHint();
     editBookOverlay.hidden = false;
     editTitle.focus();
+  }
+
+  function updateEditArrivedHint(){
+    var book = state.books.find(function(b){ return b.id === editingBookId; });
+    if(!book){ editArrivedHint.hidden = true; return; }
+    var current = parseInt(editCurrentChapter.value, 10);
+    var chapters = parseInt(editChapters.value, 10);
+    var willBeIncomplete = book.completed && !isNaN(current) && !isNaN(chapters) && current < chapters;
+    editArrivedHint.hidden = !willBeIncomplete;
   }
 
   function closeEditBook(){
@@ -1766,14 +1791,23 @@
     var title = editTitle.value.trim();
     var place = editPlace.value.trim();
     var chapters = parseInt(editChapters.value, 10);
+    var current = parseInt(editCurrentChapter.value, 10);
     if(!title || !place || !chapters || chapters < 1){
       alert("Please fill in a title, place, and a valid chapter count.");
+      return;
+    }
+    if(isNaN(current) || current < 0){
+      alert("Current chapter needs to be 0 or higher.");
+      return;
+    }
+    if(current > chapters){
+      alert("Current chapter can't be higher than the total chapter count.");
       return;
     }
     book.title = title;
     book.place = place;
     book.totalChapters = chapters;
-    if(book.currentChapter > chapters) book.currentChapter = chapters;
+    book.currentChapter = current;
     var wasCompleted = book.completed;
     book.completed = book.totalChapters > 0 && book.currentChapter >= book.totalChapters;
     if(book.completed && !wasCompleted) book.completedDate = todayStr();
@@ -2500,6 +2534,8 @@
 
   editSave.addEventListener("click", saveEditBook);
   editCancel.addEventListener("click", closeEditBook);
+  editCurrentChapter.addEventListener("input", updateEditArrivedHint);
+  editChapters.addEventListener("input", updateEditArrivedHint);
   editBookOverlay.addEventListener("click", function(e){
     if(e.target === editBookOverlay) closeEditBook();
   });
