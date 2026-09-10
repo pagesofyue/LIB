@@ -5635,7 +5635,19 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     }
     var header = '<div class="platform-table-header">' +
       '<button type="button" class="btn-secondary" id="platformBackToGridBtn">← Back to Teams</button>' +
-      '<h2 style="margin:0;font-size:19px;">' + escapeHtml(teamName) + '</h2>' +
+      '<h2 style="margin:0;font-size:19px;flex:1;">' + escapeHtml(teamName) + '</h2>' +
+      '<div class="export-wrap">' +
+        '<button type="button" class="btn-export" id="platformExportBtn">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' +
+          ' Print / Export' +
+        '</button>' +
+        '<div class="export-menu" id="platformExportMenu">' +
+          '<button type="button" id="platformPrintBtn">🖨️ Print</button>' +
+          '<button type="button" id="platformExportImageBtn">🖼️ Export as image (.png)</button>' +
+          '<button type="button" id="platformExportPdfBtn">📄 Export as PDF</button>' +
+          '<button type="button" id="platformExportCsvBtn">📊 Export as Excel (.csv)</button>' +
+        '</div>' +
+      '</div>' +
       '</div>';
     if(!matches.length){
       return header + '<div class="cal-empty-note">No books assigned to ' + escapeHtml(teamName) + ' yet.</div>';
@@ -5654,7 +5666,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
           '<span class="author-series-count">' + authorCounts[aName] + ' book' + (authorCounts[aName] === 1 ? '' : 's') + ' ›</span>' +
           '</div>';
       }).join('');
-      return header + '<div class="card platform-card">' + authorRows + '</div>';
+      return header + '<div class="card platform-card" id="platformExportContent" data-export-kind="authors" data-export-team="' + escapeHtml(teamName) + '">' + authorRows + '</div>';
     }
 
     var rowData = matches.map(function(b, idx){
@@ -5694,7 +5706,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         '<td>' + escapeHtml(statusText) + '</td>' +
         '</tr>';
     }).join('');
-    return header + '<div class="platform-table-wrap"><table class="arc-table"><thead><tr><th>ID</th><th>Title</th><th>Author</th><th>Series</th><th>Status / Progress</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+    return header + '<div class="platform-table-wrap" id="platformExportContent" data-export-kind="table" data-export-team="' + escapeHtml(teamName) + '"><table class="arc-table"><thead><tr><th>ID</th><th>Title</th><th>Author</th><th>Series</th><th>Status / Progress</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
   }
 
   function wirePlatformsViewHandlers(){
@@ -5717,6 +5729,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     if(addBtn) addBtn.onclick = function(){ openPlatformAddModal(); };
     var backBtn = document.getElementById('platformBackToGridBtn');
     if(backBtn) backBtn.onclick = function(){ platformsDrilldownTeam = null; platformsSearchTerm = ''; renderPlatformsView(); };
+    wirePlatformExportHandlers();
     document.querySelectorAll('.platform-logo-card[data-platform-name]').forEach(function(card){
       if(card.tagName === 'A') return; // review-site cards navigate externally, no extra handler needed
       card.addEventListener('click', function(){
@@ -5786,6 +5799,155 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         }
       });
     });
+  }
+
+  // ===================== Platform table print/export =====================
+  document.addEventListener('click', function(e){
+    var btn = document.getElementById('platformExportBtn');
+    var menu = document.getElementById('platformExportMenu');
+    if(!btn || !menu) return;
+    if(!btn.contains(e.target) && !menu.contains(e.target)){ menu.style.display = 'none'; }
+  });
+
+  function wirePlatformExportHandlers(){
+    var btn = document.getElementById('platformExportBtn');
+    var menu = document.getElementById('platformExportMenu');
+    if(!btn || !menu) return;
+    btn.onclick = function(e){
+      e.stopPropagation();
+      menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    };
+    var printBtn = document.getElementById('platformPrintBtn');
+    if(printBtn) printBtn.onclick = function(){ menu.style.display = 'none'; printPlatformTable(); };
+    var imgBtn = document.getElementById('platformExportImageBtn');
+    if(imgBtn) imgBtn.onclick = function(){ menu.style.display = 'none'; exportPlatformTableImage(); };
+    var pdfBtn = document.getElementById('platformExportPdfBtn');
+    if(pdfBtn) pdfBtn.onclick = function(){ menu.style.display = 'none'; exportPlatformTablePdf(); };
+    var csvBtn = document.getElementById('platformExportCsvBtn');
+    if(csvBtn) csvBtn.onclick = function(){ menu.style.display = 'none'; exportPlatformTableCsv(); };
+  }
+
+  function getPlatformExportContent(){
+    var el = document.getElementById('platformExportContent');
+    if(!el){ showBanner('Nothing to export yet.'); return null; }
+    return el;
+  }
+
+  function platformExportFilenameBase(){
+    var team = (platformsDrilldownTeam || 'platform').trim();
+    return team.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'platform';
+  }
+
+  function printPlatformTable(){
+    var content = getPlatformExportContent();
+    if(!content) return;
+    var teamName = content.getAttribute('data-export-team') || platformsDrilldownTeam || '';
+    var win = window.open('', '_blank', 'width=900,height=700');
+    if(!win){ showBanner('Your browser blocked the print window — please allow popups and try again.'); return; }
+    var doc = win.document;
+    doc.open();
+    doc.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + escapeHtml(teamName) + '</title>' +
+      '<style>' +
+      "body{font-family:'Courier New',Courier,monospace;color:#3B2A55;margin:24px;}" +
+      'h1{font-size:20px;margin:0 0 16px;}' +
+      'table{width:100%;border-collapse:collapse;}' +
+      'th,td{padding:8px 10px;text-align:left;border-bottom:1px solid #ccc;font-size:12.5px;}' +
+      'th{background:#f2eef8;text-transform:uppercase;font-size:10.5px;letter-spacing:0.05em;}' +
+      '.author-series-row{display:flex;justify-content:space-between;padding:8px 4px;border-bottom:1px solid #ccc;font-size:13px;}' +
+      '.platform-logo-move-btn,.platform-logo-edit-btn,.platform-logo-delete-btn,button{display:none !important;}' +
+      '@media print{ @page{ margin:14mm; } }' +
+      '</style></head><body>' +
+      '<h1>' + escapeHtml(teamName) + '</h1>' +
+      content.outerHTML +
+      '</body></html>');
+    doc.close();
+    win.focus();
+    setTimeout(function(){ win.print(); }, 300);
+  }
+
+  function exportPlatformTableImage(){
+    var content = getPlatformExportContent();
+    if(!content) return;
+    if(!window.html2canvas){ showBanner('Image export isn\'t available right now — please check your connection and try again.'); return; }
+    showBanner('Generating image...');
+    window.html2canvas(content, {scale: 2, backgroundColor: '#FBF7FF', useCORS: true}).then(function(canvas){
+      var link = document.createElement('a');
+      link.download = platformExportFilenameBase() + '.png';
+      link.href = canvas.toDataURL('image/png');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showBanner('Image downloaded.');
+    }).catch(function(){
+      showBanner('Something went wrong generating the image.');
+    });
+  }
+
+  function exportPlatformTablePdf(){
+    var content = getPlatformExportContent();
+    if(!content) return;
+    if(!window.html2canvas || !window.jspdf){ showBanner('PDF export isn\'t available right now — please check your connection and try again.'); return; }
+    showBanner('Generating PDF...');
+    window.html2canvas(content, {scale: 2, backgroundColor: '#FBF7FF', useCORS: true}).then(function(canvas){
+      var orientation = canvas.width >= canvas.height ? 'landscape' : 'portrait';
+      var pdf = new window.jspdf.jsPDF({unit: 'mm', format: 'a4', orientation: orientation});
+      var pageW = pdf.internal.pageSize.getWidth();
+      var pageH = pdf.internal.pageSize.getHeight();
+      var margin = 10;
+      var maxW = pageW - margin * 2;
+      var maxH = pageH - margin * 2;
+      var ratio = Math.min(maxW / canvas.width, maxH / canvas.height);
+      var imgW = canvas.width * ratio;
+      var imgH = canvas.height * ratio;
+      var x = (pageW - imgW) / 2;
+      var y = margin;
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', x, y, imgW, imgH);
+      pdf.save(platformExportFilenameBase() + '.pdf');
+      showBanner('PDF downloaded.');
+    }).catch(function(){
+      showBanner('Something went wrong generating the PDF.');
+    });
+  }
+
+  function csvCell(text){
+    var s = String(text == null ? '' : text);
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+
+  function exportPlatformTableCsv(){
+    var content = getPlatformExportContent();
+    if(!content) return;
+    var kind = content.getAttribute('data-export-kind');
+    var lines = [];
+    if(kind === 'authors'){
+      lines.push(['Author', 'Books'].map(csvCell).join(','));
+      content.querySelectorAll('.author-series-row').forEach(function(row){
+        var spans = row.querySelectorAll('span');
+        var name = spans[0] ? spans[0].textContent.replace(/^\d+\.\s*/, '').trim() : '';
+        var count = spans[1] ? spans[1].textContent.replace('›', '').trim() : '';
+        lines.push([name, count].map(csvCell).join(','));
+      });
+    } else {
+      var table = content.querySelector('table');
+      if(!table){ showBanner('Nothing to export yet.'); return; }
+      table.querySelectorAll('tr').forEach(function(tr){
+        var cells = Array.prototype.slice.call(tr.querySelectorAll('th,td')).map(function(cell){
+          return csvCell(cell.textContent.trim());
+        });
+        lines.push(cells.join(','));
+      });
+    }
+    var csv = lines.join('\r\n');
+    var blob = new Blob(['\uFEFF' + csv], {type: 'text/csv;charset=utf-8'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = platformExportFilenameBase() + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showBanner('CSV downloaded — opens right in Excel.');
   }
 
   var platformEditIndex = null; // null = adding new; number = editing that index in the active list
