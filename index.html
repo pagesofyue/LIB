@@ -586,6 +586,23 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .checkbox-row input{width:16px;height:16px;}
 .checkbox-row label{font-size:13px;font-weight:500;}
 
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+.fmt-panel-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;background:var(--card-hover);border:1px solid var(--line-strong);border-radius:10px;cursor:pointer;margin-bottom:0;}
+.fmt-panel-header:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
+.fmt-panel-header .fmt-name{font-weight:700;font-size:13.5px;}
+.fmt-panel-header .fmt-header-right{display:flex;align-items:center;gap:8px;}
+.fmt-status-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;}
+.fmt-chevron{display:inline-block;font-size:11px;color:var(--muted);transition:transform .15s ease;}
+.fmt-chevron.open{transform:rotate(180deg);}
+.format-panel{border-top:none !important;border-top-left-radius:0 !important;border-top-right-radius:0 !important;margin-top:0 !important;}
+.rating-stars{display:inline-flex;gap:2px;cursor:pointer;touch-action:manipulation;}
+.rating-stars:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
+.rating-stars .star{position:relative;display:inline-block;width:20px;height:20px;font-size:18px;line-height:20px;}
+.rating-stars .star .back{position:absolute;top:0;left:0;color:var(--line-strong);}
+.rating-stars .star .front{position:absolute;top:0;left:0;color:var(--accent-deep);overflow:hidden;white-space:nowrap;}
+.rating-input-row{display:flex;align-items:center;gap:10px;}
+.rating-value{font-size:12px;color:var(--muted);min-width:24px;}
+
 .cover-upload{display:flex;align-items:center;gap:12px;}
 .cover-preview{width:64px;height:96px;border-radius:6px;border:1.5px dashed var(--line-strong);background:radial-gradient(circle at 30% 20%, #E4D2F2, transparent 65%), radial-gradient(circle at 70% 80%, #F0DCEA, transparent 65%), var(--card);display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none;}
 .cover-preview img{width:100%;height:100%;object-fit:cover;}
@@ -1084,7 +1101,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     <h2>🎲 Randomizer</h2>
     <p class="hint" style="margin-top:-6px;">Pick which shelves are fair game, then let it decide for you.</p>
     <div class="wrapped-status-checks" id="randomizerStatusChecks">
-      <label><input type="checkbox" class="randomizerStatusCb" value="want" checked> Want to read</label>
+      <label><input type="checkbox" class="randomizerStatusCb" value="want" checked> In Queue</label>
       <label><input type="checkbox" class="randomizerStatusCb" value="requested"> Requested</label>
       <label><input type="checkbox" class="randomizerStatusCb" value="reading"> Reading</label>
       <label><input type="checkbox" class="randomizerStatusCb" value="hold"> On Hold</label>
@@ -1244,7 +1261,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     <div class="field">
       <label>Include statuses</label>
       <div class="wrapped-status-checks">
-        <label><input type="checkbox" class="wrappedStatusCb" value="want"> Want to read</label>
+        <label><input type="checkbox" class="wrappedStatusCb" value="want"> In Queue</label>
         <label><input type="checkbox" class="wrappedStatusCb" value="reading"> Reading</label>
         <label><input type="checkbox" class="wrappedStatusCb" value="hold"> On Hold</label>
         <label><input type="checkbox" class="wrappedStatusCb" value="finished" checked> Finished</label>
@@ -1542,7 +1559,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   var statusMeta = {
     all: {label:'All'},
     requested: {label:'Requested'},
-    want: {label:'Want to read'},
+    want: {label:'In Queue'},
     reading: {label:'Reading'},
     hold: {label:'On Hold'},
     dnf: {label:'Did not finish'},
@@ -2952,6 +2969,50 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     return Array.from(document.querySelectorAll('.f_formatType:checked')).map(function(cb){ return cb.value; });
   }
 
+  // Status labels/colors reused for the collapsed accordion header badge.
+  // Kept in one place so the badge always matches the Status <select> above it.
+  var FMT_STATUS_META = {
+    requested: {label:'Requested', varName:'requested'},
+    want: {label:'In Queue', varName:'want'},
+    reading: {label:'Reading', varName:'reading'},
+    hold: {label:'On Hold', varName:'hold'},
+    finished: {label:'Finished', varName:'finished'},
+    dnf: {label:'Did not finish', varName:'dnf'}
+  };
+
+  function fmtStatusBadgeHtml(status, isAudiobook){
+    var meta = FMT_STATUS_META[status] || FMT_STATUS_META.want;
+    var label = (status === 'reading' && isAudiobook) ? 'Listening' : meta.label;
+    return '<span class="fmt-status-badge" style="background:var(--' + meta.varName + ');color:var(--' + meta.varName + '-deep);">' + escapeHtml(label) + '</span>';
+  }
+
+  // Renders the 5-star display for a given rating (0-5, any fraction).
+  // A separate hidden <input id="fmtRating_KEY"> holds the authoritative
+  // numeric value so the existing save/sync code doesn't need to change.
+  function starsWidgetHtml(rating){
+    var out = '';
+    for(var i = 1; i <= 5; i++){
+      var pct = Math.max(0, Math.min(1, rating - (i - 1))) * 100;
+      out += '<span class="star"><span class="back">\u2605</span><span class="front" style="width:' + pct + '%;">\u2605</span></span>';
+    }
+    return out;
+  }
+
+  function ratingFieldHtml(type, key, st){
+    var rating = st.rating || 0;
+    return '' +
+      '<div class="field">' +
+        '<label>Rating</label>' +
+        '<div class="rating-input-row">' +
+          '<div class="rating-stars" id="fmtRatingStars_' + key + '" data-type="' + escapeHtml(type) + '" tabindex="0" role="slider" aria-valuemin="0" aria-valuemax="5" aria-valuenow="' + rating + '" aria-label="Rating, half-star increments">' +
+            starsWidgetHtml(rating) +
+          '</div>' +
+          '<span class="rating-value" id="fmtRatingValue_' + key + '">' + (rating ? rating : '0') + '</span>' +
+          '<input type="number" min="0" max="5" step="0.25" class="fmtRating sr-only" data-type="' + escapeHtml(type) + '" id="fmtRating_' + key + '" value="' + (st.rating || '') + '">' +
+        '</div>' +
+      '</div>';
+  }
+
   function renderFormatPanels(){
     var types = checkedFormatTypes();
     document.getElementById('noFormatsHint').style.display = types.length ? 'none' : 'block';
@@ -2967,9 +3028,22 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       var coverHtml = cover ? '<img src="' + cover + '" alt="">' : '<span class="ph">No cover</span>';
       var isArc = !!st.isARC;
       var showFmtCover = types.length > 1;
-      return '' +
+      // A single checked format always opens straight to its fields; with two or
+      // more, panels start collapsed to a header pill and expand on tap so the
+      // modal doesn't show every field for every format at once.
+      var open = (typeof st.open === 'boolean') ? st.open : (types.length === 1);
+      var headerHtml = '' +
+        '<div class="fmt-panel-header" data-type="' + escapeHtml(type) + '" id="fmtPanelHeader_' + key + '" tabindex="0" role="button" aria-expanded="' + open + '" style="' + (open ? 'border-bottom-left-radius:0;border-bottom-right-radius:0;' : '') + '">' +
+          '<span class="fmt-name">' + escapeHtml(type) + '</span>' +
+          '<span class="fmt-header-right">' + fmtStatusBadgeHtml(st.status || 'want', isAudiobook) +
+            '<span class="fmt-chevron' + (open ? ' open' : '') + '">\u25be</span>' +
+          '</span>' +
+        '</div>';
+      if(!open){
+        return headerHtml + '<div style="height:8px;"></div>';
+      }
+      return headerHtml + ('' +
         '<div class="field format-panel" style="border:1px solid var(--line-strong);border-radius:10px;padding:12px;margin-bottom:12px;background:var(--card-hover);">' +
-          '<label style="font-weight:bold;">' + escapeHtml(type) + '</label>' +
           (showFmtCover ?
           '<div class="cover-upload" style="margin-bottom:10px;">' +
             '<div class="cover-preview' + (isAudiobook ? ' audiobook-cover' : '') + '" id="fmtCoverPreview_' + key + '">' + coverHtml + '</div>' +
@@ -2984,7 +3058,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
               '<label>Status</label>' +
               '<select class="fmtStatus" data-type="' + escapeHtml(type) + '" id="fmtStatus_' + key + '">' +
                 '<option value="requested">Requested</option>' +
-                '<option value="want">Want to read</option>' +
+                '<option value="want">In Queue</option>' +
                 '<option value="reading">' + (isAudiobook ? 'Listening' : 'Reading') + '</option>' +
                 '<option value="hold">On Hold</option>' +
                 '<option value="finished">Finished</option>' +
@@ -3037,13 +3111,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
               '<input type="number" min="0" class="fmtCurrent" data-type="' + escapeHtml(type) + '" id="fmtCurrent_' + key + '" placeholder="0" value="' + (st.currentPage || '') + '">' +
             '</div>' +
           '</div>' +
-          '<div class="field">' +
-            '<label>Rating</label>' +
-            '<div class="rating-input-row">' +
-              '<input type="number" min="0" max="5" step="0.25" class="fmtRating" data-type="' + escapeHtml(type) + '" id="fmtRating_' + key + '" placeholder="0.0" value="' + (st.rating || '') + '">' +
-              '<span class="star-preview" id="fmtStarPreview_' + key + '">' + starsPlain(st.rating || 0) + '</span>' +
-            '</div>' +
-          '</div>' +
+          ratingFieldHtml(type, key, st) +
           (isPaperback ?
             '<div class="field-row">' +
               '<div class="field">' +
@@ -3059,18 +3127,41 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
               '</div>' +
             '</div>'
           : '') +
-        '</div>';
+        '</div>');
     }).join('');
 
-    // Wire up per-panel listeners now that the DOM exists
+    // Wire up the accordion header (present whether the panel is open or
+    // collapsed) for every checked format, then the in-panel fields below
+    // (only present when that format's panel is open).
+    types.forEach(function(type){
+      var key = fmtKey(type);
+      var headerEl = document.getElementById('fmtPanelHeader_' + key);
+      function toggleOpen(){
+        // Persist anything typed in fields that don't have their own live
+        // listener (total/current/DNF reason/borrow date) before the panel
+        // that holds them disappears from the DOM.
+        syncFormatPanelStateFromDom();
+        formatPanelState[type] = formatPanelState[type] || {};
+        var currentlyOpen = (typeof formatPanelState[type].open === 'boolean') ? formatPanelState[type].open : (types.length === 1);
+        formatPanelState[type].open = !currentlyOpen;
+        renderFormatPanels();
+      }
+      headerEl.addEventListener('click', toggleOpen);
+      headerEl.addEventListener('keydown', function(e){
+        if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggleOpen(); }
+      });
+    });
+
     types.forEach(function(type){
       var key = fmtKey(type);
       var statusEl = document.getElementById('fmtStatus_' + key);
+      if(!statusEl) return; // panel is collapsed — nothing else below exists either
       statusEl.value = (formatPanelState[type] && formatPanelState[type].status) || 'want';
       statusEl.addEventListener('change', function(){
         formatPanelState[type] = formatPanelState[type] || {};
         formatPanelState[type].status = this.value;
         document.getElementById('fmtDnfField_' + key).style.display = this.value === 'dnf' ? 'block' : 'none';
+        renderFormatPanels(); // refreshes this format's header badge to match
       });
       var ownEl = document.getElementById('fmtOwnership_' + key);
       if(ownEl){
@@ -3081,12 +3172,38 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
           document.getElementById('fmtBorrowField_' + key).style.display = this.value === 'Borrowed' ? 'block' : 'none';
         });
       }
+      // Half-star tappable rating. The visible widget is decorative; the
+      // hidden numeric <input id="fmtRating_KEY"> stays the source of truth
+      // that collectFormats()/syncFormatPanelStateFromDom() already read.
       var ratingEl = document.getElementById('fmtRating_' + key);
-      ratingEl.addEventListener('input', function(){
-        var v = parseFloat(this.value) || 0;
+      var starsEl = document.getElementById('fmtRatingStars_' + key);
+      var starsValueEl = document.getElementById('fmtRatingValue_' + key);
+      function setRating(v){
+        v = Math.max(0, Math.min(5, Math.round(v * 2) / 2));
+        ratingEl.value = v || '';
+        starsEl.innerHTML = starsWidgetHtml(v);
+        starsEl.setAttribute('aria-valuenow', v);
+        starsValueEl.textContent = v ? v : '0';
         formatPanelState[type] = formatPanelState[type] || {};
         formatPanelState[type].rating = v;
-        document.getElementById('fmtStarPreview_' + key).textContent = starsPlain(v);
+      }
+      starsEl.addEventListener('click', function(e){
+        var rect = this.getBoundingClientRect();
+        var frac = (e.clientX - rect.left) / rect.width;
+        setRating(frac * 5);
+      });
+      starsEl.addEventListener('keydown', function(e){
+        var current = parseFloat(ratingEl.value) || 0;
+        if(e.key === 'ArrowRight' || e.key === 'ArrowUp'){ e.preventDefault(); setRating(current + 0.5); }
+        else if(e.key === 'ArrowLeft' || e.key === 'ArrowDown'){ e.preventDefault(); setRating(current - 0.5); }
+        else if(e.key === 'Home'){ e.preventDefault(); setRating(0); }
+        else if(e.key === 'End'){ e.preventDefault(); setRating(5); }
+      });
+      // Kept so a value entered via the hidden input directly (e.g. browser
+      // autofill or a screen reader typing into the number field) still
+      // updates the visible stars and formatPanelState.
+      ratingEl.addEventListener('input', function(){
+        setRating(parseFloat(this.value) || 0);
       });
       // Tries to fill in a Platform ID from whatever ARC source is currently
       // selected. Shared by the initial render, the "is ARC" checkbox, and
@@ -4385,7 +4502,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   function statusLabelForValue(status, type){
     var isAudiobook = type === 'Audiobook';
     var labels = {
-      requested: 'Requested', want: 'Want to read',
+      requested: 'Requested', want: 'In Queue',
       reading: isAudiobook ? 'Listening' : 'Reading',
       hold: 'On Hold', finished: 'Finished', dnf: 'Did not finish'
     };
