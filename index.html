@@ -2339,7 +2339,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
     var filtered = books.filter(function(b){
       if(activeStatus === 'active'){
-        if(b.status === 'dnf' || b.status === 'hold') return false;
+        if(b.status === 'dnf' || b.status === 'hold' || b.status === 'finished') return false;
       } else if(activeStatus !== 'all' && b.status !== activeStatus){
         return false;
       }
