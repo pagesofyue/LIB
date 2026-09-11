@@ -1547,7 +1547,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   var customGenreColors = {};
   var arcSourcePrefixes = {};
   var pendingCover = null;
-  var activeStatus = 'all';
+  var activeStatus = 'active';
   var dueSoonFilterActive = false;
   var confirmingDelete = null;
   var manageMode = null;
@@ -1557,6 +1557,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   var defaultArcSources = ['NetGalley','Edelweiss','BookSirens','BookishFirst','Publisher (direct)','Author (direct)'];
 
   var statusMeta = {
+    active: {label:'Active'},
     all: {label:'All'},
     requested: {label:'Requested'},
     want: {label:'In Queue'},
@@ -2134,10 +2135,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       el.appendChild(btn);
     });
     var sortBtn = document.getElementById('sortDropdownBtn');
+    var providerActive = !!document.getElementById('providerFilter').value;
     var isStatusDateTab = STATUS_DATE_TABS.indexOf(activeStatus) !== -1;
-    sortBtn.disabled = isStatusDateTab;
-    sortBtn.title = isStatusDateTab ? 'This tab is ordered by finished date, then by when the book moved into this status.' : '';
-    if(isStatusDateTab) document.getElementById('sortDropdownPanel').style.display = 'none';
+    sortBtn.disabled = isStatusDateTab || providerActive;
+    sortBtn.title = providerActive ? 'Sorted by Platform ID for the selected provider.' : (isStatusDateTab ? 'This tab is ordered by finished date, then by when the book moved into this status.' : '');
+    document.getElementById('sortDropdownLabel').textContent = providerActive ? 'Platform ID' : (activeSortCriteria.map(function(key){ return SORT_CRITERIA[key].label; }).join(', then ') || 'Sort');
+    if(isStatusDateTab || providerActive) document.getElementById('sortDropdownPanel').style.display = 'none';
   }
 
   function renderGenreFilter(){
@@ -2317,6 +2320,17 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     };
   }
 
+  // Numeric suffix of the platform ID a book has *with the given provider*
+  // (e.g. "Siren015" -> 15). Used to auto-sort the library grid by ID when
+  // the provider filter is active. Books with no ID for that provider sort
+  // to the end.
+  function platformIdSortValue(b, provider){
+    var inst = formatInstancesOf(b).find(function(f){ return f.isARC && f.arcSource === provider && f.platformId; });
+    if(!inst) return -1;
+    var m = inst.platformId.match(/(\d+)/);
+    return m ? parseInt(m[0], 10) : -1;
+  }
+
   function getFilteredSorted(){
     var search = document.getElementById('searchInput').value.trim().toLowerCase();
     var genre = document.getElementById('genreFilter').value;
@@ -2324,7 +2338,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var formatFilter = document.getElementById('formatFilter').value;
 
     var filtered = books.filter(function(b){
-      if(activeStatus !== 'all' && b.status !== activeStatus) return false;
+      if(activeStatus === 'active'){
+        if(b.status === 'dnf' || b.status === 'hold') return false;
+      } else if(activeStatus !== 'all' && b.status !== activeStatus){
+        return false;
+      }
       if(genre && b.genre !== genre) return false;
       if(provider && !formatInstancesOf(b).some(function(f){ return f.isARC && f.arcSource === provider; })) return false;
       if(formatFilter && formatTypesOf(b).indexOf(formatFilter) === -1) return false;
@@ -2341,7 +2359,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       return true;
     });
 
-    if(STATUS_DATE_TABS.indexOf(activeStatus) !== -1){
+    if(provider){
+      filtered.sort(function(a, b){ return platformIdSortValue(b, provider) - platformIdSortValue(a, provider); });
+    } else if(STATUS_DATE_TABS.indexOf(activeStatus) !== -1){
       filtered.sort(compareStatusDate);
     } else {
       filtered.sort(buildSortComparator());
