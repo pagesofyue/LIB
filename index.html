@@ -887,9 +887,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         <button id="restoreBtn">Restore from backup</button>
         <button id="importCsvBtn">Import from Goodreads/StoryGraph/CSV</button>
         <button id="downloadCsvTemplateBtn">Download blank CSV template</button>
+        <div style="height:1px;background:var(--line);margin:6px 2px;"></div>
+        <button id="importLibibBtn">Update from Libib library (.csv)</button>
       </div>
       <input type="file" id="restoreInput" accept="application/json" style="display:none;">
       <input type="file" id="csvInput" accept=".csv,text/csv" style="display:none;">
+      <input type="file" id="libibCsvInput" accept=".csv,text/csv" style="display:none;">
     </div>
     <button type="button" class="btn-add-plus" id="addBtn" title="Add book" aria-label="Add book">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -962,6 +965,27 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         <label>Book # in series</label>
         <input type="number" id="f_seriesNum" min="0" step="0.5" placeholder="1">
       </div>
+      <div class="field" id="field-blurb">
+        <label>Blurb (optional)</label>
+        <button type="button" id="addBlurbLink" class="small-btn" style="display:inline-block;">+ Add blurb</button>
+        <textarea id="f_blurb" rows="4" placeholder="Paste the publisher's synopsis here..." style="display:none;width:100%;padding:9px 11px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);font-family:var(--font-body);font-size:14px;color:var(--ink);resize:vertical;margin-top:8px;"></textarea>
+      </div>
+      <div class="field">
+        <label>Genre <button type="button" class="manage-link" id="openManageGenreBtn">Manage list</button></label>
+        <select id="f_genre">
+          <option value="">Select a genre</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Tropes <button type="button" class="manage-link" id="openManageTropeBtn">Manage list</button></label>
+        <div class="trope-chips" id="tropeChips"></div>
+        <div class="custom-trope-row">
+          <input type="text" id="tropeSearchInput" list="tropeOptions" placeholder="Type to search or add a trope...">
+          <datalist id="tropeOptions"></datalist>
+          <button type="button" class="small-btn" id="addTropeBtn">Add</button>
+        </div>
+        <p class="hint">Start typing to see matching tropes you've already used, or type a new one and hit Add.</p>
+      </div>
 
       <div class="field" style="margin-top:6px;">
         <label>Formats <span style="font-weight:normal;color:var(--muted);">(each gets its own cover, status, progress — and its own ARC info)</span></label>
@@ -974,6 +998,27 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         <p class="hint" id="noFormatsHint" style="display:none;">Pick at least one format to track status and progress.</p>
       </div>
       <div id="formatPanels"></div>
+
+      <div class="field" id="field-pubinfo">
+        <details class="blurb-toggle" id="pubInfoToggle">
+          <summary>Additional info (ISBN, length, publish date)</summary>
+          <div class="field-row">
+            <div class="field">
+              <label>ISBN</label>
+              <input type="text" id="f_isbn" placeholder="978-0-123456-78-9">
+            </div>
+            <div class="field">
+              <label>Length (pages)</label>
+              <input type="number" id="f_bookLength" min="0" placeholder="320">
+            </div>
+          </div>
+          <div class="field">
+            <label>Publish date</label>
+            <input type="text" id="f_publishDate" placeholder="e.g. 2019 or 2019-05-12">
+          </div>
+          <p class="hint">Filled in automatically from a Libib import when left blank — see Export &gt; Update from Libib.</p>
+        </details>
+      </div>
 
       <div class="field-row">
         <div class="field">
@@ -996,27 +1041,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         <input type="text" id="f_nowPlaying" placeholder="A song that fits this book's vibe">
       </div>
       <div class="core-fields" id="coreFields2">
-      <div class="field" id="field-blurb">
-        <label>Blurb (optional)</label>
-        <a href="#" id="addBlurbLink" class="manage-link" style="display:inline-block;">+ Add blurb</a>
-        <textarea id="f_blurb" rows="4" placeholder="Paste the publisher's synopsis here..." style="display:none;width:100%;padding:9px 11px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);font-family:var(--font-body);font-size:14px;color:var(--ink);resize:vertical;"></textarea>
-      </div>
-      <div class="field">
-        <label>Genre <button type="button" class="manage-link" id="openManageGenreBtn">Manage list</button></label>
-        <select id="f_genre">
-          <option value="">Select a genre</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Tropes <button type="button" class="manage-link" id="openManageTropeBtn">Manage list</button></label>
-        <div class="trope-chips" id="tropeChips"></div>
-        <div class="custom-trope-row">
-          <input type="text" id="tropeSearchInput" list="tropeOptions" placeholder="Type to search or add a trope...">
-          <datalist id="tropeOptions"></datalist>
-          <button type="button" class="small-btn" id="addTropeBtn">Add</button>
-        </div>
-        <p class="hint">Start typing to see matching tropes you've already used, or type a new one and hit Add.</p>
-      </div>
       </div>
       <div class="modal-actions">
         <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
@@ -2514,6 +2538,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       ratingHtml + tagsHtml + progressHtml +
       '<div class="card-actions">' +
         '<button class="icon-btn postcard-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="m2 8 10 6 10-6"/></svg>Postcard</button>' +
+        '<button class="icon-btn review-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Review</button>' +
         '<button class="icon-btn edit-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>Edit</button>' +
         '<button class="icon-btn duplicate-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Duplicate</button>' +
         '<button class="icon-btn danger del-btn' + (isConfirming ? ' confirming' : '') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>' + (isConfirming ? 'Confirm?' : 'Delete') + '</button>' +
@@ -2542,6 +2567,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     }
 
     card.querySelector('.postcard-btn').onclick = function(){ openPostcardModal(b.id); };
+    card.querySelector('.review-btn').onclick = function(){ openModal(b.id, 'reviewOnly'); };
 
     card.querySelector('.edit-btn').onclick = function(){ openModal(b.id); };
     card.querySelector('.duplicate-btn').onclick = function(){ duplicateBook(b.id); };
@@ -3550,6 +3576,10 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     document.getElementById('f_blurb').value = blurbVal;
     document.getElementById('f_blurb').style.display = blurbVal ? 'block' : 'none';
     document.getElementById('addBlurbLink').style.display = blurbVal ? 'none' : 'inline-block';
+    document.getElementById('f_isbn').value = b ? (b.isbn || '') : '';
+    document.getElementById('f_bookLength').value = b && b.bookLength ? b.bookLength : '';
+    document.getElementById('f_publishDate').value = b ? (b.publishDate || '') : '';
+    document.getElementById('pubInfoToggle').open = !!(b && (b.isbn || b.bookLength || b.publishDate));
     pendingCover = b ? (b.cover || null) : null;
     document.getElementById('coverPreview').innerHTML = pendingCover ? '<img src="' + pendingCover + '" alt="">' : '<span class="ph">No cover</span>';
     document.getElementById('f_cover').value = '';
@@ -3606,6 +3636,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       review: document.getElementById('f_review').value.trim(),
       nowPlaying: document.getElementById('f_nowPlaying').value.trim(),
       blurb: document.getElementById('f_blurb').value.trim(),
+      isbn: document.getElementById('f_isbn').value.trim(),
+      bookLength: document.getElementById('f_bookLength').value ? Number(document.getElementById('f_bookLength').value) : null,
+      publishDate: document.getElementById('f_publishDate').value.trim(),
       tropes: selectedTropes.slice()
     };
     applyLegacyFieldsFromFormats(data);
@@ -4482,6 +4515,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
     var blurbHtml = b.blurb ? '<details class="blurb-toggle"><summary>Read Blurb</summary><div class="detail-blurb">' + escapeHtml(b.blurb) + '</div></details>' : '';
 
+    var pubRows = '';
+    if(b.isbn) pubRows += '<div class="detail-row"><span class="dl">ISBN</span><span class="dv">' + escapeHtml(b.isbn) + '</span></div>';
+    if(b.bookLength) pubRows += '<div class="detail-row"><span class="dl">Length</span><span class="dv">' + b.bookLength + ' pages</span></div>';
+    if(b.publishDate) pubRows += '<div class="detail-row"><span class="dl">Published</span><span class="dv">' + escapeHtml(b.publishDate) + '</span></div>';
+    var pubInfoHtml = pubRows ? '<details class="blurb-toggle"><summary>Additional Info</summary>' + pubRows + '</details>' : '';
+
     return '<div class="view-header">' +
       '<div class="view-cover' + (anyAudiobook && (!formats || formats.length === 1) ? ' audiobook-cover' : '') + '">' + coverHtml + '</div>' +
       '<div>' +
@@ -4492,6 +4531,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       '</div>' +
     '</div>' +
     blurbHtml +
+    pubInfoHtml +
     rows + buildLinksHtml(b);
   }
 
@@ -6919,6 +6959,145 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     if(!file) return;
     var reader = new FileReader();
     reader.onload = function(ev){ importCsvText(ev.target.result); };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  // ===================== Libib library upload (merge/update) =====================
+  // Unlike the Goodreads/StoryGraph importer above (which skips books it already
+  // has), this one is meant to be re-run every time you export a fresh copy of
+  // your Libib library: it matches books by title+author, refreshes their
+  // post-publication info (ISBN, length, publish date), fills in a blurb from
+  // Libib's Description column only if you haven't written your own, and adds
+  // any books it doesn't recognize yet as new entries. It never touches status,
+  // ratings, reviews, tropes, or anything else you've entered by hand.
+  function normalizePublishDate(raw){
+    if(!raw) return '';
+    var s = raw.trim();
+    var full = s.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+    if(full) return full[1] + '-' + pad2(parseInt(full[2], 10)) + '-' + pad2(parseInt(full[3], 10));
+    var yearMonth = s.match(/^(\d{4})[\/\-](\d{1,2})$/);
+    if(yearMonth) return yearMonth[1] + '-' + pad2(parseInt(yearMonth[2], 10));
+    var yearOnly = s.match(/^(\d{4})$/);
+    if(yearOnly) return yearOnly[1];
+    return s;
+  }
+
+  function importLibibCsv(text){
+    var rows = parseCsv(text);
+    if(!rows.length){ showBanner('That CSV looks empty.'); return; }
+    var headers = rows[0].map(function(h){ return h.trim(); });
+    var idxTitle = findCol(headers, ['title']);
+    var idxAuthor = findCol(headers, ['creators', 'author(s)', 'authors', 'author']);
+    var idxIsbn13 = findCol(headers, ['isbn13', 'isbn 13', 'ean']);
+    var idxIsbn10 = findCol(headers, ['isbn10', 'isbn 10', 'isbn', 'upc']);
+    var idxDescription = findCol(headers, ['description']);
+    var idxPublishDate = findCol(headers, ['publish date', 'published date', 'publication date', 'date published']);
+    var idxPages = findCol(headers, ['pages', 'length', 'number of pages']);
+    var idxGenre = findCol(headers, ['genre']);
+
+    if(idxTitle === -1){
+      showBanner("Couldn't find a Title column in that file — make sure it's a Libib item export.");
+      return;
+    }
+
+    var existingByKey = {};
+    books.forEach(function(b){ existingByKey[dedupeKey(b.title, b.author)] = b; });
+
+    var newBooks = [];
+    var updatedBooks = [];
+    for(var r = 1; r < rows.length; r++){
+      var row = rows[r];
+      if(!row || !row.length || !row[idxTitle]) continue;
+      var title = row[idxTitle].trim();
+      if(!title) continue;
+      var author = idxAuthor !== -1 ? (row[idxAuthor] || '').trim() : '';
+
+      var isbn = '';
+      if(idxIsbn13 !== -1) isbn = (row[idxIsbn13] || '').trim();
+      if(!isbn && idxIsbn10 !== -1) isbn = (row[idxIsbn10] || '').trim();
+      var description = idxDescription !== -1 ? (row[idxDescription] || '').trim() : '';
+      var publishDate = idxPublishDate !== -1 ? normalizePublishDate(row[idxPublishDate] || '') : '';
+      var pagesRaw = idxPages !== -1 ? parseInt(row[idxPages], 10) : NaN;
+      var bookLength = isNaN(pagesRaw) ? null : pagesRaw;
+      var genre = idxGenre !== -1 ? (row[idxGenre] || '').trim() : '';
+
+      var key = dedupeKey(title, author);
+      var existing = existingByKey[key];
+      if(existing){
+        var changed = false;
+        if(isbn && existing.isbn !== isbn){ existing.isbn = isbn; changed = true; }
+        if(bookLength && existing.bookLength !== bookLength){ existing.bookLength = bookLength; changed = true; }
+        if(publishDate && existing.publishDate !== publishDate){ existing.publishDate = publishDate; changed = true; }
+        if(description && !existing.blurb){ existing.blurb = description; changed = true; }
+        if(changed) updatedBooks.push(existing);
+      } else {
+        var newBook = {
+          id: uid(),
+          title: title,
+          author: author,
+          status: 'want',
+          series: '',
+          seriesNumber: null,
+          format: '',
+          ownership: 'Owned',
+          borrowDueDate: '',
+          isARC: false,
+          arcSource: '',
+          dueDate: '',
+          arcFormLink: '',
+          totalPages: bookLength,
+          currentPage: null,
+          dateStarted: '',
+          dateFinished: '',
+          genre: genre,
+          rating: 0,
+          tropes: [],
+          cover: null,
+          dnfReason: '',
+          nowPlaying: '',
+          review: '',
+          postcardCaption: '',
+          blurb: description,
+          isbn: isbn,
+          bookLength: bookLength,
+          publishDate: publishDate,
+          createdAt: Date.now(),
+          statusChangedAt: Date.now()
+        };
+        existingByKey[key] = newBook; // guards against duplicate rows within this same file
+        newBooks.push(newBook);
+        if(genre && genreList.indexOf(genre) === -1){ genreList.push(genre); }
+      }
+    }
+
+    if(!newBooks.length && !updatedBooks.length){
+      showBanner('Nothing to update — that Libib file matched everything already in your library.');
+      return;
+    }
+
+    newBooks = newBooks.map(migrateBookToFormats);
+    books = books.concat(newBooks);
+    if(genreList.length){ saveGenreList(); renderGenreFilter(); }
+    render();
+    var parts = [];
+    if(newBooks.length) parts.push(newBooks.length + ' new book' + (newBooks.length === 1 ? '' : 's') + ' added');
+    if(updatedBooks.length) parts.push(updatedBooks.length + ' existing book' + (updatedBooks.length === 1 ? '' : 's') + ' updated');
+    showBanner('Syncing Libib library — ' + parts.join(', ') + '...');
+    Promise.all(newBooks.concat(updatedBooks).map(function(b){ return saveBookRemote(b); }))
+      .then(function(){ showBanner('Libib library synced — ' + parts.join(', ') + '.'); })
+      .catch(function(){ showBanner('Updated locally, but some books failed to sync — check your connection.'); });
+  }
+
+  document.getElementById('importLibibBtn').onclick = function(){
+    document.getElementById('exportMenu').style.display = 'none';
+    document.getElementById('libibCsvInput').click();
+  };
+  document.getElementById('libibCsvInput').addEventListener('change', function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev){ importLibibCsv(ev.target.result); };
     reader.readAsText(file);
     e.target.value = '';
   });
