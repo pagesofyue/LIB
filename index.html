@@ -6996,6 +6996,22 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     return s;
   }
 
+  // Libib (and other exports) often include the series/subtitle right in the
+  // title column — "Derecho: Silver Ridge Ranch Book 3" — while a book added
+  // by hand is usually just "Derecho". Strips that off before comparing so
+  // the two are recognized as the same book instead of creating a duplicate.
+  function normalizeTitleForMatch(title){
+    var t = (title || '').toLowerCase().trim();
+    t = t.split(/\s*[:(]|\s+[-–—]\s+/)[0];
+    t = t.replace(/\s+(book|bk\.?|vol\.?|volume|#)\s*\d+(\.\d+)?\s*$/i, '');
+    t = t.replace(/^(the|a|an)\s+/i, '');
+    return t.trim();
+  }
+
+  function libibDedupeKey(title, author){
+    return normalizeTitleForMatch(title) + '|' + (author || '').trim().toLowerCase();
+  }
+
   function importLibibCsv(text){
     var rows = parseCsv(text);
     if(!rows.length){ showLibibResult('That CSV looks empty.'); setLibibButtonBusy(false); return; }
@@ -7016,10 +7032,35 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     }
 
     var existingByKey = {};
-    books.forEach(function(b){ existingByKey[dedupeKey(b.title, b.author)] = b; });
+    var existingByAuthor = {};
+    books.forEach(function(b){
+      existingByKey[libibDedupeKey(b.title, b.author)] = b;
+      var a = (b.author || '').trim().toLowerCase();
+      if(!existingByAuthor[a]) existingByAuthor[a] = [];
+      existingByAuthor[a].push(b);
+    });
+
+    // For a title that doesn't match anything exactly, checks other books by
+    // the same author for a loose match (one normalized title contained in
+    // the other) so a near-miss gets flagged for a look instead of silently
+    // becoming an unnoticed duplicate.
+    function findPossibleDuplicate(title, author){
+      var norm = normalizeTitleForMatch(title);
+      if(!norm) return null;
+      var candidates = existingByAuthor[(author || '').trim().toLowerCase()] || [];
+      for(var i = 0; i < candidates.length; i++){
+        var otherNorm = normalizeTitleForMatch(candidates[i].title);
+        if(!otherNorm || otherNorm === norm) continue;
+        if(otherNorm.indexOf(norm) !== -1 || norm.indexOf(otherNorm) !== -1){
+          return candidates[i];
+        }
+      }
+      return null;
+    }
 
     var newBooks = [];
     var updatedBooks = [];
+    var possibleDuplicates = [];
     for(var r = 1; r < rows.length; r++){
       var row = rows[r];
       if(!row || !row.length || !row[idxTitle]) continue;
@@ -7036,7 +7077,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       var pagesFromLibib = isNaN(pagesRaw) ? null : pagesRaw;
       var genre = idxGenre !== -1 ? (row[idxGenre] || '').trim() : '';
 
-      var key = dedupeKey(title, author);
+      var key = libibDedupeKey(title, author);
       var existing = existingByKey[key];
       if(existing){
         var changed = false;
@@ -7057,6 +7098,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         }
         if(changed) updatedBooks.push(existing);
       } else {
+        var maybeDup = findPossibleDuplicate(title, author);
+        if(maybeDup) possibleDuplicates.push({ imported: title, existing: maybeDup.title });
         var newBook = {
           id: uid(),
           title: title,
@@ -7109,13 +7152,20 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     if(newBooks.length) parts.push(newBooks.length + ' new book' + (newBooks.length === 1 ? '' : 's') + ' added');
     if(updatedBooks.length) parts.push(updatedBooks.length + ' existing book' + (updatedBooks.length === 1 ? '' : 's') + ' updated');
     Promise.all(newBooks.concat(updatedBooks).map(function(b){ return saveBookRemote(b); }))
-      .then(function(){ showLibibResult(parts.join(' and ') + '. Your library is up to date.'); })
-      .catch(function(){ showLibibResult(parts.join(' and ') + ' — saved on this device, but some books failed to sync to the cloud. Check your connection and reopen the app to confirm.'); })
+      .then(function(){ showLibibResult(parts.join(' and ') + '. Your library is up to date.', possibleDuplicates); })
+      .catch(function(){ showLibibResult(parts.join(' and ') + ' — saved on this device, but some books failed to sync to the cloud. Check your connection and reopen the app to confirm.', possibleDuplicates); })
       .then(function(){ setLibibButtonBusy(false); });
   }
 
-  function showLibibResult(message){
-    document.getElementById('libibResultBody').textContent = message;
+  function showLibibResult(message, duplicates){
+    var html = '<p style="margin:0 0 10px;">' + escapeHtml(message) + '</p>';
+    if(duplicates && duplicates.length){
+      html += '<p style="margin:0 0 6px;font-weight:600;font-size:12.5px;">⚠ Double-check these — they might already be in your library under a slightly different title:</p>' +
+        '<ul style="margin:0;padding-left:18px;font-size:12.5px;color:var(--muted);">' +
+        duplicates.map(function(d){ return '<li style="margin-bottom:4px;">"' + escapeHtml(d.imported) + '" looks similar to your existing "' + escapeHtml(d.existing) + '"</li>'; }).join('') +
+        '</ul>';
+    }
+    document.getElementById('libibResultBody').innerHTML = html;
     document.getElementById('libibResultOverlay').style.display = 'flex';
   }
   document.getElementById('libibResultCloseBtn').onclick = function(){
