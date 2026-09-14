@@ -1024,7 +1024,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
             <label>Publish date</label>
             <input type="text" id="f_publishDate" placeholder="e.g. 2019 or 2019-05-12">
           </div>
-          <p class="hint">Filled in automatically from a Libib import when left blank — see Export &gt; Update from Libib.</p>
+          <p class="hint">Length is the same page count used for reading progress — if a format above already has one set, that value wins here. Filled in automatically from a Libib import when left blank, same as blurb — see Export &gt; Update from Libib.</p>
         </details>
       </div>
 
@@ -1154,6 +1154,16 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     <div class="modal-actions">
       <button type="button" class="btn-secondary" id="viewCloseBtn">Close</button>
       <button type="button" class="btn-primary" id="viewEditBtn">Edit this book</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="libibResultOverlay" style="display:none;">
+  <div class="modal" style="max-width:420px;">
+    <h2 id="libibResultTitle" style="margin-bottom:8px;">Libib import complete</h2>
+    <div id="libibResultBody" style="font-size:13.5px;color:var(--ink);line-height:1.5;"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-primary" id="libibResultCloseBtn">Got it</button>
     </div>
   </div>
 </div>
@@ -3584,9 +3594,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     document.getElementById('f_blurb').value = blurbVal;
     document.getElementById('blurbToggle').open = !!blurbVal;
     document.getElementById('f_isbn').value = b ? (b.isbn || '') : '';
-    document.getElementById('f_bookLength').value = b && b.bookLength ? b.bookLength : '';
+    document.getElementById('f_bookLength').value = b && b.totalPages ? b.totalPages : '';
     document.getElementById('f_publishDate').value = b ? (b.publishDate || '') : '';
-    document.getElementById('pubInfoToggle').open = !!(b && (b.isbn || b.bookLength || b.publishDate));
+    document.getElementById('pubInfoToggle').open = !!(b && (b.isbn || b.totalPages || b.publishDate));
     pendingCover = b ? (b.cover || null) : null;
     document.getElementById('coverPreview').innerHTML = pendingCover ? '<img src="' + pendingCover + '" alt="">' : '<span class="ph">No cover</span>';
     document.getElementById('f_cover').value = '';
@@ -3636,11 +3646,16 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       nowPlaying: document.getElementById('f_nowPlaying').value.trim(),
       blurb: document.getElementById('f_blurb').value.trim(),
       isbn: document.getElementById('f_isbn').value.trim(),
-      bookLength: document.getElementById('f_bookLength').value ? Number(document.getElementById('f_bookLength').value) : null,
       publishDate: document.getElementById('f_publishDate').value.trim(),
       tropes: selectedTropes.slice()
     };
     applyLegacyFieldsFromFormats(data);
+    // Length (in Additional info) is just a manual entry point for the same
+    // totalPages value the format panels use for progress — it only applies
+    // when no format above has already set one, so there's a single source
+    // of truth instead of two competing page-count fields.
+    var manualLength = document.getElementById('f_bookLength').value ? Number(document.getElementById('f_bookLength').value) : null;
+    if(!data.totalPages && manualLength) data.totalPages = manualLength;
 
     var finalBook = data;
     if(editingId){
@@ -4516,7 +4531,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
     var pubRows = '';
     if(b.isbn) pubRows += '<div class="detail-row"><span class="dl">ISBN</span><span class="dv">' + escapeHtml(b.isbn) + '</span></div>';
-    if(b.bookLength) pubRows += '<div class="detail-row"><span class="dl">Length</span><span class="dv">' + b.bookLength + ' pages</span></div>';
     if(b.publishDate) pubRows += '<div class="detail-row"><span class="dl">Published</span><span class="dv">' + escapeHtml(b.publishDate) + '</span></div>';
     var pubInfoHtml = pubRows ? '<details class="blurb-toggle"><summary>Additional Info</summary>' + pubRows + '</details>' : '';
 
@@ -6984,7 +6998,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   function importLibibCsv(text){
     var rows = parseCsv(text);
-    if(!rows.length){ showBanner('That CSV looks empty.'); return; }
+    if(!rows.length){ showLibibResult('That CSV looks empty.'); setLibibButtonBusy(false); return; }
     var headers = rows[0].map(function(h){ return h.trim(); });
     var idxTitle = findCol(headers, ['title']);
     var idxAuthor = findCol(headers, ['creators', 'author(s)', 'authors', 'author']);
@@ -6996,7 +7010,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var idxGenre = findCol(headers, ['genre']);
 
     if(idxTitle === -1){
-      showBanner("Couldn't find a Title column in that file — make sure it's a Libib item export.");
+      showLibibResult("Couldn't find a Title column in that file — make sure it's a Libib item export.");
+      setLibibButtonBusy(false);
       return;
     }
 
@@ -7018,7 +7033,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       var description = idxDescription !== -1 ? (row[idxDescription] || '').trim() : '';
       var publishDate = idxPublishDate !== -1 ? normalizePublishDate(row[idxPublishDate] || '') : '';
       var pagesRaw = idxPages !== -1 ? parseInt(row[idxPages], 10) : NaN;
-      var bookLength = isNaN(pagesRaw) ? null : pagesRaw;
+      var pagesFromLibib = isNaN(pagesRaw) ? null : pagesRaw;
       var genre = idxGenre !== -1 ? (row[idxGenre] || '').trim() : '';
 
       var key = dedupeKey(title, author);
@@ -7026,9 +7041,20 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       if(existing){
         var changed = false;
         if(isbn && existing.isbn !== isbn){ existing.isbn = isbn; changed = true; }
-        if(bookLength && existing.bookLength !== bookLength){ existing.bookLength = bookLength; changed = true; }
         if(publishDate && existing.publishDate !== publishDate){ existing.publishDate = publishDate; changed = true; }
         if(description && !existing.blurb){ existing.blurb = description; changed = true; }
+        // Length is the same field the format panels use for reading progress —
+        // only fill it in when it's blank, exactly like blurb above, so a
+        // page count you've already entered (or tracked progress against)
+        // never gets silently overwritten.
+        if(pagesFromLibib && !existing.totalPages){
+          existing.totalPages = pagesFromLibib;
+          changed = true;
+          if(existing.formats && existing.formats.length){
+            var primaryFmt = primaryFormatFor(existing.formats) || existing.formats[0];
+            if(primaryFmt && !primaryFmt.totalPages) primaryFmt.totalPages = pagesFromLibib;
+          }
+        }
         if(changed) updatedBooks.push(existing);
       } else {
         var newBook = {
@@ -7045,7 +7071,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
           arcSource: '',
           dueDate: '',
           arcFormLink: '',
-          totalPages: bookLength,
+          totalPages: pagesFromLibib,
           currentPage: null,
           dateStarted: '',
           dateFinished: '',
@@ -7059,7 +7085,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
           postcardCaption: '',
           blurb: description,
           isbn: isbn,
-          bookLength: bookLength,
           publishDate: publishDate,
           createdAt: Date.now(),
           statusChangedAt: Date.now()
@@ -7071,7 +7096,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     }
 
     if(!newBooks.length && !updatedBooks.length){
-      showBanner('Nothing to update — that Libib file matched everything already in your library.');
+      showLibibResult('Nothing to update — that Libib file matched everything already in your library.');
+      setLibibButtonBusy(false);
       return;
     }
 
@@ -7082,10 +7108,27 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var parts = [];
     if(newBooks.length) parts.push(newBooks.length + ' new book' + (newBooks.length === 1 ? '' : 's') + ' added');
     if(updatedBooks.length) parts.push(updatedBooks.length + ' existing book' + (updatedBooks.length === 1 ? '' : 's') + ' updated');
-    showBanner('Syncing Libib library — ' + parts.join(', ') + '...');
     Promise.all(newBooks.concat(updatedBooks).map(function(b){ return saveBookRemote(b); }))
-      .then(function(){ showBanner('Libib library synced — ' + parts.join(', ') + '.'); })
-      .catch(function(){ showBanner('Updated locally, but some books failed to sync — check your connection.'); });
+      .then(function(){ showLibibResult(parts.join(' and ') + '. Your library is up to date.'); })
+      .catch(function(){ showLibibResult(parts.join(' and ') + ' — saved on this device, but some books failed to sync to the cloud. Check your connection and reopen the app to confirm.'); })
+      .then(function(){ setLibibButtonBusy(false); });
+  }
+
+  function showLibibResult(message){
+    document.getElementById('libibResultBody').textContent = message;
+    document.getElementById('libibResultOverlay').style.display = 'flex';
+  }
+  document.getElementById('libibResultCloseBtn').onclick = function(){
+    document.getElementById('libibResultOverlay').style.display = 'none';
+  };
+  document.getElementById('libibResultOverlay').addEventListener('click', function(e){
+    if(e.target.id === 'libibResultOverlay') document.getElementById('libibResultOverlay').style.display = 'none';
+  });
+
+  function setLibibButtonBusy(isBusy){
+    var btn = document.getElementById('importLibibBtn');
+    btn.disabled = isBusy;
+    btn.textContent = isBusy ? 'Importing from Libib…' : 'Update from Libib library (.csv)';
   }
 
   document.getElementById('importLibibBtn').onclick = function(){
@@ -7095,6 +7138,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   document.getElementById('libibCsvInput').addEventListener('change', function(e){
     var file = e.target.files[0];
     if(!file) return;
+    setLibibButtonBusy(true);
     var reader = new FileReader();
     reader.onload = function(ev){ importLibibCsv(ev.target.result); };
     reader.readAsText(file);
