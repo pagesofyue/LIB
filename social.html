@@ -70,6 +70,19 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
 
   <div id="appArea">
     <div class="field">
+      <label>Status</label>
+      <select id="statusFilter">
+        <option value="not_finished" selected>Not Finished</option>
+        <option value="all">All</option>
+        <option value="want">In Queue</option>
+        <option value="requested">Requested</option>
+        <option value="reading">Reading</option>
+        <option value="hold">On Hold</option>
+        <option value="finished">Finished</option>
+        <option value="dnf">Did not finish</option>
+      </select>
+    </div>
+    <div class="field">
       <label>Book</label>
       <select id="bookSelect"><option value="">Choose a book...</option></select>
     </div>
@@ -137,9 +150,33 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     const snap = await getDocs(collection(db, 'users', currentUser.uid, 'books'));
     books = snap.docs.map(function(d){ return Object.assign({id: d.id}, d.data()); });
     books.sort(function(a, b){ return (a.title || '').localeCompare(b.title || ''); });
+    populateBookOptions();
+  }
+
+  // Book-level `status` mirrors whichever format-instance is "primary" in the
+  // main app (want/requested/reading/hold/finished/dnf) — see
+  // applyLegacyFieldsFromFormats() in index.html.
+  function bookMatchesStatusFilter(b, filterValue){
+    var status = b.status || 'want';
+    if(filterValue === 'all') return true;
+    if(filterValue === 'not_finished') return status !== 'finished';
+    return status === filterValue;
+  }
+
+  function populateBookOptions(){
+    var filterValue = document.getElementById('statusFilter').value;
+    var filtered = books.filter(function(b){ return bookMatchesStatusFilter(b, filterValue); });
     var select = document.getElementById('bookSelect');
+    var previouslySelected = select.value;
     select.innerHTML = '<option value="">Choose a book...</option>' +
-      books.map(function(b){ return '<option value="' + b.id + '">' + escapeHtml(b.title) + (b.author ? ' — ' + escapeHtml(b.author) : '') + '</option>'; }).join('');
+      filtered.map(function(b){ return '<option value="' + b.id + '">' + escapeHtml(b.title) + (b.author ? ' — ' + escapeHtml(b.author) : '') + '</option>'; }).join('');
+    // Keep the current pick selected if it's still in the filtered list, otherwise clear the output.
+    if(previouslySelected && filtered.some(function(b){ return b.id === previouslySelected; })){
+      select.value = previouslySelected;
+    } else {
+      select.value = '';
+      generateText();
+    }
   }
 
   function generateText(){
@@ -170,6 +207,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     copyBtn.disabled = false;
   }
 
+  document.getElementById('statusFilter').addEventListener('change', populateBookOptions);
   document.getElementById('bookSelect').addEventListener('change', generateText);
   document.getElementById('emojiInput').addEventListener('input', generateText);
 
