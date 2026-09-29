@@ -344,52 +344,49 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     return bgCache.url;
   }
 
-  function buildPost(b){
-    var F = "font-family:'Special Elite',monospace;";
+  // Details column content; s scales every size so fitPost can grow/shrink it to the panel.
+  function detailsHtml(b, s){
     var txt = g('pTextCol').value, acc = g('pAccCol').value;
     var emoji = g('emojiInput').value.trim() || '\uD83D\uDCCC';
-    var pad = 48, colW = 400, panelX = 470, panelW = W - panelX - 48;
-    var top = 110, boxH = 1100;
-
-    var bg = bgUrl();
-    var bgHtml = bg ? '<img src="' + bg + '" style="position:absolute;left:0;top:0;width:' + W + 'px;height:' + H + 'px;opacity:' + (g('pOp').value / 100) + ';">' : '';
-    var panel = g('pPanelOn').checked
-      ? '<div style="position:absolute;left:' + panelX + 'px;top:' + top + 'px;width:' + panelW + 'px;height:' + boxH + 'px;border-radius:36px;background:' + rgba(g('pPanelCol').value, g('pPanelOp').value / 100) + ';"></div>' : '';
-
-    var cover = b.cover
-      ? '<img id="pcCover" src="' + b.cover + '" style="display:block;margin:0 auto;max-width:' + colW + 'px;max-height:660px;width:auto;height:auto;border-radius:8px;box-shadow:0 14px 34px rgba(0,0,0,0.32);">'
-      : '<div style="width:280px;height:400px;margin:0 auto;border:3px dashed ' + rgba(txt, 0.5) + ';border-radius:8px;color:' + txt + ';text-align:center;padding-top:180px;box-sizing:border-box;font-size:22px;' + F + '">No cover</div>';
-    var coverBox = '<div style="position:absolute;left:' + pad + 'px;top:' + top + 'px;width:' + colW + 'px;height:' + boxH + 'px;display:table;"><div style="display:table-cell;vertical-align:middle;">' + cover + '</div></div>';
-
-    var tl = (b.title || '').length, tSize = tl > 40 ? 44 : (tl > 22 ? 52 : 60);
+    var tl = (b.title || '').length, base = tl > 40 ? 50 : (tl > 22 ? 58 : 68);
     var series = (g('pShowSeries').checked && b.series) ? escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ', Book ' + b.seriesNumber : '') : '';
-    var parts = '<div id="pcTitle" style="font-size:' + tSize + 'px;line-height:1.15;color:' + acc + ';overflow-wrap:break-word;">' + escapeHtml(b.title || '') + '</div>' +
-      (b.author ? '<div style="font-size:36px;margin-top:14px;color:' + txt + ';">' + escapeHtml(b.author) + '</div>' : '') +
-      (series ? '<div style="font-size:26px;margin-top:8px;color:' + txt + ';opacity:0.8;">' + series + '</div>' : '') +
-      (g('pShowRating').checked && b.rating ? '<div style="font-size:54px;letter-spacing:6px;margin-top:18px;color:' + acc + ';">' + ratingHtml(b.rating, g('pRateStyle').value) + '</div>' : '') +
-      (g('pShowGenre').checked && b.genre ? '<div style="margin-top:44px;"><div style="font-size:42px;color:' + acc + ';">Genre</div><div style="font-size:30px;margin-top:6px;color:' + txt + ';">' + escapeHtml(b.genre) + '</div></div>' : '');
+    var p = '<div style="font-size:' + Math.round(base * s) + 'px;line-height:1.12;color:' + acc + ';overflow-wrap:break-word;">' + escapeHtml(b.title || '') + '</div>' +
+      (b.author ? '<div style="font-size:' + Math.round(42 * s) + 'px;margin-top:16px;line-height:1.2;color:' + txt + ';">' + escapeHtml(b.author) + '</div>' : '') +
+      (series ? '<div style="font-size:' + Math.round(30 * s) + 'px;margin-top:8px;line-height:1.25;color:' + txt + ';opacity:0.85;">' + series + '</div>' : '') +
+      (g('pShowRating').checked && b.rating ? '<div style="font-size:' + Math.round(66 * s) + 'px;letter-spacing:6px;margin-top:20px;line-height:1.1;color:' + acc + ';">' + ratingHtml(b.rating, g('pRateStyle').value) + '</div>' : '') +
+      (g('pShowGenre').checked && b.genre ? '<div style="margin-top:' + Math.round(40 * s) + 'px;"><div style="font-size:' + Math.round(52 * s) + 'px;line-height:1.1;color:' + acc + ';">Genre</div><div style="font-size:' + Math.round(38 * s) + 'px;margin-top:8px;line-height:1.25;color:' + txt + ';">' + escapeHtml(b.genre) + '</div></div>' : '');
     if(g('pShowTropes').checked && b.tropes && b.tropes.length){
       var cols = b.tropes.length > 10 ? 2 : 1;
-      parts += '<div style="margin-top:44px;"><div style="font-size:42px;color:' + acc + ';">Tropes</div>' +
-        '<div class="pcTropes" style="margin-top:8px;column-count:' + cols + ';column-gap:24px;font-size:30px;line-height:1.55;color:' + txt + ';">' +
+      p += '<div style="margin-top:' + Math.round(40 * s) + 'px;"><div style="font-size:' + Math.round(52 * s) + 'px;line-height:1.1;color:' + acc + ';">Tropes</div>' +
+        '<div style="margin-top:10px;column-count:' + cols + ';column-gap:24px;font-size:' + Math.round(36 * s) + 'px;line-height:1.5;color:' + txt + ';">' +
         b.tropes.map(function(t){ return '<div style="break-inside:avoid;">' + escapeHtml(emoji) + ' ' + escapeHtml(t) + '</div>'; }).join('') + '</div></div>';
     }
-    var flow = '<div id="pcFlow" style="position:absolute;left:' + (panelX + 32) + 'px;top:' + (top + 34) + 'px;width:' + (panelW - 64) + 'px;height:' + (boxH - 68) + 'px;overflow:hidden;">' + parts + '</div>';
-    var footer = '<div style="position:absolute;left:0;right:0;bottom:46px;text-align:center;font-size:27px;color:' + txt + ';opacity:0.6;">pagesofyue.com | ARC Catalog : arc.pagesofyue.com</div>';
-
-    return '<div id="postRoot" style="' + F + 'width:' + W + 'px;height:' + H + 'px;position:relative;overflow:hidden;background:' + g('pBase').value + ';">' +
-      bgHtml + panel + coverBox + flow + footer + '</div>';
+    return p;
   }
 
-  // Shrinks tropes, then the title, until the details fit their box.
-  function fitPost(root){
-    var flow = root.querySelector('#pcFlow'); if(!flow) return;
-    var tr = flow.querySelector('.pcTropes'), ti = flow.querySelector('#pcTitle');
-    var over = function(){ return flow.scrollHeight > flow.clientHeight + 1; }, n = 0;
-    while(over() && n++ < 120){
-      if(tr){ var a = parseFloat(tr.style.fontSize) || 30; if(a > 18){ tr.style.fontSize = (a - 1) + 'px'; continue; } }
-      if(ti){ var t = parseFloat(ti.style.fontSize) || 60; if(t > 34){ ti.style.fontSize = (t - 2) + 'px'; continue; } }
-      break;
+  function buildPost(b){
+    var F = "font-family:'Special Elite',monospace;";
+    var cx = 40, cw = 450, px = 520, pw = W - px - 40, top = 90, boxH = 1130;
+    var bg = bgUrl();
+    var bgHtml = bg ? '<img src="' + bg + '" style="position:absolute;left:0;top:0;width:' + W + 'px;height:' + H + 'px;opacity:' + (g('pOp').value / 100) + ';">' : '';
+    var cover = b.cover
+      ? '<img id="pcCover" src="' + b.cover + '" style="display:block;margin:0 auto;width:' + cw + 'px;max-height:720px;height:auto;object-fit:contain;border-radius:8px;box-shadow:0 16px 40px rgba(0,0,0,0.35);">'
+      : '<div style="width:' + cw + 'px;height:640px;border:3px dashed ' + rgba(g('pTextCol').value, 0.5) + ';border-radius:8px;color:' + g('pTextCol').value + ';text-align:center;padding-top:300px;box-sizing:border-box;font-size:26px;">No cover</div>';
+    var coverBox = '<div style="position:absolute;left:' + cx + 'px;top:' + top + 'px;width:' + cw + 'px;height:' + boxH + 'px;display:table;"><div style="display:table-cell;vertical-align:middle;">' + cover + '</div></div>';
+    var panelBg = g('pPanelOn').checked ? 'background:' + rgba(g('pPanelCol').value, g('pPanelOp').value / 100) + ';border-radius:36px;' : '';
+    var detBox = '<div style="position:absolute;left:' + px + 'px;top:' + top + 'px;width:' + pw + 'px;height:' + boxH + 'px;display:table;"><div style="display:table-cell;vertical-align:middle;">' +
+      '<div id="pcPanel" style="' + panelBg + 'padding:40px 34px;box-sizing:border-box;width:' + pw + 'px;"><div id="pcIn">' + detailsHtml(b, 1.2) + '</div></div></div></div>';
+    var footer = '<div style="position:absolute;left:0;right:0;bottom:44px;text-align:center;font-size:30px;color:' + g('pTextCol').value + ';opacity:0.6;">pagesofyue.com | ARC Catalog : arc.pagesofyue.com</div>';
+    return '<div id="postRoot" style="' + F + 'width:' + W + 'px;height:' + H + 'px;position:relative;overflow:hidden;background:' + g('pBase').value + ';">' + bgHtml + coverBox + detBox + footer + '</div>';
+  }
+
+  // Start large, step down until the panel fits its area (no dead space, no overflow).
+  function fitPost(root, b){
+    var panel = root.querySelector('#pcPanel'), inn = root.querySelector('#pcIn');
+    if(!panel) return;
+    for(var s = 1.25; s >= 0.55; s -= 0.05){
+      inn.innerHTML = detailsHtml(b, s);
+      if(panel.offsetHeight <= 1090) break;
     }
   }
 
@@ -416,7 +413,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     var root = host.firstChild, k = Math.max(220, Math.min(stage.clientWidth - 34, 366)) / W;
     host.style.transformOrigin = 'top left'; host.style.transform = 'scale(' + k + ')';
     sc.style.width = Math.round(W * k) + 'px'; sc.style.height = Math.round(H * k) + 'px';
-    whenReady(root, function(){ if(root.isConnected) fitPost(root); });
+    whenReady(root, function(){ if(root.isConnected) fitPost(root, b); });
   }
 
   function flash(msg){ var n = g('pNote'); n.textContent = msg; n.style.display = 'inline'; setTimeout(function(){ n.style.display = 'none'; }, 2400); }
@@ -428,7 +425,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     st.innerHTML = buildPost(b); document.body.appendChild(st);
     var root = st.firstChild;
     whenReady(root, function(){
-      fitPost(root);
+      fitPost(root, b);
       window.html2canvas(root, {scale: 1, backgroundColor: null, useCORS: true}).then(function(c){
         var a = document.createElement('a');
         a.download = 'arc-review-' + safeName(b.title) + '.png'; a.href = c.toDataURL('image/png'); a.click();
