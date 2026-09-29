@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Social Post Generator — Hiraya Manawari</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 :root{
   --ink:#3B2A55;
   --paper:#E3D6DC;
@@ -48,6 +48,33 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
 .copy-btn:disabled{opacity:0.4;cursor:not-allowed;}
 .copied-note{font-size:12.5px;color:var(--accent-deep);margin-left:10px;display:none;}
 .empty-note{color:var(--muted);font-size:13px;text-align:center;padding:30px 0;}
+
+.app{max-width:1040px;}
+#tab-text{max-width:640px;}
+.img-grid{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:26px;align-items:start;margin-top:14px;}
+.img-preview{position:sticky;top:16px;}
+@media(max-width:900px){.img-grid{grid-template-columns:1fr;}.img-preview{order:-1;position:static;}}
+.range-row{display:flex;align-items:center;gap:10px;}.range-row input[type=range]{padding:0;flex:1;}.range-row span{font-size:12px;color:var(--muted);width:38px;text-align:right;}
+.field input[type=color]{padding:2px;height:38px;width:64px;}
+.sub{font-size:13px;font-weight:700;color:var(--accent-deep);margin:22px 0 10px;padding-top:14px;border-top:1px dashed var(--line-strong);}
+.tabs{display:flex;gap:0;margin:26px 0 0;border-bottom:1px solid var(--line-strong);}
+.tab-btn{background:none;border:1px solid transparent;border-bottom:none;border-radius:8px 8px 0 0;padding:10px 20px;font-family:var(--font-body);font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;margin-bottom:-1px;}
+.tab-btn.active{background:var(--card);border-color:var(--line-strong);color:var(--accent-deep);}
+.tab-panel{display:none;padding-top:8px;}
+.tab-panel.active{display:block;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:520px){.row2{grid-template-columns:1fr;}}
+.checks{display:flex;flex-wrap:wrap;gap:8px 18px;}
+.checks label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink);margin:0;cursor:pointer;}
+.checks input{width:auto;}
+.preview-stage{background:repeating-conic-gradient(rgba(59,42,85,0.05) 0% 25%, transparent 0% 50%) 0 0/20px 20px;border:1px solid var(--line-strong);border-radius:10px;padding:16px;display:flex;justify-content:center;margin-top:8px;}
+.preview-scale{position:relative;overflow:hidden;}
+.preview-scale > div{transform-origin:top left;}
+.btn-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;align-items:center;}
+.btn-secondary{background:var(--card);color:var(--ink);border:1px solid var(--line-strong);border-radius:8px;padding:10px 18px;font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;}
+.btn-secondary:hover{border-color:var(--accent);}
+.btn-secondary:disabled{opacity:0.4;cursor:not-allowed;}
+.hint{font-size:12px;color:var(--muted);margin:8px 0 0;line-height:1.5;}
 </style>
 </head>
 <body>
@@ -93,15 +120,67 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
         <span>Used before each trope — change it to whatever you like.</span>
       </div>
     </div>
-    <div class="output-wrap">
-      <label style="display:block;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;">Generated text</label>
-      <div class="output-box" id="outputBox" contenteditable="true"></div>
-      <button class="copy-btn" id="copyBtn" disabled>Copy to clipboard</button>
-      <span class="copied-note" id="copiedNote">Copied!</span>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="text">Caption text</button>
+      <button class="tab-btn" data-tab="image">Post image</button>
+    </div>
+
+    <div class="tab-panel active" id="tab-text">
+      <div class="output-wrap">
+        <label style="display:block;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;">Generated text</label>
+        <div class="output-box" id="outputBox" contenteditable="true"></div>
+        <button class="copy-btn" id="copyBtn" disabled>Copy to clipboard</button>
+        <span class="copied-note" id="copiedNote">Copied!</span>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-image">
+     <div class="img-grid">
+      <div>
+        <div class="sub" style="margin-top:8px;border:none;padding:0;">Background</div>
+        <div class="field"><label>Upload image</label><input type="file" id="pBgFile" accept="image/*">
+          <div class="btn-row" style="margin-top:8px;"><button class="btn-secondary" id="pBgClear" type="button">Remove image</button></div></div>
+        <div class="row2">
+          <div class="field"><label>Base colour</label><input type="color" id="pBase" value="#F5EEFC"></div>
+          <div class="field"><label>Panel behind text</label><div class="checks"><label><input type="checkbox" id="pPanelOn" checked> On</label></div></div>
+        </div>
+        <div class="field"><label>Image opacity</label><div class="range-row"><input type="range" id="pOp" min="0" max="100" value="100" step="1"><span id="pOpV">100</span></div></div><div class="field"><label>Image blur</label><div class="range-row"><input type="range" id="pBlur" min="0" max="20" value="0" step="1"><span id="pBlurV">0</span></div></div>
+        <div class="sub">Text panel</div>
+        <div class="row2">
+          <div class="field"><label>Panel colour</label><input type="color" id="pPanelCol" value="#FFFFFF"></div>
+          <div></div>
+        </div>
+        <div class="field"><label>Panel opacity</label><div class="range-row"><input type="range" id="pPanelOp" min="0" max="100" value="80" step="1"><span id="pPanelOpV">80</span></div></div>
+        <div class="sub">Text</div>
+        <div class="row2">
+          <div class="field"><label>Text colour</label><input type="color" id="pTextCol" value="#3B2A55"></div>
+          <div class="field"><label>Accent (title, headings)</label><input type="color" id="pAccCol" value="#6B4E93"></div>
+        </div>
+        <div class="btn-row" style="margin:0 0 12px;"><button class="btn-secondary" id="pLight" type="button">Light text</button><button class="btn-secondary" id="pDark" type="button">Dark text</button></div>
+        <div class="field"><label>Rating style</label><select id="pRateStyle"><option value="star">Stars</option><option value="heart">Hearts</option></select></div>
+        <div class="field"><label>Show</label><div class="checks">
+          <label><input type="checkbox" id="pShowSeries" checked> Series</label>
+          <label><input type="checkbox" id="pShowRating" checked> Rating</label>
+          <label><input type="checkbox" id="pShowGenre" checked> Genre</label>
+          <label><input type="checkbox" id="pShowTropes" checked> Tropes</label></div>
+          <p class="hint">Bullet emoji is set at the top of the page.</p></div>
+      </div>
+      <div class="img-preview">
+        <div class="preview-stage" style="margin-top:0;"><div class="preview-scale" id="previewScale"><div id="previewHost"></div></div></div>
+        <div class="btn-row">
+          <button class="copy-btn" id="pDownloadBtn" style="margin-top:0;" disabled>Download PNG</button>
+          <button class="btn-secondary" id="pCoverBtn" disabled>Cover only</button>
+          <span class="copied-note" id="pNote"></span>
+        </div>
+        <p class="hint">1080 × 1350 (4:5). Preview updates as you edit.</p>
+      </div>
+     </div>
     </div>
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import {
@@ -219,6 +298,165 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
       setTimeout(function(){ note.style.display = 'none'; }, 1800);
     });
   });
+
+
+  // ---------- Tabs ----------
+  document.querySelectorAll('.tab-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.toggle('active', b === btn); });
+      document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.toggle('active', p.id === 'tab-' + btn.dataset.tab); });
+      if(btn.dataset.tab === 'image') renderPost();
+    });
+  });
+
+  // ---------- Post image (4:5, Special Elite) ----------
+  var W = 1080, H = 1350, bgImg = null, bgCache = {key:'', url:''};
+  function g(id){ return document.getElementById(id); }
+  function currentBook(){ var id = g('bookSelect').value; return books.find(function(x){ return x.id === id; }) || null; }
+  function rgba(hex, a){
+    var n = parseInt(hex.slice(1), 16);
+    return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+  function safeName(s){ return (s || 'book').replace(/[^a-z0-9]/gi, '_').toLowerCase(); }
+
+  // Rating: half-steps, stars or hearts. A half is a glyph clipped to its left side.
+  function ratingHtml(r, style){
+    r = Math.max(0, Math.min(5, r || 0));
+    var ch = style === 'heart' ? '\u2665' : '\u2605';
+    var full = Math.floor(r), half = (r - full) >= 0.5, out = '';
+    for(var i = 0; i < full; i++) out += ch;
+    if(half) out += '<span style="display:inline-block;width:0.46em;overflow:hidden;vertical-align:top;letter-spacing:0;">' + ch + '</span>';
+    return out;
+  }
+
+  // Blur is baked into a canvas because html2canvas ignores CSS filters.
+  function bgUrl(){
+    if(!bgImg) return '';
+    var blur = +g('pBlur').value, key = blur + ':' + bgImg.src.length;
+    if(bgCache.key === key) return bgCache.url;
+    var c = document.createElement('canvas'); c.width = W; c.height = H;
+    var x = c.getContext('2d'), m = blur * 3;
+    var sc = Math.max((W + 2 * m) / bgImg.naturalWidth, (H + 2 * m) / bgImg.naturalHeight);
+    var dw = bgImg.naturalWidth * sc, dh = bgImg.naturalHeight * sc;
+    if(blur) x.filter = 'blur(' + blur + 'px)';
+    x.drawImage(bgImg, (W - dw) / 2, (H - dh) / 2, dw, dh);
+    bgCache = {key: key, url: c.toDataURL('image/jpeg', 0.9)};
+    return bgCache.url;
+  }
+
+  function buildPost(b){
+    var F = "font-family:'Special Elite',monospace;";
+    var txt = g('pTextCol').value, acc = g('pAccCol').value;
+    var emoji = g('emojiInput').value.trim() || '\uD83D\uDCCC';
+    var pad = 48, colW = 400, panelX = 470, panelW = W - panelX - 48;
+    var top = 110, boxH = 1100;
+
+    var bg = bgUrl();
+    var bgHtml = bg ? '<img src="' + bg + '" style="position:absolute;left:0;top:0;width:' + W + 'px;height:' + H + 'px;opacity:' + (g('pOp').value / 100) + ';">' : '';
+    var panel = g('pPanelOn').checked
+      ? '<div style="position:absolute;left:' + panelX + 'px;top:' + top + 'px;width:' + panelW + 'px;height:' + boxH + 'px;border-radius:36px;background:' + rgba(g('pPanelCol').value, g('pPanelOp').value / 100) + ';"></div>' : '';
+
+    var cover = b.cover
+      ? '<img id="pcCover" src="' + b.cover + '" style="display:block;margin:0 auto;max-width:' + colW + 'px;max-height:660px;width:auto;height:auto;border-radius:8px;box-shadow:0 14px 34px rgba(0,0,0,0.32);">'
+      : '<div style="width:280px;height:400px;margin:0 auto;border:3px dashed ' + rgba(txt, 0.5) + ';border-radius:8px;color:' + txt + ';text-align:center;padding-top:180px;box-sizing:border-box;font-size:22px;' + F + '">No cover</div>';
+    var coverBox = '<div style="position:absolute;left:' + pad + 'px;top:' + top + 'px;width:' + colW + 'px;height:' + boxH + 'px;display:table;"><div style="display:table-cell;vertical-align:middle;">' + cover + '</div></div>';
+
+    var tl = (b.title || '').length, tSize = tl > 40 ? 44 : (tl > 22 ? 52 : 60);
+    var series = (g('pShowSeries').checked && b.series) ? escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ', Book ' + b.seriesNumber : '') : '';
+    var parts = '<div id="pcTitle" style="font-size:' + tSize + 'px;line-height:1.15;color:' + acc + ';overflow-wrap:break-word;">' + escapeHtml(b.title || '') + '</div>' +
+      (b.author ? '<div style="font-size:36px;margin-top:14px;color:' + txt + ';">' + escapeHtml(b.author) + '</div>' : '') +
+      (series ? '<div style="font-size:26px;margin-top:8px;color:' + txt + ';opacity:0.8;">' + series + '</div>' : '') +
+      (g('pShowRating').checked && b.rating ? '<div style="font-size:54px;letter-spacing:6px;margin-top:18px;color:' + acc + ';">' + ratingHtml(b.rating, g('pRateStyle').value) + '</div>' : '') +
+      (g('pShowGenre').checked && b.genre ? '<div style="margin-top:44px;"><div style="font-size:42px;color:' + acc + ';">Genre</div><div style="font-size:30px;margin-top:6px;color:' + txt + ';">' + escapeHtml(b.genre) + '</div></div>' : '');
+    if(g('pShowTropes').checked && b.tropes && b.tropes.length){
+      var cols = b.tropes.length > 10 ? 2 : 1;
+      parts += '<div style="margin-top:44px;"><div style="font-size:42px;color:' + acc + ';">Tropes</div>' +
+        '<div class="pcTropes" style="margin-top:8px;column-count:' + cols + ';column-gap:24px;font-size:30px;line-height:1.55;color:' + txt + ';">' +
+        b.tropes.map(function(t){ return '<div style="break-inside:avoid;">' + escapeHtml(emoji) + ' ' + escapeHtml(t) + '</div>'; }).join('') + '</div></div>';
+    }
+    var flow = '<div id="pcFlow" style="position:absolute;left:' + (panelX + 32) + 'px;top:' + (top + 34) + 'px;width:' + (panelW - 64) + 'px;height:' + (boxH - 68) + 'px;overflow:hidden;">' + parts + '</div>';
+    var footer = '<div style="position:absolute;left:0;right:0;bottom:46px;text-align:center;font-size:27px;color:' + txt + ';opacity:0.6;">pagesofyue.com | ARC Catalog : arc.pagesofyue.com</div>';
+
+    return '<div id="postRoot" style="' + F + 'width:' + W + 'px;height:' + H + 'px;position:relative;overflow:hidden;background:' + g('pBase').value + ';">' +
+      bgHtml + panel + coverBox + flow + footer + '</div>';
+  }
+
+  // Shrinks tropes, then the title, until the details fit their box.
+  function fitPost(root){
+    var flow = root.querySelector('#pcFlow'); if(!flow) return;
+    var tr = flow.querySelector('.pcTropes'), ti = flow.querySelector('#pcTitle');
+    var over = function(){ return flow.scrollHeight > flow.clientHeight + 1; }, n = 0;
+    while(over() && n++ < 120){
+      if(tr){ var a = parseFloat(tr.style.fontSize) || 30; if(a > 18){ tr.style.fontSize = (a - 1) + 'px'; continue; } }
+      if(ti){ var t = parseFloat(ti.style.fontSize) || 60; if(t > 34){ ti.style.fontSize = (t - 2) + 'px'; continue; } }
+      break;
+    }
+  }
+
+  // Wait for fonts and every image, then run cb (sizes are wrong before that).
+  function whenReady(root, cb){
+    var pend = Array.prototype.filter.call(root.querySelectorAll('img'), function(i){ return !(i.complete && i.naturalWidth); });
+    var fonts = document.fonts && document.fonts.load ? document.fonts.load("30px 'Special Elite'") : Promise.resolve();
+    Promise.all([fonts, document.fonts && document.fonts.ready].concat(pend.map(function(i){
+      return new Promise(function(r){ i.addEventListener('load', r); i.addEventListener('error', r); });
+    }))).then(cb, cb);
+  }
+
+  function renderPost(){
+    var b = currentBook(), host = g('previewHost');
+    ['pOp','pBlur','pPanelOp'].forEach(function(id){ g(id + 'V').textContent = g(id).value + (id === 'pBlur' ? 'px' : '%'); });
+    g('pDownloadBtn').disabled = !b; g('pCoverBtn').disabled = !(b && b.cover);
+    var sc = g('previewScale'), stage = document.querySelector('.preview-stage');
+    if(!b){
+      host.style.transform = ''; sc.style.width = sc.style.height = '';
+      host.innerHTML = '<div style="width:300px;padding:80px 10px;text-align:center;color:var(--muted);font-size:13px;">Pick a book above to preview your post.</div>';
+      return;
+    }
+    host.innerHTML = buildPost(b);
+    var root = host.firstChild, k = Math.max(220, Math.min(stage.clientWidth - 34, 366)) / W;
+    host.style.transformOrigin = 'top left'; host.style.transform = 'scale(' + k + ')';
+    sc.style.width = Math.round(W * k) + 'px'; sc.style.height = Math.round(H * k) + 'px';
+    whenReady(root, function(){ if(root.isConnected) fitPost(root); });
+  }
+
+  function flash(msg){ var n = g('pNote'); n.textContent = msg; n.style.display = 'inline'; setTimeout(function(){ n.style.display = 'none'; }, 2400); }
+
+  g('pDownloadBtn').addEventListener('click', function(){
+    var b = currentBook();
+    if(!b || !window.html2canvas){ flash('Export unavailable — check your connection.'); return; }
+    var st = document.createElement('div'); st.style.cssText = 'position:fixed;left:-20000px;top:0;';
+    st.innerHTML = buildPost(b); document.body.appendChild(st);
+    var root = st.firstChild;
+    whenReady(root, function(){
+      fitPost(root);
+      window.html2canvas(root, {scale: 1, backgroundColor: null, useCORS: true}).then(function(c){
+        var a = document.createElement('a');
+        a.download = 'arc-review-' + safeName(b.title) + '.png'; a.href = c.toDataURL('image/png'); a.click();
+        document.body.removeChild(st); flash('Downloaded!');
+      }).catch(function(){ document.body.removeChild(st); flash("Couldn't create the image."); });
+    });
+  });
+
+  g('pCoverBtn').addEventListener('click', function(){
+    var b = currentBook(); if(!b || !b.cover) return;
+    var a = document.createElement('a');
+    a.download = safeName(b.title) + '-cover.' + (/^data:image\/png/.test(b.cover) ? 'png' : 'jpg'); a.href = b.cover; a.click();
+  });
+
+  g('pBgFile').addEventListener('change', function(e){
+    var f = e.target.files && e.target.files[0]; if(!f) return;
+    var r = new FileReader();
+    r.onload = function(){ var im = new Image(); im.onload = function(){ bgImg = im; bgCache = {key:'', url:''}; renderPost(); }; im.src = r.result; };
+    r.readAsDataURL(f);
+  });
+  g('pBgClear').addEventListener('click', function(){ bgImg = null; bgCache = {key:'', url:''}; g('pBgFile').value = ''; renderPost(); });
+  g('pLight').addEventListener('click', function(){ g('pTextCol').value = '#FBF7FF'; g('pAccCol').value = '#E4D2F2'; renderPost(); });
+  g('pDark').addEventListener('click', function(){ g('pTextCol').value = '#3B2A55'; g('pAccCol').value = '#6B4E93'; renderPost(); });
+
+  ['pOp','pBlur','pPanelOp','pBase','pPanelCol','pTextCol','pAccCol'].forEach(function(id){ g(id).addEventListener('input', renderPost); });
+  ['pPanelOn','pRateStyle','pShowSeries','pShowRating','pShowGenre','pShowTropes','bookSelect','statusFilter'].forEach(function(id){ g(id).addEventListener('change', renderPost); });
+  g('emojiInput').addEventListener('input', renderPost);
+  window.addEventListener('resize', renderPost);
 
   onAuthStateChanged(auth, function(user){
     currentUser = user;
