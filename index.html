@@ -504,6 +504,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .hold-stamp{flex:none;font-family:var(--font-stamp);font-size:10px;font-weight:400;letter-spacing:0.06em;text-align:center;border:1.5px dashed var(--hold-deep);color:var(--hold-deep);background:radial-gradient(circle at 35% 35%, rgba(143,111,60,0.18), transparent 70%);border-radius:4px;padding:7px 8px;transform:rotate(3deg);line-height:1.15;}
 .requested-stamp{flex:none;font-family:var(--font-stamp);font-size:10px;font-weight:400;letter-spacing:0.06em;text-align:center;border:1.5px dashed var(--requested-deep);color:var(--requested-deep);background:radial-gradient(circle at 35% 35%, rgba(92,115,150,0.18), transparent 70%);border-radius:4px;padding:7px 8px;transform:rotate(-3deg);line-height:1.15;}
 .arc-source{font-size:10.5px;color:var(--muted);margin-top:2px;font-family:var(--font-mono);white-space:nowrap;overflow:hidden;max-width:100%;display:block;}
+.form-error{display:none;font-size:12.5px;font-weight:600;color:#8A3B3B;background:#F4D9D9;border:1px solid rgba(138,59,59,0.3);border-radius:6px;padding:8px 10px;margin-top:14px;}
 .dup-banner{display:block;font-size:12.5px;font-weight:700;letter-spacing:0.02em;color:#8A3B3B;background:#F4D9D9;border:1px solid rgba(138,59,59,0.3);border-radius:6px;padding:7px 10px;margin-bottom:10px;text-align:center;}
 .arc-link{display:inline-block;font-size:10.5px;color:var(--accent-deep);margin-top:3px;text-decoration:underline;font-family:var(--font-body);}
 
@@ -960,7 +961,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       </div>
       <div class="field-row">
         <div class="field">
-          <label>Author</label>
+          <label>Author *</label>
           <input type="text" id="f_author" placeholder="Gene Wolfe">
         </div>
         <div class="field">
@@ -1050,6 +1051,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       </div>
       <div class="core-fields" id="coreFields2">
       </div>
+      <div class="form-error" id="formError" role="alert"></div>
       <div class="modal-actions">
         <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
         <button type="submit" class="btn-primary" id="saveBtn">Save book</button>
@@ -2274,14 +2276,18 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     return last.getFullYear() + '-' + pad2(last.getMonth() + 1) + '-' + pad2(last.getDate());
   }
 
-  function effectiveDueDate(b){
+  // skipNoDeadline: when true, ARC copies marked "No deadline" are ignored
+  // (their rolling end-of-month date is not a real due date). The
+  // "Due within the week" stat/filter passes true; everything else
+  // (calendar, sorting, .ics export) keeps the default behavior.
+  function effectiveDueDate(b, skipNoDeadline){
     var candidates = [];
     formatInstancesOf(b).forEach(function(f){
       if(f.status === 'finished') return;
       if(f.status === 'dnf' && !dueSoonIncludeDnf) return;
       if(f.status === 'hold' && !dueSoonIncludeHold) return;
       if(f.isARC && f.noDeadline){
-        candidates.push(endOfMonthISO());
+        if(!skipNoDeadline) candidates.push(endOfMonthISO());
       } else if(f.isARC && f.dueDate){
         candidates.push(f.dueDate);
       }
@@ -2301,7 +2307,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   function getDueSoonBooks(days){
     return books.filter(function(b){
-      var due = effectiveDueDate(b);
+      var due = effectiveDueDate(b, true);
       if(!due) return false;
       var d = daysUntil(due);
       return d !== null && d <= days;
@@ -2389,6 +2395,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       if(provider && !formatInstancesOf(b).some(function(f){ return f.isARC && f.arcSource === provider; })) return false;
       if(formatFilter && formatTypesOf(b).indexOf(formatFilter) === -1) return false;
       if(dueSoonFilterActive){
+        // Unlike the counter, the list still includes "No deadline" ARCs
+        // (via their rolling end-of-month date).
         var due = effectiveDueDate(b);
         if(!due) return false;
         var d = daysUntil(due);
@@ -2649,6 +2657,44 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       }
     });
     duplicateIds = dupIds;
+  }
+
+  // Returns the first OTHER book with the same title + author that also
+  // shares a format (or has no format, if the new one has none) — the same
+  // rule computeDuplicateIds() uses for the "Possible Duplicate" badge.
+  function findDuplicateOf(title, author, types, excludeId){
+    var ta = (title || '').trim().toLowerCase() + '|' + (author || '').trim().toLowerCase();
+    var mine = (types || []).map(function(t){ return (t || '').trim().toLowerCase(); });
+    return books.find(function(b){
+      if(excludeId && b.id === excludeId) return false;
+      var bta = (b.title || '').trim().toLowerCase() + '|' + (b.author || '').trim().toLowerCase();
+      if(bta !== ta) return false;
+      var theirs = formatTypesOf(b).map(function(t){ return (t || '').trim().toLowerCase(); });
+      if(!mine.length && !theirs.length) return true;
+      return mine.some(function(t){ return theirs.indexOf(t) !== -1; });
+    }) || null;
+  }
+
+  var dupOverride = false;
+  function showDupPrompt(title, author){
+    var el = document.getElementById('formError');
+    el.innerHTML = '<div>Heads up: \u201c' + escapeHtml(title) + '\u201d by ' + escapeHtml(author) + ' is already in your library in this format. Save it anyway?</div>' +
+      '<div style="margin-top:8px;display:flex;gap:8px;">' +
+      '<button type="button" class="btn-primary" id="dupSaveAnywayBtn" style="padding:6px 12px;font-size:12.5px;">Save anyway</button>' +
+      '<button type="button" class="btn-secondary" id="dupGoBackBtn" style="padding:6px 12px;font-size:12.5px;">Go back</button></div>';
+    el.style.display = 'block';
+    document.getElementById('dupSaveAnywayBtn').onclick = function(){
+      dupOverride = true;
+      document.getElementById('bookForm').requestSubmit();
+    };
+    document.getElementById('dupGoBackBtn').onclick = function(){ showFormError(''); };
+  }
+
+  function showFormError(msg){
+    var el = document.getElementById('formError');
+    if(!el) return;
+    el.textContent = msg || '';
+    el.style.display = msg ? 'block' : 'none';
   }
 
   var PAGE_SIZE = 50;
@@ -3563,20 +3609,20 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       createdAt: Date.now(),
       statusChangedAt: Date.now()
     };
-    applyLegacyFieldsFromFormats(dup);
-    books.push(dup);
-    saveBookRemote(dup);
-    render();
-    openModal(dup.id);
+    // Not added to the library yet — it only gets saved once the form passes
+    // validation (title + author required, no duplicates).
+    openModal(null, 'full', dup);
     showBanner('Duplicated — fill in the title and anything else that\'s different.');
   }
 
-  function openModal(id, mode){
+  function openModal(id, mode, draft){
     editingId = id || null;
     modalMode = mode || 'full';
-    var b = id ? books.find(function(x){ return x.id === id; }) : null;
+    dupOverride = false;
+    showFormError('');
+    var b = id ? books.find(function(x){ return x.id === id; }) : (draft || null);
     var isReviewOnly = modalMode === 'reviewOnly';
-    document.getElementById('modalTitle').textContent = isReviewOnly ? 'Edit review' : (b ? 'Edit book' : 'Add a book');
+    document.getElementById('modalTitle').textContent = isReviewOnly ? 'Edit review' : ((id && b) ? 'Edit book' : 'Add a book');
     document.getElementById('coreFields1').style.display = isReviewOnly ? 'none' : '';
     document.getElementById('coreFields2').style.display = isReviewOnly ? 'none' : '';
     document.getElementById('field-review').style.display = isReviewOnly ? '' : 'none';
@@ -3625,17 +3671,48 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     if(e.target.id === 'overlay') closeModal();
   });
 
+  ['f_title','f_author'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', function(){ dupOverride = false; });
+  });
+  document.querySelectorAll('.f_formatType').forEach(function(cb){
+    cb.addEventListener('change', function(){ dupOverride = false; });
+  });
+
   document.getElementById('bookForm').addEventListener('submit', function(e){
     e.preventDefault();
     var title = document.getElementById('f_title').value.trim();
-    if(!title) return;
+    var authorVal = document.getElementById('f_author').value.trim();
+
+    // Review-only edits never touch title/author, so they skip these checks.
+    if(modalMode !== 'reviewOnly'){
+      if(!title){
+        showFormError('Title is required.');
+        document.getElementById('f_title').focus();
+        return;
+      }
+      if(!authorVal){
+        showFormError('Author is required.');
+        document.getElementById('f_author').focus();
+        return;
+      }
+    }
 
     var existingBook = editingId ? books.find(function(x){ return x.id === editingId; }) : null;
     var formats = collectFormats(existingBook ? existingBook.formats : null);
 
+    if(modalMode !== 'reviewOnly'){
+      var dupOf = findDuplicateOf(title, authorVal, formats.map(function(f){ return f.type; }), editingId);
+      if(dupOf && !dupOverride){
+        showDupPrompt(title, authorVal);
+        return;
+      }
+    }
+    dupOverride = false;
+    showFormError('');
+
     var data = {
       title: title,
-      author: document.getElementById('f_author').value.trim(),
+      author: authorVal,
       series: document.getElementById('f_series').value.trim(),
       seriesNumber: document.getElementById('f_seriesNum').value ? Number(document.getElementById('f_seriesNum').value) : null,
       formats: formats,
@@ -5174,7 +5251,15 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var b = books.find(function(x){ return x.id === currentBookViewId; });
     if(!b) return;
     if(key === 'author'){
-      b.author = document.getElementById('bvInput_author').value.trim();
+      var authorInput = document.getElementById('bvInput_author');
+      var newAuthor = authorInput.value.trim();
+      if(!newAuthor){
+        authorInput.style.borderColor = '#B03A3A';
+        authorInput.placeholder = "Author can't be blank";
+        authorInput.focus();
+        return;
+      }
+      b.author = newAuthor;
     } else if(key === 'series'){
       b.series = document.getElementById('bvInput_series').value.trim();
       var numVal = document.getElementById('bvInput_seriesNumber').value;
