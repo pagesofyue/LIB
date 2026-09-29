@@ -56,7 +56,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
 @media(max-width:900px){.img-grid{grid-template-columns:1fr;}.img-preview{order:-1;position:static;}}
 .range-row{display:flex;align-items:center;gap:10px;}.range-row input[type=range]{padding:0;flex:1;}.range-row span{font-size:12px;color:var(--muted);width:38px;text-align:right;}
 .field input[type=color]{padding:2px;height:38px;width:64px;}
-.sub{font-size:13px;font-weight:700;color:var(--accent-deep);margin:22px 0 10px;padding-top:14px;border-top:1px dashed var(--line-strong);}
+.sub{font-size:13px;font-weight:700;color:var(--accent-deep);margin:12px 0 8px;padding-top:9px;border-top:1px dashed var(--line-strong);}
 .tabs{display:flex;gap:0;margin:26px 0 0;border-bottom:1px solid var(--line-strong);}
 .tab-btn{background:none;border:1px solid transparent;border-bottom:none;border-radius:8px 8px 0 0;padding:10px 20px;font-family:var(--font-body);font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;margin-bottom:-1px;}
 .tab-btn.active{background:var(--card);border-color:var(--line-strong);color:var(--accent-deep);}
@@ -75,6 +75,25 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
 .btn-secondary:hover{border-color:var(--accent);}
 .btn-secondary:disabled{opacity:0.4;cursor:not-allowed;}
 .hint{font-size:12px;color:var(--muted);margin:8px 0 0;line-height:1.5;}
+
+/* compact one-line controls */
+.line{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;margin-bottom:8px;}
+.it{display:flex;align-items:center;gap:8px;min-width:0;}
+.it.grow{flex:1 1 220px;}
+.it .lb{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap;}
+.it select{padding:6px 8px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);font-family:var(--font-body);font-size:13px;color:var(--ink);min-width:0;}
+.it.grow select{flex:1;width:100%;}
+.it select:focus{outline:2px solid var(--accent);outline-offset:1px;}
+.it input[type=range]{flex:1;min-width:60px;margin:0;padding:0;}
+.it input[type=color]{width:40px;height:28px;padding:1px;border:1px solid var(--line-strong);border-radius:6px;background:var(--card);cursor:pointer;}
+.it input[type=checkbox]{margin:0;width:auto;}
+.it input.emoji{width:56px;padding:4px;text-align:center;font-size:16px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);}
+.it .val{font-size:12px;color:var(--muted);width:40px;text-align:right;flex:none;}
+.ck{display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;white-space:nowrap;}
+.upbtn{display:inline-block;background:var(--card);color:var(--ink);border:1px solid var(--line-strong);border-radius:8px;padding:6px 12px;font-family:var(--font-body);font-size:13px;font-weight:600;cursor:pointer;}
+.upbtn:hover,.xbtn:hover{border-color:var(--accent);}
+.xbtn{background:var(--card);color:var(--muted);border:1px solid var(--line-strong);border-radius:8px;padding:5px 9px;font-family:var(--font-body);font-size:13px;line-height:1;cursor:pointer;}
+.btn-secondary.sm{padding:5px 10px;font-size:12px;}
 </style>
 </head>
 <body>
@@ -96,29 +115,20 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   </div>
 
   <div id="appArea">
-    <div class="field">
-      <label>Status</label>
-      <select id="statusFilter">
-        <option value="not_finished" selected>Not Finished</option>
-        <option value="all">All</option>
-        <option value="want">In Queue</option>
-        <option value="requested">Requested</option>
-        <option value="reading">Reading</option>
-        <option value="hold">On Hold</option>
-        <option value="finished">Finished</option>
-        <option value="dnf">Did not finish</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>Book</label>
-      <select id="bookSelect"><option value="">Choose a book...</option></select>
-    </div>
-    <div class="field">
-      <label>Bullet emoji</label>
-      <div class="emoji-row">
-        <input type="text" id="emojiInput" value="📌" maxlength="4">
-        <span>Used before each trope — change it to whatever you like.</span>
-      </div>
+    <div class="line" style="margin-top:4px;">
+      <div class="it"><span class="lb">Status</span>
+        <select id="statusFilter">
+          <option value="not_finished" selected>Not Finished</option>
+          <option value="all">All</option>
+          <option value="want">In Queue</option>
+          <option value="requested">Requested</option>
+          <option value="reading">Reading</option>
+          <option value="hold">On Hold</option>
+          <option value="finished">Finished</option>
+          <option value="dnf">Did not finish</option>
+        </select></div>
+      <div class="it grow"><span class="lb">Book</span><select id="bookSelect"><option value="">Choose a book...</option></select></div>
+      <div class="it"><span class="lb">Bullet</span><input type="text" id="emojiInput" class="emoji" value="📌" maxlength="4" title="Emoji used before each trope"></div>
     </div>
 
     <div class="tabs">
@@ -138,50 +148,59 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     <div class="tab-panel" id="tab-image">
      <div class="img-grid">
       <div>
-        <div class="field" style="margin-top:8px;"><label>Size</label><select id="pSize"><option value="portrait" selected>4:5 portrait (1080 × 1350)</option><option value="square">1:1 square (1080 × 1080)</option><option value="story">Story / Reel 9:16 (1080 × 1920)</option></select></div>
-        <div class="field"><label>Cover size</label><div class="range-row"><input type="range" id="pScale" min="50" max="130" value="100" step="1"><span id="pScaleV">100%</span></div><p class="hint">Smaller cover = bigger text panel and bigger text. Larger cover = smaller panel and text.</p></div>
-        <div class="sub" style="margin-top:8px;">Background</div>
-        <div class="field"><label>Upload image</label><input type="file" id="pBgFile" accept="image/*">
-          <div class="btn-row" style="margin-top:8px;"><button class="btn-secondary" id="pBgClear" type="button">Remove image</button></div></div>
-        <div class="row2">
-          <div class="field"><label>Base colour</label><input type="color" id="pBase" value="#F5EEFC"></div>
-          <div class="field"><label>Panel behind text</label><div class="checks"><label><input type="checkbox" id="pPanelOn" checked> On</label></div></div>
+        <div class="line" style="margin-top:8px;">
+          <div class="it"><span class="lb">Size</span><select id="pSize"><option value="portrait" selected>4:5 portrait (1080 × 1350)</option><option value="square">1:1 square (1080 × 1080)</option><option value="story">Story / Reel 9:16 (1080 × 1920)</option></select></div>
+          <div class="it grow" title="Smaller cover = bigger text panel and bigger text. Larger cover = smaller panel and text."><span class="lb">Cover</span><input type="range" id="pScale" min="50" max="130" value="100" step="1"><span class="val" id="pScaleV">100%</span></div>
         </div>
-        <div class="field"><label>Image opacity</label><div class="range-row"><input type="range" id="pOp" min="0" max="100" value="100" step="1"><span id="pOpV">100</span></div></div><div class="field"><label>Image blur</label><div class="range-row"><input type="range" id="pBlur" min="0" max="20" value="0" step="1"><span id="pBlurV">0</span></div></div>
+
+        <div class="sub">Background</div>
+        <div class="line">
+          <div class="it"><label class="upbtn">Upload image<input type="file" id="pBgFile" accept="image/*" hidden></label><button class="xbtn" id="pBgClear" type="button" title="Remove image">&#10005;</button></div>
+          <div class="it"><span class="lb">Base</span><input type="color" id="pBase" value="#F5EEFC"></div>
+        </div>
+        <div class="line">
+          <div class="it grow"><span class="lb">Opacity</span><input type="range" id="pOp" min="0" max="100" value="100" step="1"><span class="val" id="pOpV">100</span></div>
+          <div class="it grow"><span class="lb">Blur</span><input type="range" id="pBlur" min="0" max="20" value="0" step="1"><span class="val" id="pBlurV">0</span></div>
+        </div>
+
         <div class="sub">Text panel</div>
-        <div class="row2">
-          <div class="field"><label>Panel colour</label><input type="color" id="pPanelCol" value="#FFFFFF"></div>
-          <div></div>
+        <div class="line">
+          <div class="it"><label class="ck"><input type="checkbox" id="pPanelOn" checked> Panel</label><input type="color" id="pPanelCol" value="#FFFFFF" title="Panel colour"></div>
+          <div class="it grow"><span class="lb">Opacity</span><input type="range" id="pPanelOp" min="0" max="100" value="80" step="1"><span class="val" id="pPanelOpV">80</span></div>
+          <div class="it"><label class="ck"><input type="checkbox" id="pTapeOn" checked> Tape</label><input type="color" id="pTapeCol" value="#F2B8C6" title="Tape colour"></div>
         </div>
-        <div class="field"><label>Panel opacity</label><div class="range-row"><input type="range" id="pPanelOp" min="0" max="100" value="80" step="1"><span id="pPanelOpV">80</span></div></div>
-        <div class="row2">
-          <div class="field"><label>Tape</label><div class="checks"><label><input type="checkbox" id="pTapeOn" checked> On</label></div></div>
-          <div class="field"><label>Tape colour</label><input type="color" id="pTapeCol" value="#F2B8C6"></div>
+
+        <div class="sub">ARC ribbon</div>
+        <div class="line" title="Uses the book's ARC source">
+          <div class="it"><label class="ck"><input type="checkbox" id="pStampOn" checked> Show</label><input type="color" id="pRibbonCol" value="#C2739C" title="Ribbon colour"></div>
+          <div class="it grow"><span class="lb">Size</span><input type="range" id="pStampSize" min="60" max="160" value="100" step="1"><span class="val" id="pStampSizeV">100%</span></div>
         </div>
-        <div class="sub">ARC stamp</div>
-        <div class="field"><div class="checks"><label><input type="checkbox" id="pStampOn" checked> Show stamp (uses the book's ARC source)</label></div></div>
-        <div class="field"><label>Stamp size</label><div class="range-row"><input type="range" id="pStampSize" min="60" max="160" value="100" step="1"><span id="pStampSizeV">100%</span></div></div>
+
         <div class="sub">Panel image</div>
-        <div class="field"><label>Upload image</label><input type="file" id="pImgFile" accept="image/*">
-          <div class="btn-row" style="margin-top:8px;"><button class="btn-secondary" id="pImgClear" type="button">Remove image</button></div></div>
-        <div class="field"><label>Image height</label><div class="range-row"><input type="range" id="pImgH" min="80" max="520" value="240" step="1"><span id="pImgHV">240px</span></div></div>
-        <div class="field"><label>Alignment</label><select id="pImgAlign"><option value="center" selected>Centre</option><option value="left">Left</option><option value="right">Right</option></select></div>
-        <div class="field"><div class="checks"><label><input type="checkbox" id="pImgAuto" checked> Remove a solid background colour</label></div>
-          <p class="hint">Transparent PNGs are left untouched.</p></div>
-        <div class="field"><label>Background removal strength</label><div class="range-row"><input type="range" id="pImgTol" min="0" max="100" value="30" step="1"><span id="pImgTolV">30%</span></div></div>
-        <div class="sub">Text</div>
-        <div class="row2">
-          <div class="field"><label>Text colour</label><input type="color" id="pTextCol" value="#3B2A55"></div>
-          <div class="field"><label>Accent (title, headings)</label><input type="color" id="pAccCol" value="#6B4E93"></div>
+        <div class="line">
+          <div class="it"><label class="upbtn">Upload image<input type="file" id="pImgFile" accept="image/*" hidden></label><button class="xbtn" id="pImgClear" type="button" title="Remove image">&#10005;</button></div>
+          <div class="it grow"><span class="lb">Height</span><input type="range" id="pImgH" min="80" max="520" value="240" step="1"><span class="val" id="pImgHV">240px</span></div>
+          <div class="it"><select id="pImgAlign" title="Alignment"><option value="center" selected>Centre</option><option value="left">Left</option><option value="right">Right</option></select></div>
         </div>
-        <div class="btn-row" style="margin:0 0 12px;"><button class="btn-secondary" id="pLight" type="button">Light text</button><button class="btn-secondary" id="pDark" type="button">Dark text</button></div>
-        <div class="field"><label>Rating style</label><select id="pRateStyle"><option value="star">Stars</option><option value="heart">Hearts</option></select></div>
-        <div class="field"><label>Show</label><div class="checks">
-          <label><input type="checkbox" id="pShowSeries" checked> Series</label>
-          <label><input type="checkbox" id="pShowRating" checked> Rating</label>
-          <label><input type="checkbox" id="pShowGenre" checked> Genre</label>
-          <label><input type="checkbox" id="pShowTropes" checked> Tropes</label></div>
-          <p class="hint">Bullet emoji is set at the top of the page.</p></div>
+        <div class="line">
+          <div class="it" title="Transparent PNGs are left untouched."><label class="ck"><input type="checkbox" id="pImgAuto" checked> Remove solid background</label></div>
+          <div class="it grow"><span class="lb">Strength</span><input type="range" id="pImgTol" min="0" max="100" value="30" step="1"><span class="val" id="pImgTolV">30%</span></div>
+        </div>
+
+        <div class="sub">Text</div>
+        <div class="line">
+          <div class="it"><span class="lb">Text</span><input type="color" id="pTextCol" value="#3B2A55"></div>
+          <div class="it"><span class="lb">Accent</span><input type="color" id="pAccCol" value="#6B4E93" title="Title and headings"></div>
+          <div class="it"><button class="btn-secondary sm" id="pLight" type="button">Light text</button><button class="btn-secondary sm" id="pDark" type="button">Dark text</button></div>
+        </div>
+        <div class="line">
+          <div class="it"><span class="lb">Rating</span><select id="pRateStyle"><option value="star">Stars</option><option value="heart">Hearts</option></select></div>
+          <div class="it"><span class="lb">Show</span>
+            <label class="ck"><input type="checkbox" id="pShowSeries" checked> Series</label>
+            <label class="ck"><input type="checkbox" id="pShowRating" checked> Rating</label>
+            <label class="ck"><input type="checkbox" id="pShowGenre" checked> Genre</label>
+            <label class="ck"><input type="checkbox" id="pShowTropes" checked> Tropes</label></div>
+        </div>
       </div>
       <div class="img-preview">
         <div class="preview-stage" style="margin-top:0;"><div class="preview-scale" id="previewScale"><div id="previewHost"></div></div></div>
@@ -478,12 +497,20 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     }
     var stamp = '';
     if(g('pStampOn').checked && b.arcSource){
-      var sm = g('pStampSize').value / 100, src = String(b.arcSource);
-      var fs = Math.round(Math.min(34, 190 / (0.62 * src.length)) * sm);
-      stamp = '<div id="pcStamp" style="position:absolute;left:10px;top:10px;width:' + Math.round(230 * sm) + 'px;box-sizing:border-box;padding:' + Math.round(16 * sm) + 'px;background:#FBF7FF;border:' + Math.max(2, Math.round(4 * sm)) + 'px dashed #6B4E93;text-align:center;white-space:nowrap;transform:rotate(-6deg);">' +
-        '<div style="font-size:' + Math.round(26 * sm) + 'px;line-height:1.2;color:#6B4E93;">ARC via</div>' +
-        '<div style="height:2px;background:#6B4E93;opacity:0.45;margin:' + Math.round(8 * sm) + 'px 0;"></div>' +
-        '<div style="font-size:' + fs + 'px;line-height:1.2;color:#3B2A55;">' + escapeHtml(src) + '</div></div>';
+      var sm = g('pStampSize').value / 100, src = String(b.arcSource), rc = g('pRibbonCol').value;
+      var fs2 = Math.max(12, Math.round(Math.min(30 * sm, (c.cmh * 0.6) / (0.62 * src.length)))), fs1 = Math.round(fs2 * 0.72);
+      var l1 = Math.round(fs1 * 1.3), l2 = Math.round(fs2 * 1.3), bh = l1 + l2;
+      var rw = bh + 2 * Math.round(14 * sm), rh = Math.round(Math.max(0.62 * fs2 * src.length, 0.62 * fs1 * 7)) + 2 * Math.round(24 * sm), nt = Math.round(rw * 0.32), th = rh + nt;
+      var rn = parseInt(rc.slice(1), 16), lum = 0.299 * (rn >> 16 & 255) + 0.587 * (rn >> 8 & 255) + 0.114 * (rn & 255);
+      var tcol = lum > 170 ? '#3B2A55' : '#FFFFFF';
+      var pts = '0,0 ' + rw + ',0 ' + rw + ',' + th + ' ' + (rw / 2) + ',' + rh + ' 0,' + th;
+      stamp = '<div id="pcStamp" style="position:absolute;left:10px;top:10px;width:' + rw + 'px;height:' + th + 'px;">' +
+        '<svg width="' + (rw + 6) + '" height="' + (th + 6) + '" viewBox="0 0 ' + (rw + 6) + ' ' + (th + 6) + '" xmlns="http://www.w3.org/2000/svg" style="position:absolute;left:0;top:0;overflow:visible;">' +
+        '<polygon points="' + pts + '" transform="translate(3,4)" fill="#000" fill-opacity="0.25"/><polygon points="' + pts + '" fill="' + rc + '"/></svg>' +
+        '<div style="position:absolute;width:' + rh + 'px;height:' + rw + 'px;left:' + Math.round((rw - rh) / 2) + 'px;top:' + Math.round((rh - rw) / 2) + 'px;transform:rotate(90deg);text-align:center;white-space:nowrap;color:' + tcol + ';">' +
+        '<div style="padding-top:' + Math.round((rw - bh) / 2) + 'px;">' +
+        '<div style="font-size:' + fs1 + 'px;line-height:' + l1 + 'px;opacity:0.9;">ARC via</div>' +
+        '<div style="font-size:' + fs2 + 'px;line-height:' + l2 + 'px;">' + escapeHtml(src) + '</div></div></div></div>';
     }
     var detBox = '<div style="position:absolute;left:' + d.x + 'px;top:' + d.y + 'px;width:' + d.w + 'px;height:' + d.h + 'px;display:table;"><div style="display:table-cell;vertical-align:middle;">' +
       '<div id="pcPanel" style="' + panelBg + 'position:relative;padding:40px 34px;box-sizing:border-box;width:' + d.w + 'px;">' + tape + '<div id="pcIn">' + detailsHtml(b, L.s0, L) + '</div>' + imgBlock + '</div></div></div>';
@@ -501,10 +528,11 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     }
     var st = root.querySelector('#pcStamp'), cv = root.querySelector('#pcCover');
     if(st && cv){
+      // Hang the ribbon from the top edge of the cover, near its right side.
       var rr = root.getBoundingClientRect(), k = rr.width / W, cr = cv.getBoundingClientRect();
-      var left = (cr.left - rr.left) / k, bottom = (cr.bottom - rr.top) / k;
-      st.style.left = Math.max(8, Math.round(left - st.offsetWidth * 0.2)) + 'px';
-      st.style.top = Math.round(Math.min(H - st.offsetHeight - 8, bottom - st.offsetHeight * 0.7)) + 'px';
+      var right = (cr.right - rr.left) / k, top = (cr.top - rr.top) / k, cwid = (cr.right - cr.left) / k;
+      st.style.left = Math.round(right - st.offsetWidth - cwid * 0.09) + 'px';
+      st.style.top = Math.round(top - 12) + 'px';
     }
   }
 
@@ -568,7 +596,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   g('pLight').addEventListener('click', function(){ g('pTextCol').value = '#FBF7FF'; g('pAccCol').value = '#E4D2F2'; renderPost(); });
   g('pDark').addEventListener('click', function(){ g('pTextCol').value = '#3B2A55'; g('pAccCol').value = '#6B4E93'; renderPost(); });
 
-  ['pOp','pBlur','pPanelOp','pScale','pStampSize','pImgH','pTapeCol','pBase','pPanelCol','pTextCol','pAccCol'].forEach(function(id){ g(id).addEventListener('input', renderPost); });
+  ['pOp','pBlur','pPanelOp','pScale','pStampSize','pRibbonCol','pImgH','pTapeCol','pBase','pPanelCol','pTextCol','pAccCol'].forEach(function(id){ g(id).addEventListener('input', renderPost); });
   ['pSize','pStampOn','pImgAlign','pTapeOn','pPanelOn','pRateStyle','pShowSeries','pShowRating','pShowGenre','pShowTropes','bookSelect','statusFilter'].forEach(function(id){ g(id).addEventListener('change', renderPost); });
   g('emojiInput').addEventListener('input', renderPost);
   g('pImgFile').addEventListener('change', function(e){
