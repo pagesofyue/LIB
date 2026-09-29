@@ -154,6 +154,21 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
           <div></div>
         </div>
         <div class="field"><label>Panel opacity</label><div class="range-row"><input type="range" id="pPanelOp" min="0" max="100" value="80" step="1"><span id="pPanelOpV">80</span></div></div>
+        <div class="row2">
+          <div class="field"><label>Tape</label><div class="checks"><label><input type="checkbox" id="pTapeOn" checked> On</label></div></div>
+          <div class="field"><label>Tape colour</label><input type="color" id="pTapeCol" value="#F2B8C6"></div>
+        </div>
+        <div class="sub">ARC stamp</div>
+        <div class="field"><div class="checks"><label><input type="checkbox" id="pStampOn" checked> Show stamp (uses the book's ARC source)</label></div></div>
+        <div class="field"><label>Stamp size</label><div class="range-row"><input type="range" id="pStampSize" min="60" max="160" value="100" step="1"><span id="pStampSizeV">100%</span></div></div>
+        <div class="sub">Panel image</div>
+        <div class="field"><label>Upload image</label><input type="file" id="pImgFile" accept="image/*">
+          <div class="btn-row" style="margin-top:8px;"><button class="btn-secondary" id="pImgClear" type="button">Remove image</button></div></div>
+        <div class="field"><label>Image height</label><div class="range-row"><input type="range" id="pImgH" min="80" max="520" value="240" step="1"><span id="pImgHV">240px</span></div></div>
+        <div class="field"><label>Alignment</label><select id="pImgAlign"><option value="center" selected>Centre</option><option value="left">Left</option><option value="right">Right</option></select></div>
+        <div class="field"><div class="checks"><label><input type="checkbox" id="pImgAuto" checked> Remove a solid background colour</label></div>
+          <p class="hint">Transparent PNGs are left untouched.</p></div>
+        <div class="field"><label>Background removal strength</label><div class="range-row"><input type="range" id="pImgTol" min="0" max="100" value="30" step="1"><span id="pImgTolV">30%</span></div></div>
         <div class="sub">Text</div>
         <div class="row2">
           <div class="field"><label>Text colour</label><input type="color" id="pTextCol" value="#3B2A55"></div>
@@ -370,6 +385,43 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     H = 1350; return {mode:'side', s0:1.25, cover:{x:40,y:90,w:450,h:1130,mh:720}, det:{x:520,y:90,w:520,h:1130}, fb:44};
   }
 
+  // ---- Panel image: uploaded, with a solid background turned transparent ----
+  var imgOrig = null, imgProc = '', procW = 1, procH = 1;
+  function processImg(){
+    if(!imgOrig){ imgProc = ''; return; }
+    var sc = Math.min(1, 800 / Math.max(imgOrig.naturalWidth, imgOrig.naturalHeight));
+    var w = Math.max(1, Math.round(imgOrig.naturalWidth * sc)), h = Math.max(1, Math.round(imgOrig.naturalHeight * sc));
+    var c = document.createElement('canvas'); c.width = w; c.height = h;
+    var x = c.getContext('2d'); x.drawImage(imgOrig, 0, 0, w, h);
+    procW = w; procH = h;
+    if(g('pImgAuto').checked){
+      var im = x.getImageData(0, 0, w, h), d = im.data, n = w * h, clear = 0;
+      for(var i = 3; i < d.length; i += 4) if(d[i] < 250) clear++;
+      if(clear / n < 0.005){
+        var cs = [0, w - 1, (h - 1) * w, n - 1], r = 0, gr = 0, b = 0;
+        cs.forEach(function(p){ r += d[p * 4]; gr += d[p * 4 + 1]; b += d[p * 4 + 2]; });
+        r /= 4; gr /= 4; b /= 4;
+        var tol = g('pImgTol').value * 2.55;
+        var near = function(p){ var o = p * 4; return Math.abs(d[o] - r) <= tol && Math.abs(d[o + 1] - gr) <= tol && Math.abs(d[o + 2] - b) <= tol; };
+        var seen = new Uint8Array(n), st = [];
+        for(var xx = 0; xx < w; xx++){ st.push(xx, (h - 1) * w + xx); }
+        for(var yy = 0; yy < h; yy++){ st.push(yy * w, yy * w + w - 1); }
+        while(st.length){
+          var p = st.pop();
+          if(seen[p] || !near(p)) continue;
+          seen[p] = 1; d[p * 4 + 3] = 0;
+          var px = p % w;
+          if(px > 0) st.push(p - 1);
+          if(px < w - 1) st.push(p + 1);
+          if(p >= w) st.push(p - w);
+          if(p < n - w) st.push(p + w);
+        }
+        x.putImageData(im, 0, 0);
+      }
+    }
+    imgProc = c.toDataURL('image/png');
+  }
+
   // Cover size drives the split: the details panel takes whatever the cover gives up,
   // and fitPost grows the text to fill it.
   function layoutFor(){
@@ -408,13 +460,35 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     var bgHtml = bg ? '<img src="' + bg + '" style="position:absolute;left:0;top:0;width:' + W + 'px;height:' + H + 'px;opacity:' + (g('pOp').value / 100) + ';">' : '';
     var cover = b.cover
       ? '<img id="pcCover" src="' + b.cover + '" style="display:block;margin:0 auto;width:' + cw + 'px;max-height:' + cmh + 'px;height:auto;object-fit:contain;border-radius:8px;box-shadow:0 16px 40px rgba(0,0,0,0.35);">'
-      : '<div style="width:' + cw + 'px;height:' + Math.round(cmh * 0.85) + 'px;border:3px dashed ' + rgba(txt, 0.5) + ';border-radius:8px;color:' + txt + ';text-align:center;padding-top:' + Math.round(cmh * 0.4) + 'px;box-sizing:border-box;font-size:26px;">No cover</div>';
+      : '<div id="pcCover" style="width:' + cw + 'px;height:' + Math.round(cmh * 0.85) + 'px;border:3px dashed ' + rgba(txt, 0.5) + ';border-radius:8px;color:' + txt + ';text-align:center;padding-top:' + Math.round(cmh * 0.4) + 'px;box-sizing:border-box;font-size:26px;">No cover</div>';
     var coverBox = '<div style="position:absolute;left:' + cxs + 'px;top:' + c.y + 'px;width:' + cw + 'px;height:' + cbh + 'px;display:table;"><div style="display:table-cell;vertical-align:middle;">' + cover + '</div></div>';
     var panelBg = g('pPanelOn').checked ? 'background:' + rgba(g('pPanelCol').value, g('pPanelOp').value / 100) + ';border-radius:36px;' : '';
+    var tape = '';
+    if(g('pTapeOn').checked){
+      var tc = g('pTapeCol').value, st = '';
+      [40, 80, 120, 160, 200].forEach(function(x){ st += '<line x1="' + x + '" y1="0" x2="' + (x - 14) + '" y2="60" stroke="#fff" stroke-opacity="0.28" stroke-width="7"/>'; });
+      tape = '<div style="position:absolute;left:50%;top:-30px;margin-left:-110px;width:220px;height:60px;transform:rotate(-3deg);">' +
+        '<svg width="220" height="60" viewBox="0 0 220 60" xmlns="http://www.w3.org/2000/svg"><polygon fill="' + tc + '" fill-opacity="0.85" points="6,0 214,0 220,7.5 214,15 220,22.5 214,30 220,37.5 214,45 220,52.5 214,60 6,60 0,52.5 6,45 0,37.5 6,30 0,22.5 6,15 0,7.5"/>' + st + '</svg></div>';
+    }
+    var imgBlock = '';
+    if(imgProc){
+      var iw = d.w - 68, ih = +g('pImgH').value, dw = Math.round(ih * procW / procH);
+      if(dw > iw){ dw = iw; ih = Math.round(dw * procH / procW); }
+      imgBlock = '<div style="margin-top:22px;text-align:' + g('pImgAlign').value + ';font-size:0;"><img src="' + imgProc + '" style="display:inline-block;width:' + dw + 'px;height:' + ih + 'px;"></div>';
+    }
+    var stamp = '';
+    if(g('pStampOn').checked && b.arcSource){
+      var sm = g('pStampSize').value / 100, src = String(b.arcSource);
+      var fs = Math.round(Math.min(34, 190 / (0.62 * src.length)) * sm);
+      stamp = '<div id="pcStamp" style="position:absolute;left:10px;top:10px;width:' + Math.round(230 * sm) + 'px;box-sizing:border-box;padding:' + Math.round(16 * sm) + 'px;background:#FBF7FF;border:' + Math.max(2, Math.round(4 * sm)) + 'px dashed #6B4E93;text-align:center;white-space:nowrap;transform:rotate(-6deg);">' +
+        '<div style="font-size:' + Math.round(26 * sm) + 'px;line-height:1.2;color:#6B4E93;">ARC via</div>' +
+        '<div style="height:2px;background:#6B4E93;opacity:0.45;margin:' + Math.round(8 * sm) + 'px 0;"></div>' +
+        '<div style="font-size:' + fs + 'px;line-height:1.2;color:#3B2A55;">' + escapeHtml(src) + '</div></div>';
+    }
     var detBox = '<div style="position:absolute;left:' + d.x + 'px;top:' + d.y + 'px;width:' + d.w + 'px;height:' + d.h + 'px;display:table;"><div style="display:table-cell;vertical-align:middle;">' +
-      '<div id="pcPanel" style="' + panelBg + 'padding:40px 34px;box-sizing:border-box;width:' + d.w + 'px;"><div id="pcIn">' + detailsHtml(b, L.s0, L) + '</div></div></div></div>';
+      '<div id="pcPanel" style="' + panelBg + 'position:relative;padding:40px 34px;box-sizing:border-box;width:' + d.w + 'px;">' + tape + '<div id="pcIn">' + detailsHtml(b, L.s0, L) + '</div>' + imgBlock + '</div></div></div>';
     var footer = '<div style="position:absolute;left:0;right:0;bottom:' + L.fb + 'px;text-align:center;white-space:nowrap;font-size:30px;color:' + txt + ';opacity:0.6;">pagesofyue.com | ARC Catalog : arc.pagesofyue.com</div>';
-    return '<div id="postRoot" style="' + F + 'width:' + W + 'px;height:' + H + 'px;position:relative;overflow:hidden;background:' + g('pBase').value + ';">' + bgHtml + coverBox + detBox + footer + '</div>';
+    return '<div id="postRoot" style="' + F + 'width:' + W + 'px;height:' + H + 'px;position:relative;overflow:hidden;background:' + g('pBase').value + ';">' + bgHtml + coverBox + stamp + detBox + footer + '</div>';
   }
 
   // Step the text size down until nothing overflows the panel sideways or vertically.
@@ -424,6 +498,13 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     for(var s = L.s0 * 1.4; s >= 0.35; s -= 0.04){
       inn.innerHTML = detailsHtml(b, s, L);
       if(panel.offsetHeight <= L.det.h - 10 && inn.scrollWidth <= inn.clientWidth + 1) break;
+    }
+    var st = root.querySelector('#pcStamp'), cv = root.querySelector('#pcCover');
+    if(st && cv){
+      var rr = root.getBoundingClientRect(), k = rr.width / W, cr = cv.getBoundingClientRect();
+      var left = (cr.left - rr.left) / k, bottom = (cr.bottom - rr.top) / k;
+      st.style.left = Math.max(8, Math.round(left - st.offsetWidth * 0.2)) + 'px';
+      st.style.top = Math.round(Math.min(H - st.offsetHeight - 8, bottom - st.offsetHeight * 0.7)) + 'px';
     }
   }
 
@@ -438,7 +519,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
 
   function renderPost(){
     var b = currentBook(), host = g('previewHost');
-    ['pOp','pBlur','pPanelOp','pScale'].forEach(function(id){ g(id + 'V').textContent = g(id).value + (id === 'pBlur' ? 'px' : '%'); });
+    ['pOp','pBlur','pPanelOp','pScale','pStampSize','pImgH','pImgTol'].forEach(function(id){ g(id + 'V').textContent = g(id).value + (id === 'pBlur' || id === 'pImgH' ? 'px' : '%'); });
     g('pDownloadBtn').disabled = !b; g('pCoverBtn').disabled = !(b && b.cover);
     var sc = g('previewScale'), stage = document.querySelector('.preview-stage');
     if(!b){
@@ -487,9 +568,17 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   g('pLight').addEventListener('click', function(){ g('pTextCol').value = '#FBF7FF'; g('pAccCol').value = '#E4D2F2'; renderPost(); });
   g('pDark').addEventListener('click', function(){ g('pTextCol').value = '#3B2A55'; g('pAccCol').value = '#6B4E93'; renderPost(); });
 
-  ['pOp','pBlur','pPanelOp','pScale','pBase','pPanelCol','pTextCol','pAccCol'].forEach(function(id){ g(id).addEventListener('input', renderPost); });
-  ['pSize','pPanelOn','pRateStyle','pShowSeries','pShowRating','pShowGenre','pShowTropes','bookSelect','statusFilter'].forEach(function(id){ g(id).addEventListener('change', renderPost); });
+  ['pOp','pBlur','pPanelOp','pScale','pStampSize','pImgH','pTapeCol','pBase','pPanelCol','pTextCol','pAccCol'].forEach(function(id){ g(id).addEventListener('input', renderPost); });
+  ['pSize','pStampOn','pImgAlign','pTapeOn','pPanelOn','pRateStyle','pShowSeries','pShowRating','pShowGenre','pShowTropes','bookSelect','statusFilter'].forEach(function(id){ g(id).addEventListener('change', renderPost); });
   g('emojiInput').addEventListener('input', renderPost);
+  g('pImgFile').addEventListener('change', function(e){
+    var f = e.target.files && e.target.files[0]; if(!f) return;
+    var r = new FileReader();
+    r.onload = function(){ var im = new Image(); im.onload = function(){ imgOrig = im; processImg(); renderPost(); }; im.src = r.result; };
+    r.readAsDataURL(f);
+  });
+  g('pImgClear').addEventListener('click', function(){ imgOrig = null; imgProc = ''; g('pImgFile').value = ''; renderPost(); });
+  ['pImgTol','pImgAuto'].forEach(function(id){ g(id).addEventListener(id === 'pImgTol' ? 'input' : 'change', function(){ processImg(); renderPost(); }); });
   window.addEventListener('resize', renderPost);
 
   onAuthStateChanged(auth, function(user){
