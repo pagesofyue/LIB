@@ -138,7 +138,8 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     <div class="tab-panel" id="tab-image">
      <div class="img-grid">
       <div>
-        <div class="sub" style="margin-top:8px;border:none;padding:0;">Background</div>
+        <div class="field" style="margin-top:8px;"><label>Size</label><select id="pSize"><option value="portrait" selected>4:5 portrait (1080 × 1350)</option><option value="square">1:1 square (1080 × 1080)</option><option value="story">Story / Reel 9:16 (1080 × 1920)</option></select></div>
+        <div class="sub" style="margin-top:8px;">Background</div>
         <div class="field"><label>Upload image</label><input type="file" id="pBgFile" accept="image/*">
           <div class="btn-row" style="margin-top:8px;"><button class="btn-secondary" id="pBgClear" type="button">Remove image</button></div></div>
         <div class="row2">
@@ -173,7 +174,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
           <button class="btn-secondary" id="pCoverBtn" disabled>Cover only</button>
           <span class="copied-note" id="pNote"></span>
         </div>
-        <p class="hint">1080 × 1350 (4:5). Preview updates as you edit.</p>
+        <p class="hint">Preview updates as you edit.</p>
       </div>
      </div>
     </div>
@@ -332,7 +333,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   // Blur is baked into a canvas because html2canvas ignores CSS filters.
   function bgUrl(){
     if(!bgImg) return '';
-    var blur = +g('pBlur').value, key = blur + ':' + bgImg.src.length;
+    var blur = +g('pBlur').value, key = blur + ':' + bgImg.src.length + ':' + H;
     if(bgCache.key === key) return bgCache.url;
     var c = document.createElement('canvas'); c.width = W; c.height = H;
     var x = c.getContext('2d'), m = blur * 3;
@@ -344,49 +345,57 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     return bgCache.url;
   }
 
-  // Details column content; s scales every size so fitPost can grow/shrink it to the panel.
-  function detailsHtml(b, s){
+  // Per-size layout. Story stacks the cover above the details; the others sit side by side.
+  function layoutFor(){
+    var k = g('pSize').value; W = 1080;
+    if(k === 'square'){ H = 1080; return {mode:'side', s0:1.1, cover:{x:40,y:60,w:430,h:900,mh:860}, det:{x:500,y:60,w:540,h:900}, fb:40}; }
+    if(k === 'story'){ H = 1920; return {mode:'stack', s0:1.4, cover:{x:280,y:140,w:520,h:800,mh:780}, det:{x:40,y:960,w:1000,h:780}, fb:110}; }
+    H = 1350; return {mode:'side', s0:1.25, cover:{x:40,y:90,w:450,h:1130,mh:720}, det:{x:520,y:90,w:520,h:1130}, fb:44};
+  }
+
+  // Details content; s scales every size. Nothing wraps — fitPost shrinks until each line fits.
+  function detailsHtml(b, s, L){
     var txt = g('pTextCol').value, acc = g('pAccCol').value;
     var emoji = g('emojiInput').value.trim() || '\uD83D\uDCCC';
-    var tl = (b.title || '').length, base = tl > 40 ? 50 : (tl > 22 ? 58 : 68);
+    var base = 68, z = function(n){ return Math.round(n * s); };
     var series = (g('pShowSeries').checked && b.series) ? escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ', Book ' + b.seriesNumber : '') : '';
-    var p = '<div style="font-size:' + Math.round(base * s) + 'px;line-height:1.12;color:' + acc + ';overflow-wrap:break-word;">' + escapeHtml(b.title || '') + '</div>' +
-      (b.author ? '<div style="font-size:' + Math.round(42 * s) + 'px;margin-top:16px;line-height:1.2;color:' + txt + ';">' + escapeHtml(b.author) + '</div>' : '') +
-      (series ? '<div style="font-size:' + Math.round(30 * s) + 'px;margin-top:8px;line-height:1.25;color:' + txt + ';opacity:0.85;">' + series + '</div>' : '') +
-      (g('pShowRating').checked && b.rating ? '<div style="font-size:' + Math.round(66 * s) + 'px;letter-spacing:6px;margin-top:20px;line-height:1.1;color:' + acc + ';">' + ratingHtml(b.rating, g('pRateStyle').value) + '</div>' : '') +
-      (g('pShowGenre').checked && b.genre ? '<div style="margin-top:' + Math.round(40 * s) + 'px;"><div style="font-size:' + Math.round(52 * s) + 'px;line-height:1.1;color:' + acc + ';">Genre</div><div style="font-size:' + Math.round(38 * s) + 'px;margin-top:8px;line-height:1.25;color:' + txt + ';">' + escapeHtml(b.genre) + '</div></div>' : '');
+    var p = '<div style="font-size:' + z(base) + 'px;line-height:1.12;color:' + acc + ';">' + escapeHtml(b.title || '') + '</div>' +
+      (b.author ? '<div style="font-size:' + z(42) + 'px;margin-top:16px;line-height:1.2;color:' + txt + ';">' + escapeHtml(b.author) + '</div>' : '') +
+      (series ? '<div style="font-size:' + z(30) + 'px;margin-top:8px;line-height:1.25;color:' + txt + ';opacity:0.85;">' + series + '</div>' : '') +
+      (g('pShowRating').checked && b.rating ? '<div style="font-size:' + z(66) + 'px;letter-spacing:6px;margin-top:20px;line-height:1.1;color:' + acc + ';">' + ratingHtml(b.rating, g('pRateStyle').value) + '</div>' : '') +
+      (g('pShowGenre').checked && b.genre ? '<div style="margin-top:' + z(40) + 'px;"><div style="font-size:' + z(52) + 'px;line-height:1.1;color:' + acc + ';">Genre</div><div style="font-size:' + z(38) + 'px;margin-top:8px;line-height:1.25;color:' + txt + ';">' + escapeHtml(b.genre) + '</div></div>' : '');
     if(g('pShowTropes').checked && b.tropes && b.tropes.length){
-      var cols = b.tropes.length > 10 ? 2 : 1;
-      p += '<div style="margin-top:' + Math.round(40 * s) + 'px;"><div style="font-size:' + Math.round(52 * s) + 'px;line-height:1.1;color:' + acc + ';">Tropes</div>' +
-        '<div style="margin-top:10px;column-count:' + cols + ';column-gap:24px;font-size:' + Math.round(36 * s) + 'px;line-height:1.5;color:' + txt + ';">' +
+      var n = b.tropes.length, cols = L.mode === 'stack' ? (n > 4 ? 2 : 1) : (n > 10 ? 2 : 1);
+      p += '<div style="margin-top:' + z(40) + 'px;"><div style="font-size:' + z(52) + 'px;line-height:1.1;color:' + acc + ';">Tropes</div>' +
+        '<div style="margin-top:10px;column-count:' + cols + ';column-gap:24px;font-size:' + z(36) + 'px;line-height:1.5;color:' + txt + ';">' +
         b.tropes.map(function(t){ return '<div style="break-inside:avoid;">' + escapeHtml(emoji) + ' ' + escapeHtml(t) + '</div>'; }).join('') + '</div></div>';
     }
-    return p;
+    return '<div style="white-space:nowrap;">' + p + '</div>';
   }
 
   function buildPost(b){
+    var L = layoutFor(), c = L.cover, d = L.det, txt = g('pTextCol').value;
     var F = "font-family:'Special Elite',monospace;";
-    var cx = 40, cw = 450, px = 520, pw = W - px - 40, top = 90, boxH = 1130;
     var bg = bgUrl();
     var bgHtml = bg ? '<img src="' + bg + '" style="position:absolute;left:0;top:0;width:' + W + 'px;height:' + H + 'px;opacity:' + (g('pOp').value / 100) + ';">' : '';
     var cover = b.cover
-      ? '<img id="pcCover" src="' + b.cover + '" style="display:block;margin:0 auto;width:' + cw + 'px;max-height:720px;height:auto;object-fit:contain;border-radius:8px;box-shadow:0 16px 40px rgba(0,0,0,0.35);">'
-      : '<div style="width:' + cw + 'px;height:640px;border:3px dashed ' + rgba(g('pTextCol').value, 0.5) + ';border-radius:8px;color:' + g('pTextCol').value + ';text-align:center;padding-top:300px;box-sizing:border-box;font-size:26px;">No cover</div>';
-    var coverBox = '<div style="position:absolute;left:' + cx + 'px;top:' + top + 'px;width:' + cw + 'px;height:' + boxH + 'px;display:table;"><div style="display:table-cell;vertical-align:middle;">' + cover + '</div></div>';
+      ? '<img id="pcCover" src="' + b.cover + '" style="display:block;margin:0 auto;width:' + c.w + 'px;max-height:' + c.mh + 'px;height:auto;object-fit:contain;border-radius:8px;box-shadow:0 16px 40px rgba(0,0,0,0.35);">'
+      : '<div style="width:' + c.w + 'px;height:' + Math.round(c.mh * 0.85) + 'px;border:3px dashed ' + rgba(txt, 0.5) + ';border-radius:8px;color:' + txt + ';text-align:center;padding-top:' + Math.round(c.mh * 0.4) + 'px;box-sizing:border-box;font-size:26px;">No cover</div>';
+    var coverBox = '<div style="position:absolute;left:' + c.x + 'px;top:' + c.y + 'px;width:' + c.w + 'px;height:' + c.h + 'px;display:table;"><div style="display:table-cell;vertical-align:middle;">' + cover + '</div></div>';
     var panelBg = g('pPanelOn').checked ? 'background:' + rgba(g('pPanelCol').value, g('pPanelOp').value / 100) + ';border-radius:36px;' : '';
-    var detBox = '<div style="position:absolute;left:' + px + 'px;top:' + top + 'px;width:' + pw + 'px;height:' + boxH + 'px;display:table;"><div style="display:table-cell;vertical-align:middle;">' +
-      '<div id="pcPanel" style="' + panelBg + 'padding:40px 34px;box-sizing:border-box;width:' + pw + 'px;"><div id="pcIn">' + detailsHtml(b, 1.2) + '</div></div></div></div>';
-    var footer = '<div style="position:absolute;left:0;right:0;bottom:44px;text-align:center;font-size:30px;color:' + g('pTextCol').value + ';opacity:0.6;">pagesofyue.com | ARC Catalog : arc.pagesofyue.com</div>';
+    var detBox = '<div style="position:absolute;left:' + d.x + 'px;top:' + d.y + 'px;width:' + d.w + 'px;height:' + d.h + 'px;display:table;"><div style="display:table-cell;vertical-align:middle;">' +
+      '<div id="pcPanel" style="' + panelBg + 'padding:40px 34px;box-sizing:border-box;width:' + d.w + 'px;"><div id="pcIn">' + detailsHtml(b, L.s0, L) + '</div></div></div></div>';
+    var footer = '<div style="position:absolute;left:0;right:0;bottom:' + L.fb + 'px;text-align:center;white-space:nowrap;font-size:30px;color:' + txt + ';opacity:0.6;">pagesofyue.com | ARC Catalog : arc.pagesofyue.com</div>';
     return '<div id="postRoot" style="' + F + 'width:' + W + 'px;height:' + H + 'px;position:relative;overflow:hidden;background:' + g('pBase').value + ';">' + bgHtml + coverBox + detBox + footer + '</div>';
   }
 
-  // Start large, step down until the panel fits its area (no dead space, no overflow).
+  // Step the text size down until nothing overflows the panel sideways or vertically.
   function fitPost(root, b){
-    var panel = root.querySelector('#pcPanel'), inn = root.querySelector('#pcIn');
+    var L = layoutFor(), panel = root.querySelector('#pcPanel'), inn = root.querySelector('#pcIn');
     if(!panel) return;
-    for(var s = 1.25; s >= 0.55; s -= 0.05){
-      inn.innerHTML = detailsHtml(b, s);
-      if(panel.offsetHeight <= 1090) break;
+    for(var s = L.s0; s >= 0.35; s -= 0.04){
+      inn.innerHTML = detailsHtml(b, s, L);
+      if(panel.offsetHeight <= L.det.h - 10 && inn.scrollWidth <= inn.clientWidth + 1) break;
     }
   }
 
@@ -410,7 +419,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
       return;
     }
     host.innerHTML = buildPost(b);
-    var root = host.firstChild, k = Math.max(220, Math.min(stage.clientWidth - 34, 366)) / W;
+    var root = host.firstChild, k = Math.min(Math.max(220, Math.min(stage.clientWidth - 34, 366)) / W, 700 / H);
     host.style.transformOrigin = 'top left'; host.style.transform = 'scale(' + k + ')';
     sc.style.width = Math.round(W * k) + 'px'; sc.style.height = Math.round(H * k) + 'px';
     whenReady(root, function(){ if(root.isConnected) fitPost(root, b); });
@@ -428,7 +437,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
       fitPost(root, b);
       window.html2canvas(root, {scale: 1, backgroundColor: null, useCORS: true}).then(function(c){
         var a = document.createElement('a');
-        a.download = 'arc-review-' + safeName(b.title) + '.png'; a.href = c.toDataURL('image/png'); a.click();
+        a.download = 'arc-review-' + safeName(b.title) + '-' + g('pSize').value + '.png'; a.href = c.toDataURL('image/png'); a.click();
         document.body.removeChild(st); flash('Downloaded!');
       }).catch(function(){ document.body.removeChild(st); flash("Couldn't create the image."); });
     });
@@ -451,7 +460,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   g('pDark').addEventListener('click', function(){ g('pTextCol').value = '#3B2A55'; g('pAccCol').value = '#6B4E93'; renderPost(); });
 
   ['pOp','pBlur','pPanelOp','pBase','pPanelCol','pTextCol','pAccCol'].forEach(function(id){ g(id).addEventListener('input', renderPost); });
-  ['pPanelOn','pRateStyle','pShowSeries','pShowRating','pShowGenre','pShowTropes','bookSelect','statusFilter'].forEach(function(id){ g(id).addEventListener('change', renderPost); });
+  ['pSize','pPanelOn','pRateStyle','pShowSeries','pShowRating','pShowGenre','pShowTropes','bookSelect','statusFilter'].forEach(function(id){ g(id).addEventListener('change', renderPost); });
   g('emojiInput').addEventListener('input', renderPost);
   window.addEventListener('resize', renderPost);
 
