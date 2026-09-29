@@ -139,6 +139,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
      <div class="img-grid">
       <div>
         <div class="field" style="margin-top:8px;"><label>Size</label><select id="pSize"><option value="portrait" selected>4:5 portrait (1080 × 1350)</option><option value="square">1:1 square (1080 × 1080)</option><option value="story">Story / Reel 9:16 (1080 × 1920)</option></select></div>
+        <div class="field"><label>Overall size (cover, text, footer)</label><div class="range-row"><input type="range" id="pScale" min="50" max="130" value="100" step="1"><span id="pScaleV">100%</span></div><p class="hint">Scales everything together. Above 100% things can crowd the edges — the preview shows exactly what you'll get.</p></div>
         <div class="sub" style="margin-top:8px;">Background</div>
         <div class="field"><label>Upload image</label><input type="file" id="pBgFile" accept="image/*">
           <div class="btn-row" style="margin-top:8px;"><button class="btn-secondary" id="pBgClear" type="button">Remove image</button></div></div>
@@ -375,17 +376,18 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
 
   function buildPost(b){
     var L = layoutFor(), c = L.cover, d = L.det, txt = g('pTextCol').value;
+    var m = g('pScale').value / 100, cw = Math.round(c.w * m), cmh = Math.round(c.mh * m), cxs = c.x + Math.round((c.w - cw) / 2);
     var F = "font-family:'Special Elite',monospace;";
     var bg = bgUrl();
     var bgHtml = bg ? '<img src="' + bg + '" style="position:absolute;left:0;top:0;width:' + W + 'px;height:' + H + 'px;opacity:' + (g('pOp').value / 100) + ';">' : '';
     var cover = b.cover
-      ? '<img id="pcCover" src="' + b.cover + '" style="display:block;margin:0 auto;width:' + c.w + 'px;max-height:' + c.mh + 'px;height:auto;object-fit:contain;border-radius:8px;box-shadow:0 16px 40px rgba(0,0,0,0.35);">'
-      : '<div style="width:' + c.w + 'px;height:' + Math.round(c.mh * 0.85) + 'px;border:3px dashed ' + rgba(txt, 0.5) + ';border-radius:8px;color:' + txt + ';text-align:center;padding-top:' + Math.round(c.mh * 0.4) + 'px;box-sizing:border-box;font-size:26px;">No cover</div>';
-    var coverBox = '<div style="position:absolute;left:' + c.x + 'px;top:' + c.y + 'px;width:' + c.w + 'px;height:' + c.h + 'px;display:table;"><div style="display:table-cell;vertical-align:middle;">' + cover + '</div></div>';
+      ? '<img id="pcCover" src="' + b.cover + '" style="display:block;margin:0 auto;width:' + cw + 'px;max-height:' + cmh + 'px;height:auto;object-fit:contain;border-radius:8px;box-shadow:0 16px 40px rgba(0,0,0,0.35);">'
+      : '<div style="width:' + cw + 'px;height:' + Math.round(cmh * 0.85) + 'px;border:3px dashed ' + rgba(txt, 0.5) + ';border-radius:8px;color:' + txt + ';text-align:center;padding-top:' + Math.round(cmh * 0.4) + 'px;box-sizing:border-box;font-size:26px;">No cover</div>';
+    var coverBox = '<div style="position:absolute;left:' + cxs + 'px;top:' + c.y + 'px;width:' + cw + 'px;height:' + c.h + 'px;display:table;"><div style="display:table-cell;vertical-align:middle;">' + cover + '</div></div>';
     var panelBg = g('pPanelOn').checked ? 'background:' + rgba(g('pPanelCol').value, g('pPanelOp').value / 100) + ';border-radius:36px;' : '';
     var detBox = '<div style="position:absolute;left:' + d.x + 'px;top:' + d.y + 'px;width:' + d.w + 'px;height:' + d.h + 'px;display:table;"><div style="display:table-cell;vertical-align:middle;">' +
       '<div id="pcPanel" style="' + panelBg + 'padding:40px 34px;box-sizing:border-box;width:' + d.w + 'px;"><div id="pcIn">' + detailsHtml(b, L.s0, L) + '</div></div></div></div>';
-    var footer = '<div style="position:absolute;left:0;right:0;bottom:' + L.fb + 'px;text-align:center;white-space:nowrap;font-size:30px;color:' + txt + ';opacity:0.6;">pagesofyue.com | ARC Catalog : arc.pagesofyue.com</div>';
+    var footer = '<div style="position:absolute;left:0;right:0;bottom:' + L.fb + 'px;text-align:center;white-space:nowrap;font-size:' + Math.round(30 * m) + 'px;color:' + txt + ';opacity:0.6;">pagesofyue.com | ARC Catalog : arc.pagesofyue.com</div>';
     return '<div id="postRoot" style="' + F + 'width:' + W + 'px;height:' + H + 'px;position:relative;overflow:hidden;background:' + g('pBase').value + ';">' + bgHtml + coverBox + detBox + footer + '</div>';
   }
 
@@ -397,6 +399,8 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
       inn.innerHTML = detailsHtml(b, s, L);
       if(panel.offsetHeight <= L.det.h - 10 && inn.scrollWidth <= inn.clientWidth + 1) break;
     }
+    var m = g('pScale').value / 100;
+    if(m !== 1) inn.innerHTML = detailsHtml(b, s * m, L);
   }
 
   // Wait for fonts and every image, then run cb (sizes are wrong before that).
@@ -410,7 +414,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
 
   function renderPost(){
     var b = currentBook(), host = g('previewHost');
-    ['pOp','pBlur','pPanelOp'].forEach(function(id){ g(id + 'V').textContent = g(id).value + (id === 'pBlur' ? 'px' : '%'); });
+    ['pOp','pBlur','pPanelOp','pScale'].forEach(function(id){ g(id + 'V').textContent = g(id).value + (id === 'pBlur' ? 'px' : '%'); });
     g('pDownloadBtn').disabled = !b; g('pCoverBtn').disabled = !(b && b.cover);
     var sc = g('previewScale'), stage = document.querySelector('.preview-stage');
     if(!b){
@@ -459,7 +463,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   g('pLight').addEventListener('click', function(){ g('pTextCol').value = '#FBF7FF'; g('pAccCol').value = '#E4D2F2'; renderPost(); });
   g('pDark').addEventListener('click', function(){ g('pTextCol').value = '#3B2A55'; g('pAccCol').value = '#6B4E93'; renderPost(); });
 
-  ['pOp','pBlur','pPanelOp','pBase','pPanelCol','pTextCol','pAccCol'].forEach(function(id){ g(id).addEventListener('input', renderPost); });
+  ['pOp','pBlur','pPanelOp','pScale','pBase','pPanelCol','pTextCol','pAccCol'].forEach(function(id){ g(id).addEventListener('input', renderPost); });
   ['pSize','pPanelOn','pRateStyle','pShowSeries','pShowRating','pShowGenre','pShowTropes','bookSelect','statusFilter'].forEach(function(id){ g(id).addEventListener('change', renderPost); });
   g('emojiInput').addEventListener('input', renderPost);
   window.addEventListener('resize', renderPost);
