@@ -563,6 +563,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   .icon-btn.danger{font-size:10px;padding:6px 8px;}
 }
 .icon-btn:hover{border-color:var(--line-strong);color:var(--ink);}
+.post-image-btn{margin-right:auto;text-decoration:none;}
 .icon-btn.danger{color:var(--dnf-deep);}
 .icon-btn.danger.confirming{background:var(--dnf-deep);color:#fff;border-color:var(--dnf-deep);}
 .icon-btn svg{width:12px;height:12px;}
@@ -2563,6 +2564,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       formatTabsHtml(b, af) +
       ratingHtml + tagsHtml + progressHtml +
       '<div class="card-actions">' +
+        '<a class="icon-btn post-image-btn" href="./social.html?tab=review&book=' + encodeURIComponent(b.id) + '" target="_blank" rel="noopener" title="Create post image"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><circle cx=\"9\" cy=\"9\" r=\"1.6\"/><path d=\"m21 15-4.5-4.5L6 21\"/><path d=\"M17 3v4M15 5h4\"/></svg></a>' +
         '<button class="icon-btn postcard-btn" title="Postcard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="m2 8 10 6 10-6"/></svg></button>' +
         '<button class="icon-btn review-btn" title="Review"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>' +
         '<button class="icon-btn edit-btn" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg></button>' +

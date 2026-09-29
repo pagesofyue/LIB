@@ -122,8 +122,8 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     </div>
 
     <div class="tabs">
-      <button class="tab-btn active" data-tab="text">Caption text</button>
-      <button class="tab-btn" data-tab="image">Post image</button>
+      <button class="tab-btn active" data-tab="text">Text Caption</button>
+      <button class="tab-btn" data-tab="image">Post Review</button>
     </div>
 
     <div class="tab-panel active" id="tab-text">
@@ -139,7 +139,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
      <div class="img-grid">
       <div>
         <div class="field" style="margin-top:8px;"><label>Size</label><select id="pSize"><option value="portrait" selected>4:5 portrait (1080 × 1350)</option><option value="square">1:1 square (1080 × 1080)</option><option value="story">Story / Reel 9:16 (1080 × 1920)</option></select></div>
-        <div class="field"><label>Overall size (cover, text, footer)</label><div class="range-row"><input type="range" id="pScale" min="50" max="130" value="100" step="1"><span id="pScaleV">100%</span></div><p class="hint">Scales everything together. Above 100% things can crowd the edges — the preview shows exactly what you'll get.</p></div>
+        <div class="field"><label>Cover size</label><div class="range-row"><input type="range" id="pScale" min="50" max="130" value="100" step="1"><span id="pScaleV">100%</span></div><p class="hint">Smaller cover = bigger text panel and bigger text. Larger cover = smaller panel and text.</p></div>
         <div class="sub" style="margin-top:8px;">Background</div>
         <div class="field"><label>Upload image</label><input type="file" id="pBgFile" accept="image/*">
           <div class="btn-row" style="margin-top:8px;"><button class="btn-secondary" id="pBgClear" type="button">Remove image</button></div></div>
@@ -232,6 +232,22 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     books = snap.docs.map(function(d){ return Object.assign({id: d.id}, d.data()); });
     books.sort(function(a, b){ return (a.title || '').localeCompare(b.title || ''); });
     populateBookOptions();
+    openFromLink();
+  }
+
+  // Deep link from index.html: social.html?tab=review&book=<id> opens that book on the Post Review tab.
+  var deepLinkDone = false;
+  function openFromLink(){
+    if(deepLinkDone) return;
+    var qs = new URLSearchParams(location.search), want = qs.get('book');
+    if(!want || !books.some(function(b){ return b.id === want; })) return;
+    deepLinkDone = true;
+    document.getElementById('statusFilter').value = 'all';
+    populateBookOptions();
+    document.getElementById('bookSelect').value = want;
+    generateText();
+    if(qs.get('tab') === 'review') document.querySelector('.tab-btn[data-tab="image"]').click();
+    else renderPost();
   }
 
   // Book-level `status` mirrors whichever format-instance is "primary" in the
@@ -347,11 +363,21 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   }
 
   // Per-size layout. Story stacks the cover above the details; the others sit side by side.
-  function layoutFor(){
+  function baseLayout(){
     var k = g('pSize').value; W = 1080;
     if(k === 'square'){ H = 1080; return {mode:'side', s0:1.1, cover:{x:40,y:60,w:430,h:900,mh:860}, det:{x:500,y:60,w:540,h:900}, fb:40}; }
     if(k === 'story'){ H = 1920; return {mode:'stack', s0:1.4, cover:{x:280,y:140,w:520,h:800,mh:780}, det:{x:40,y:960,w:1000,h:780}, fb:110}; }
     H = 1350; return {mode:'side', s0:1.25, cover:{x:40,y:90,w:450,h:1130,mh:720}, det:{x:520,y:90,w:520,h:1130}, fb:44};
+  }
+
+  // Cover size drives the split: the details panel takes whatever the cover gives up,
+  // and fitPost grows the text to fill it.
+  function layoutFor(){
+    var L = baseLayout(), c = L.cover, m = g('pScale').value / 100;
+    c.cw = Math.round(c.w * m); c.cmh = Math.round(c.mh * m);
+    if(L.mode === 'side'){ c.cx = c.x; L.det.x = c.x + c.cw + 30; L.det.w = W - 40 - L.det.x; }
+    else { c.cx = Math.round((W - c.cw) / 2); L.det.y = c.y + c.cmh + 30; L.det.h = 1730 - L.det.y; }
+    return L;
   }
 
   // Details content; s scales every size. Nothing wraps — fitPost shrinks until each line fits.
@@ -376,18 +402,18 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
 
   function buildPost(b){
     var L = layoutFor(), c = L.cover, d = L.det, txt = g('pTextCol').value;
-    var m = g('pScale').value / 100, cw = Math.round(c.w * m), cmh = Math.round(c.mh * m), cxs = c.x + Math.round((c.w - cw) / 2);
+    var cw = c.cw, cmh = c.cmh, cxs = c.cx, cbh = L.mode === 'side' ? c.h : c.cmh;
     var F = "font-family:'Special Elite',monospace;";
     var bg = bgUrl();
     var bgHtml = bg ? '<img src="' + bg + '" style="position:absolute;left:0;top:0;width:' + W + 'px;height:' + H + 'px;opacity:' + (g('pOp').value / 100) + ';">' : '';
     var cover = b.cover
       ? '<img id="pcCover" src="' + b.cover + '" style="display:block;margin:0 auto;width:' + cw + 'px;max-height:' + cmh + 'px;height:auto;object-fit:contain;border-radius:8px;box-shadow:0 16px 40px rgba(0,0,0,0.35);">'
       : '<div style="width:' + cw + 'px;height:' + Math.round(cmh * 0.85) + 'px;border:3px dashed ' + rgba(txt, 0.5) + ';border-radius:8px;color:' + txt + ';text-align:center;padding-top:' + Math.round(cmh * 0.4) + 'px;box-sizing:border-box;font-size:26px;">No cover</div>';
-    var coverBox = '<div style="position:absolute;left:' + cxs + 'px;top:' + c.y + 'px;width:' + cw + 'px;height:' + c.h + 'px;display:table;"><div style="display:table-cell;vertical-align:middle;">' + cover + '</div></div>';
+    var coverBox = '<div style="position:absolute;left:' + cxs + 'px;top:' + c.y + 'px;width:' + cw + 'px;height:' + cbh + 'px;display:table;"><div style="display:table-cell;vertical-align:middle;">' + cover + '</div></div>';
     var panelBg = g('pPanelOn').checked ? 'background:' + rgba(g('pPanelCol').value, g('pPanelOp').value / 100) + ';border-radius:36px;' : '';
     var detBox = '<div style="position:absolute;left:' + d.x + 'px;top:' + d.y + 'px;width:' + d.w + 'px;height:' + d.h + 'px;display:table;"><div style="display:table-cell;vertical-align:middle;">' +
       '<div id="pcPanel" style="' + panelBg + 'padding:40px 34px;box-sizing:border-box;width:' + d.w + 'px;"><div id="pcIn">' + detailsHtml(b, L.s0, L) + '</div></div></div></div>';
-    var footer = '<div style="position:absolute;left:0;right:0;bottom:' + L.fb + 'px;text-align:center;white-space:nowrap;font-size:' + Math.round(30 * m) + 'px;color:' + txt + ';opacity:0.6;">pagesofyue.com | ARC Catalog : arc.pagesofyue.com</div>';
+    var footer = '<div style="position:absolute;left:0;right:0;bottom:' + L.fb + 'px;text-align:center;white-space:nowrap;font-size:30px;color:' + txt + ';opacity:0.6;">pagesofyue.com | ARC Catalog : arc.pagesofyue.com</div>';
     return '<div id="postRoot" style="' + F + 'width:' + W + 'px;height:' + H + 'px;position:relative;overflow:hidden;background:' + g('pBase').value + ';">' + bgHtml + coverBox + detBox + footer + '</div>';
   }
 
@@ -395,12 +421,10 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   function fitPost(root, b){
     var L = layoutFor(), panel = root.querySelector('#pcPanel'), inn = root.querySelector('#pcIn');
     if(!panel) return;
-    for(var s = L.s0; s >= 0.35; s -= 0.04){
+    for(var s = L.s0 * 1.4; s >= 0.35; s -= 0.04){
       inn.innerHTML = detailsHtml(b, s, L);
       if(panel.offsetHeight <= L.det.h - 10 && inn.scrollWidth <= inn.clientWidth + 1) break;
     }
-    var m = g('pScale').value / 100;
-    if(m !== 1) inn.innerHTML = detailsHtml(b, s * m, L);
   }
 
   // Wait for fonts and every image, then run cb (sizes are wrong before that).
