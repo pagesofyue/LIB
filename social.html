@@ -507,7 +507,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     var p = '<div style="font-size:' + z(base) + 'px;line-height:1.12;color:' + acc + ';">' + escapeHtml(b.title || '') + '</div>' +
       (b.author ? '<div style="font-size:' + z(42) + 'px;margin-top:16px;line-height:1.2;color:' + txt + ';">' + escapeHtml(b.author) + '</div>' : '') +
       (series ? '<div style="font-size:' + z(30) + 'px;margin-top:8px;line-height:1.25;color:' + txt + ';opacity:0.85;">' + series + '</div>' : '') +
-      (g('pShowRating').checked && b.rating ? '<div style="font-size:' + z(66) + 'px;letter-spacing:6px;margin-top:20px;line-height:1.1;color:' + acc + ';">' + ratingHtml(b.rating, g('pRateStyle').value) + '</div>' : '') +
+      (g('pShowRating').checked && b.rating ? '<div style="font-size:' + z(66) + 'px;letter-spacing:0.32em;margin-top:20px;line-height:1.1;color:' + acc + ';">' + ratingHtml(b.rating, g('pRateStyle').value) + '</div>' : '') +
       (g('pShowGenre').checked && b.genre ? '<div style="margin-top:' + z(40) + 'px;"><div style="font-size:' + z(52) + 'px;line-height:1.1;color:' + acc + ';">Genre</div><div style="font-size:' + z(38) + 'px;margin-top:8px;line-height:1.25;color:' + txt + ';">' + escapeHtml(b.genre) + '</div></div>' : '');
     if(g('pShowTropes').checked && b.tropes && b.tropes.length){
       var n = b.tropes.length, cols = L.mode === 'stack' ? (n > 4 ? 2 : 1) : (n > 10 ? 2 : 1);
