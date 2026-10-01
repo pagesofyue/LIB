@@ -171,7 +171,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
           <div class="acc-b">
             <div class="line">
               <div class="it"><span class="lb">Size</span><select id="pSize"><option value="portrait" selected>4:5 portrait (1080 × 1350)</option><option value="square">1:1 square (1080 × 1080)</option><option value="story">Story / Reel 9:16 (1080 × 1920)</option></select></div>
-              <div class="it grow" title="Scales the cover and the text panel together, text included."><span class="lb">Cover</span><input type="range" id="pScale" min="50" max="108" value="100" step="1"><span class="val" id="pScaleV">100%</span></div>
+              <div class="it grow" title="Smaller cover = bigger text panel and bigger text. Larger cover = smaller panel and text."><span class="lb">Cover</span><input type="range" id="pScale" min="50" max="130" value="100" step="1"><span class="val" id="pScaleV">100%</span></div>
             </div>
             <div class="line">
               <div class="it" title="Upload a sharp cover for this post only. It is not saved to your library."><label class="upbtn">Hi-res cover<input type="file" id="pHiFile" accept="image/*" hidden></label><button class="xbtn" id="pHiClear" type="button" title="Remove hi-res cover">&#10005;</button></div>
@@ -331,7 +331,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   function bookMatchesStatusFilter(b, filterValue){
     var status = b.status || 'want';
     if(filterValue === 'all') return true;
-    if(filterValue === 'not_finished') return status !== 'finished';
+    if(filterValue === 'not_finished') return ['finished', 'hold', 'dnf'].indexOf(status) === -1;
     return status === filterValue;
   }
 
@@ -491,19 +491,10 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   // Cover size drives the split: the details panel takes whatever the cover gives up,
   // and fitPost grows the text to fill it.
   function layoutFor(){
-    // The cover and the text panel scale together as one group and stay centred.
-    // At 100% the group fills the post (1000px wide), so it can't grow past 108%.
-    var L = baseLayout(), c = L.cover, d = L.det, m = Math.min(1.08, g('pScale').value / 100);
-    L.m = m;
+    var L = baseLayout(), c = L.cover, m = g('pScale').value / 100;
     c.cw = Math.round(c.w * m); c.cmh = Math.round(c.mh * m);
-    if(L.mode === 'side'){
-      var gap = Math.round(30 * m), left = Math.round((W - 1000 * m) / 2);
-      c.cx = left; d.x = left + c.cw + gap; d.w = Math.round(1000 * m) - c.cw - gap;
-    } else {
-      c.cx = Math.round((W - c.cw) / 2);
-      d.w = Math.round(1000 * m); d.x = Math.round((W - d.w) / 2);
-      d.y = c.y + c.cmh + 30; d.h = 1730 - d.y;
-    }
+    if(L.mode === 'side'){ c.cx = c.x; L.det.x = c.x + c.cw + 30; L.det.w = W - 40 - L.det.x; }
+    else { c.cx = Math.round((W - c.cw) / 2); L.det.y = c.y + c.cmh + 30; L.det.h = 1730 - L.det.y; }
     return L;
   }
 
@@ -574,7 +565,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   function fitPost(root, b){
     var L = layoutFor(), panel = root.querySelector('#pcPanel'), inn = root.querySelector('#pcIn');
     if(!panel) return;
-    for(var s = L.s0 * 1.4 * L.m; s >= 0.35; s -= 0.04){
+    for(var s = L.s0 * 1.4; s >= 0.35; s -= 0.04){
       inn.innerHTML = detailsHtml(b, s, L);
       if(panel.offsetHeight <= L.det.h - 10 && inn.scrollWidth <= inn.clientWidth + 1) break;
     }
