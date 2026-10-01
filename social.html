@@ -171,7 +171,11 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
           <div class="acc-b">
             <div class="line">
               <div class="it"><span class="lb">Size</span><select id="pSize"><option value="portrait" selected>4:5 portrait (1080 × 1350)</option><option value="square">1:1 square (1080 × 1080)</option><option value="story">Story / Reel 9:16 (1080 × 1920)</option></select></div>
-              <div class="it grow" title="Smaller cover = bigger text panel and bigger text. Larger cover = smaller panel and text."><span class="lb">Cover</span><input type="range" id="pScale" min="50" max="130" value="100" step="1"><span class="val" id="pScaleV">100%</span></div>
+              <div class="it grow" title="Scales the cover and the text panel together, text included."><span class="lb">Cover</span><input type="range" id="pScale" min="50" max="108" value="100" step="1"><span class="val" id="pScaleV">100%</span></div>
+            </div>
+            <div class="line">
+              <div class="it" title="Upload a sharp cover for this post only. It is not saved to your library."><label class="upbtn">Hi-res cover<input type="file" id="pHiFile" accept="image/*" hidden></label><button class="xbtn" id="pHiClear" type="button" title="Remove hi-res cover">&#10005;</button></div>
+              <div class="it"><span class="lb" id="pHiNote" style="text-transform:none;font-weight:400;letter-spacing:0;"></span></div>
             </div>
           </div>
         </div>
@@ -418,18 +422,24 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     return out;
   }
 
+  // Hi-res cover: used for this post only (never written to the library), kept per book for this session.
+  var hiCover = null;
+  function hiFor(b){ return (b && hiCover && hiCover.id === b.id) ? hiCover.url : ''; }
+
   // Blur is baked into a canvas because html2canvas ignores CSS filters.
   function bgUrl(){
     if(!bgImg) return '';
     var blur = +g('pBlur').value, key = blur + ':' + bgImg.src.length + ':' + H;
     if(bgCache.key === key) return bgCache.url;
-    var c = document.createElement('canvas'); c.width = W; c.height = H;
-    var x = c.getContext('2d'), m = blur * 3;
-    var sc = Math.max((W + 2 * m) / bgImg.naturalWidth, (H + 2 * m) / bgImg.naturalHeight);
+    // Baked at 2x so the 2x export stays sharp.
+    var c = document.createElement('canvas'); c.width = W * 2; c.height = H * 2;
+    var x = c.getContext('2d'), m = blur * 3 * 2;
+    x.imageSmoothingQuality = 'high';
+    var sc = Math.max((W * 2 + 2 * m) / bgImg.naturalWidth, (H * 2 + 2 * m) / bgImg.naturalHeight);
     var dw = bgImg.naturalWidth * sc, dh = bgImg.naturalHeight * sc;
-    if(blur) x.filter = 'blur(' + blur + 'px)';
-    x.drawImage(bgImg, (W - dw) / 2, (H - dh) / 2, dw, dh);
-    bgCache = {key: key, url: c.toDataURL('image/jpeg', 0.9)};
+    if(blur) x.filter = 'blur(' + (blur * 2) + 'px)';
+    x.drawImage(bgImg, (W * 2 - dw) / 2, (H * 2 - dh) / 2, dw, dh);
+    bgCache = {key: key, url: c.toDataURL('image/jpeg', 0.92)};
     return bgCache.url;
   }
 
@@ -481,10 +491,19 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   // Cover size drives the split: the details panel takes whatever the cover gives up,
   // and fitPost grows the text to fill it.
   function layoutFor(){
-    var L = baseLayout(), c = L.cover, m = g('pScale').value / 100;
+    // The cover and the text panel scale together as one group and stay centred.
+    // At 100% the group fills the post (1000px wide), so it can't grow past 108%.
+    var L = baseLayout(), c = L.cover, d = L.det, m = Math.min(1.08, g('pScale').value / 100);
+    L.m = m;
     c.cw = Math.round(c.w * m); c.cmh = Math.round(c.mh * m);
-    if(L.mode === 'side'){ c.cx = c.x; L.det.x = c.x + c.cw + 30; L.det.w = W - 40 - L.det.x; }
-    else { c.cx = Math.round((W - c.cw) / 2); L.det.y = c.y + c.cmh + 30; L.det.h = 1730 - L.det.y; }
+    if(L.mode === 'side'){
+      var gap = Math.round(30 * m), left = Math.round((W - 1000 * m) / 2);
+      c.cx = left; d.x = left + c.cw + gap; d.w = Math.round(1000 * m) - c.cw - gap;
+    } else {
+      c.cx = Math.round((W - c.cw) / 2);
+      d.w = Math.round(1000 * m); d.x = Math.round((W - d.w) / 2);
+      d.y = c.y + c.cmh + 30; d.h = 1730 - d.y;
+    }
     return L;
   }
 
@@ -514,8 +533,9 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     var F = "font-family:'Special Elite',monospace;";
     var bg = bgUrl();
     var bgHtml = bg ? '<img src="' + bg + '" style="position:absolute;left:0;top:0;width:' + W + 'px;height:' + H + 'px;opacity:' + (g('pOp').value / 100) + ';">' : '';
-    var cover = b.cover
-      ? '<img id="pcCover" src="' + b.cover + '" style="display:block;margin:0 auto;width:' + cw + 'px;max-height:' + cmh + 'px;height:auto;object-fit:contain;border-radius:8px;box-shadow:0 16px 40px rgba(0,0,0,0.35);">'
+    var cs = hiFor(b) || b.cover;
+    var cover = cs
+      ? '<img id="pcCover" src="' + cs + '" style="display:block;margin:0 auto;width:' + cw + 'px;max-height:' + cmh + 'px;height:auto;object-fit:contain;border-radius:8px;box-shadow:0 16px 40px rgba(0,0,0,0.35);">'
       : '<div id="pcCover" style="width:' + cw + 'px;height:' + Math.round(cmh * 0.85) + 'px;border:3px dashed ' + rgba(txt, 0.5) + ';border-radius:8px;color:' + txt + ';text-align:center;padding-top:' + Math.round(cmh * 0.4) + 'px;box-sizing:border-box;font-size:26px;">No cover</div>';
     var coverBox = '<div style="position:absolute;left:' + cxs + 'px;top:' + c.y + 'px;width:' + cw + 'px;height:' + cbh + 'px;display:table;"><div style="display:table-cell;vertical-align:middle;">' + cover + '</div></div>';
     var panelBg = g('pPanelOn').checked ? 'background:' + rgba(g('pPanelCol').value, g('pPanelOp').value / 100) + ';border-radius:36px;' : '';
@@ -554,7 +574,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   function fitPost(root, b){
     var L = layoutFor(), panel = root.querySelector('#pcPanel'), inn = root.querySelector('#pcIn');
     if(!panel) return;
-    for(var s = L.s0 * 1.4; s >= 0.35; s -= 0.04){
+    for(var s = L.s0 * 1.4 * L.m; s >= 0.35; s -= 0.04){
       inn.innerHTML = detailsHtml(b, s, L);
       if(panel.offsetHeight <= L.det.h - 10 && inn.scrollWidth <= inn.clientWidth + 1) break;
     }
@@ -571,7 +591,9 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   });
   function updateSummaries(){
     var sz = {portrait:'4:5', square:'1:1', story:'9:16'}[g('pSize').value];
-    g('sumLayout').textContent = sz + ', cover ' + g('pScale').value + '%';
+    var hf = hiFor(currentBook());
+    g('sumLayout').textContent = sz + ', cover ' + g('pScale').value + '%' + (hf ? ', hi-res cover' : '');
+    g('pHiNote').textContent = hf ? 'Using your hi-res cover' : 'This post only, not saved to library';
     g('sumBg').textContent = bgImg ? 'Image, ' + g('pOp').value + '%' : 'Colour only';
     var pn = [g('pPanelOn').checked ? 'Panel ' + g('pPanelOp').value + '%' : 'No panel'];
     if(g('pTapeOn').checked) pn.push('tape');
@@ -595,7 +617,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     updateSummaries();
     var b = currentBook(), host = g('previewHost');
     ['pOp','pBlur','pPanelOp','pScale','pImgH','pImgTol'].forEach(function(id){ g(id + 'V').textContent = g(id).value + (id === 'pBlur' || id === 'pImgH' ? 'px' : '%'); });
-    g('pDownloadBtn').disabled = !b; g('pCoverBtn').disabled = !(b && b.cover);
+    g('pDownloadBtn').disabled = !b; g('pCoverBtn').disabled = !(b && (b.cover || hiFor(b)));
     var sc = g('previewScale'), stage = document.querySelector('.preview-stage');
     if(!b){
       host.style.transform = ''; sc.style.width = sc.style.height = '';
@@ -619,7 +641,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     var root = st.firstChild;
     whenReady(root, function(){
       fitPost(root, b);
-      window.html2canvas(root, {scale: 1, backgroundColor: null, useCORS: true}).then(function(c){
+      window.html2canvas(root, {scale: 2, backgroundColor: null, useCORS: true}).then(function(c){
         var a = document.createElement('a');
         a.download = 'arc-review-' + safeName(b.title) + '-' + g('pSize').value + '.png'; a.href = c.toDataURL('image/png'); a.click();
         document.body.removeChild(st); flash('Downloaded!');
@@ -628,10 +650,23 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   });
 
   g('pCoverBtn').addEventListener('click', function(){
-    var b = currentBook(); if(!b || !b.cover) return;
+    var b = currentBook(), src = b && (hiFor(b) || b.cover); if(!src) return;
     var a = document.createElement('a');
-    a.download = safeName(b.title) + '-cover.' + (/^data:image\/png/.test(b.cover) ? 'png' : 'jpg'); a.href = b.cover; a.click();
+    a.download = safeName(b.title) + '-cover.' + (/^data:image\/png/.test(src) ? 'png' : 'jpg'); a.href = src; a.click();
   });
+
+  g('pHiFile').addEventListener('change', function(e){
+    var f = e.target.files && e.target.files[0], b = currentBook(); if(!f || !b) return;
+    var r = new FileReader();
+    r.onload = function(){ var im = new Image(); im.onload = function(){
+      var sc = Math.min(1, 1600 / im.naturalWidth), c = document.createElement('canvas');
+      c.width = Math.round(im.naturalWidth * sc); c.height = Math.round(im.naturalHeight * sc);
+      var x = c.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(im, 0, 0, c.width, c.height);
+      hiCover = {id: b.id, url: c.toDataURL('image/jpeg', 0.95)}; g('pHiFile').value = ''; renderPost();
+    }; im.src = r.result; };
+    r.readAsDataURL(f);
+  });
+  g('pHiClear').addEventListener('click', function(){ hiCover = null; g('pHiFile').value = ''; renderPost(); });
 
   g('pBgFile').addEventListener('change', function(e){
     var f = e.target.files && e.target.files[0]; if(!f) return;
