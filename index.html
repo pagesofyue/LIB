@@ -18,23 +18,23 @@
   --paper:#E3D6DC;
   --card:#FBF7FF;
   --card-hover:#F5EEFC;
-  --muted:#7C6D94;
+  --muted:#6B5C84;
   --line:rgba(59,42,85,0.14);
   --line-strong:rgba(59,42,85,0.28);
   --accent:#8C6BB5;
   --accent-deep:#6B4E93;
   --want:#9C9AD1;
   --want-deep:#5F5C99;
-  --reading:#B07CC6;
-  --reading-deep:#7A4E8F;
+  --reading:#B96AC8;
+  --reading-deep:#8A3FA0;
   --finished:#7A5A9E;
   --finished-deep:#573D74;
   --dnf:#C285AE;
   --dnf-deep:#8A4E71;
   --hold:#CBA35C;
   --hold-deep:#8F6F3C;
-  --requested:#8FA6C9;
-  --requested-deep:#5C7396;
+  --requested:#7FB0C8;
+  --requested-deep:#4B8299;
   --radius:10px;
   --font-display:'Courier Prime', monospace;
   --font-body:'Courier Prime', monospace;
@@ -48,7 +48,7 @@ body[data-theme="winter"]{
   --paper: rgba(220, 228, 238, 0.55);      /* frosted tint for the page background — bumped from 0.25 so text stays readable over it */
   --card: rgba(247, 250, 253, 0.94);       /* frosted white for your cards — bumped from 0.65 so modals (like the review editor) stay legible */
   --card-hover: rgba(237, 242, 248, 0.85); /* Slightly less transparent when hovering */
-  --muted:#748AA3;
+  --muted:#5F7590;
   --line:rgba(47,62,82,0.14);
   --line-strong:rgba(47,62,82,0.28);
   --accent:#6E93BF;
@@ -542,8 +542,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .rating-num{font-family:var(--font-mono);font-size:11px;color:var(--muted);}
 
 .tags{display:flex;flex-wrap:wrap;gap:4px;margin:10px 0;}
-.tag{font-size:10.5px;background:rgba(59,42,85,0.07);color:var(--muted);border-radius:9px;padding:2px 7px;font-family:var(--font-body);}
-.tag-see-more{border:1px solid var(--line-strong);cursor:pointer;font-weight:600;color:var(--accent-deep);}
+.tag{font-size:12px;line-height:1.35;background:transparent;border:1px solid var(--accent);border:1px solid color-mix(in srgb, var(--accent) 55%, transparent);color:var(--accent-deep);border-radius:999px;padding:3px 10px;font-family:var(--font-body);}
+.tag-see-more{background:var(--accent-deep);border-color:var(--accent-deep);color:var(--card);cursor:pointer;font-weight:700;}
+.tag-see-more:hover{opacity:0.88;}
 
 .progress-wrap{margin:10px 0 6px;}
 .progress-bar{height:5px;background:rgba(59,42,85,0.1);border-radius:3px;overflow:hidden;}
@@ -772,6 +773,26 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .login-loading{color:var(--muted);font-size:12.5px;margin-top:14px;}
 
 @media(max-width:520px){.field-row{grid-template-columns:1fr;}}
+
+/* ---- Aesthetic pass ---- */
+:root{--font-ui:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;--r-sm:8px;--r-md:12px;--r-lg:14px;}
+.toolbar-scroll select,.search-wrap input,.tab,.small-btn,.icon-btn,.field label,.format-label,.arc-source,.progress-text,.dates,.rating-num,.tag{font-family:var(--font-ui);}
+.card{border-radius:var(--r-lg);box-shadow:0 1px 2px rgba(59,42,85,0.06),0 8px 20px rgba(59,42,85,0.07);}
+.cover-thumb{width:88px;height:132px;box-shadow:0 6px 14px rgba(59,42,85,0.28);}
+.stamp{transform:rotate(-2deg);box-shadow:1px 2px 4px rgba(59,42,85,0.15);}
+.card-id-badge{font-family:var(--font-stamp);font-size:11px;font-weight:400;color:var(--muted);opacity:0.75;letter-spacing:0.06em;}
+.series-line{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.read-stamp::before{content:'\2713  ';}
+.dnf-stamp::before{content:'\2715  ';}
+.hold-stamp::before{content:'\275A\275A  ';font-size:0.8em;}
+.requested-stamp::before{content:'\2709  ';}
+.icon-btn{border-color:transparent;border-radius:var(--r-sm);padding:6px 8px;}
+.icon-btn:hover{background:var(--card-hover);border-color:transparent;color:var(--ink);}
+.icon-btn.danger{position:relative;margin-left:8px;color:#B07A7A;}
+.icon-btn.danger::before{content:'';position:absolute;left:-6px;top:22%;height:56%;width:1px;background:var(--line-strong);}
+.post-image-btn{margin-right:auto;text-decoration:none;font-weight:700;color:var(--accent-deep);background:color-mix(in srgb,var(--accent) 22%,var(--card));padding:6px 11px 6px 9px;}
+.post-image-btn:hover{background:color-mix(in srgb,var(--accent) 34%,var(--card));}
+.card.is-reading::after{content:'';position:absolute;top:-8px;left:22px;width:64px;height:20px;background:repeating-linear-gradient(45deg,rgba(255,255,255,0.28) 0 6px,transparent 6px 12px),color-mix(in srgb,var(--reading) 55%,transparent);transform:rotate(-4deg);pointer-events:none;z-index:2;}
 </style>
 </head>
 <body>
@@ -953,6 +974,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
             <label class="small-btn" for="f_cover" style="text-align:center;">Choose image</label>
             <input type="file" id="f_cover" accept="image/*" style="display:none;">
             <button type="button" class="small-btn" id="removeCoverBtn">Remove</button>
+            <button type="button" class="small-btn" id="coverLinkBtn">From link</button>
           </div>
         </div>
       </div>
@@ -2527,10 +2549,10 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var tropesExpanded = !!cardExpandedTropes[b.id];
     var tagsHtml = '';
     if(b.tropes && b.tropes.length){
-      var shownTropes = tropesExpanded ? b.tropes : b.tropes.slice(0, 5);
+      var shownTropes = tropesExpanded ? b.tropes : b.tropes.slice(0, 3);
       var tagSpans = shownTropes.map(function(t){ return '<span class="tag">' + escapeHtml(t) + '</span>'; }).join('');
-      var moreCount = b.tropes.length - 5;
-      var seeMoreTagHtml = moreCount > 0 ? ('<button type="button" class="tag tag-see-more" data-tropes-toggle="' + b.id + '">' + (tropesExpanded ? 'Show fewer' : ('+' + moreCount + ' more')) + '</button>') : '';
+      var moreCount = b.tropes.length - 3;
+      var seeMoreTagHtml = moreCount > 0 ? ('<button type="button" class="tag tag-see-more" data-tropes-toggle="' + b.id + '">' + (tropesExpanded ? 'Show fewer' : ('+' + moreCount)) + '</button>') : '';
       tagsHtml = '<div class="tags">' + tagSpans + seeMoreTagHtml + '</div>';
     }
 
@@ -2549,7 +2571,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var dupBadgeHtml = duplicateIds[b.id] ? '<div class="dup-banner" title="Another entry has the same title, author, and format">⚠ Possible Duplicate</div>' : '';
 
     var card = document.createElement('div');
-    card.className = 'card clickable';
+    card.className = 'card clickable' + (af.status === 'reading' ? ' is-reading' : '');
     card.innerHTML =
       '<div class="status-tab ' + af.status + '"></div>' +
       toplineHtml +
@@ -2564,7 +2586,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       formatTabsHtml(b, af) +
       ratingHtml + tagsHtml + progressHtml +
       '<div class="card-actions">' +
-        '<a class="icon-btn post-image-btn" href="./social.html?tab=review&book=' + encodeURIComponent(b.id) + '" target="_blank" rel="noopener" title="Create post image"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><circle cx=\"9\" cy=\"9\" r=\"1.6\"/><path d=\"m21 15-4.5-4.5L6 21\"/><path d=\"M17 3v4M15 5h4\"/></svg></a>' +
+        '<a class="icon-btn post-image-btn" href="./social.html?tab=review&book=' + encodeURIComponent(b.id) + '" target="_blank" rel="noopener" title="Create post image"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><circle cx=\"9\" cy=\"9\" r=\"1.6\"/><path d=\"m21 15-4.5-4.5L6 21\"/><path d=\"M17 3v4M15 5h4\"/></svg><span>Post</span></a>' +
         '<button class="icon-btn postcard-btn" title="Postcard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="m2 8 10 6 10-6"/></svg></button>' +
         '<button class="icon-btn review-btn" title="Review"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>' +
         '<button class="icon-btn edit-btn" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg></button>' +
@@ -3062,6 +3084,42 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     });
   });
 
+  // Cover from a pasted image link (Amazon works: copy the image address, ends in .jpg/.png).
+  // Amazon's size suffix (._SY466_) is stripped. If the host allows it the image is saved
+  // compressed like an uploaded cover; if not, the link itself is kept and shown as-is.
+  var LINK_HELP = 'Paste a direct image link (right-click the cover, then Copy image address). Amazon image links work.';
+  function coverFromUrl(raw){
+    return new Promise(function(resolve){
+      var url = (raw || '').trim();
+      if(!/^https?:\/\//i.test(url)){ resolve(null); return; }
+      url = url.replace(/\._[^\/.]*_\.(jpg|jpeg|png|webp)(\?.*)?$/i, '.$1');
+      var img = new Image(); img.crossOrigin = 'anonymous';
+      img.onload = function(){
+        try{
+          var sc = Math.min(1, 200 / img.width), w = Math.round(img.width * sc), h = Math.round(img.height * sc);
+          var c = document.createElement('canvas'); c.width = w; c.height = h;
+          c.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(c.toDataURL('image/jpeg', 0.82));
+        }catch(e){ resolve(url); }
+      };
+      img.onerror = function(){
+        var plain = new Image();
+        plain.onload = function(){ resolve(url); };
+        plain.onerror = function(){ resolve(null); };
+        plain.src = url;
+      };
+      img.src = url;
+    });
+  }
+  document.getElementById('coverLinkBtn').onclick = function(){
+    var u = window.prompt(LINK_HELP); if(!u) return;
+    coverFromUrl(u).then(function(d){
+      if(!d){ alert("Couldn't load that image link. Use the direct image address (it usually ends in .jpg or .png)."); return; }
+      pendingCover = d;
+      document.getElementById('coverPreview').innerHTML = '<img src="' + d + '" alt="">';
+    });
+  };
+
   document.getElementById('removeCoverBtn').onclick = function(){
     pendingCover = null;
     document.getElementById('coverPreview').innerHTML = '<span class="ph">No cover</span>';
@@ -3163,6 +3221,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
               '<label class="small-btn" for="fmtCoverInput_' + key + '" style="text-align:center;">Choose cover</label>' +
               '<input type="file" id="fmtCoverInput_' + key + '" accept="image/*" style="display:none;">' +
               '<button type="button" class="small-btn fmtRemoveCoverBtn" data-type="' + escapeHtml(type) + '">Remove</button>' +
+              '<button type="button" class="small-btn fmtCoverLinkBtn" data-type="' + escapeHtml(type) + '">From link</button>' +
             '</div>' +
           '</div>' : '') +
           '<div class="field-row">' +
@@ -3404,6 +3463,17 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         var key = fmtKey(type);
         document.getElementById('fmtCoverPreview_' + key).innerHTML = '<span class="ph">No cover</span>';
         document.getElementById('fmtCoverInput_' + key).value = '';
+      });
+    });
+    document.querySelectorAll('.fmtCoverLinkBtn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var type = this.getAttribute('data-type'), key = fmtKey(type);
+        var u = window.prompt(LINK_HELP); if(!u) return;
+        coverFromUrl(u).then(function(d){
+          if(!d){ alert("Couldn't load that image link. Use the direct image address (it usually ends in .jpg or .png)."); return; }
+          formatPendingCovers[type] = d;
+          document.getElementById('fmtCoverPreview_' + key).innerHTML = '<img src="' + d + '" alt="">';
+        });
       });
     });
   }

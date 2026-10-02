@@ -239,6 +239,11 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
                 <label class="ck"><input type="checkbox" id="pShowGenre" checked> Genre</label>
                 <label class="ck"><input type="checkbox" id="pShowTropes" checked> Tropes</label></div>
             </div>
+            <div class="line">
+              <div class="it" title="On by default for Story, off for the other sizes."><label class="ck"><input type="checkbox" id="pShowBlurb"> Blurb</label></div>
+              <div class="it grow"><span class="lb">Max length</span><input type="range" id="pBlurbLen" min="80" max="600" value="300" step="10"><span class="val" id="pBlurbLenV">300</span></div>
+            </div>
+            <p class="hint" id="pBlurbNote" style="margin:4px 0 0;"></p>
           </div>
         </div>
        </div>
@@ -499,6 +504,13 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   }
 
   // Details content; s scales every size. Nothing wraps — fitPost shrinks until each line fits.
+  // ---- Blurb: over-limit choice (full = shrink the blurb to fit, trim = cut at the limit) ----
+  var BO = {hide: false, size: 0, text: ''}, blurbChoice = {};
+  function blurbClean(b){ return String(b.blurb || '').replace(/\s+/g, ' ').trim(); }
+  function blurbKey(b){ return b.id + ':' + g('pBlurbLen').value; }
+  function blurbTrim(t, n){ return t.length > n ? t.slice(0, n).replace(/\s+\S*$/, '') + '\u2026' : t; }
+  function blurbIsFull(b){ return !!(b && b.blurb && g('pShowBlurb').checked && blurbClean(b).length > +g('pBlurbLen').value && blurbChoice[blurbKey(b)] === 'full'); }
+
   function detailsHtml(b, s, L){
     var txt = g('pTextCol').value, acc = g('pAccCol').value;
     var emoji = g('emojiInput').value.trim() || '\uD83D\uDCCC';
@@ -514,6 +526,10 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
       p += '<div style="margin-top:' + z(40) + 'px;"><div style="font-size:' + z(52) + 'px;line-height:1.1;color:' + acc + ';">Tropes</div>' +
         '<div style="margin-top:10px;column-count:' + cols + ';column-gap:24px;font-size:' + z(36) + 'px;line-height:1.5;color:' + txt + ';">' +
         b.tropes.map(function(t){ return '<div style="break-inside:avoid;">' + escapeHtml(emoji) + ' ' + escapeHtml(t) + '</div>'; }).join('') + '</div></div>';
+    }
+    if(!BO.hide && g('pShowBlurb').checked && b.blurb){
+      var bl = BO.text || (blurbIsFull(b) ? blurbClean(b) : blurbTrim(blurbClean(b), +g('pBlurbLen').value));
+      p += '<div style="margin-top:' + z(36) + 'px;font-size:' + (BO.size || z(28)) + 'px;line-height:1.45;white-space:normal;color:' + txt + ';opacity:0.92;">' + escapeHtml(bl) + '</div>';
     }
     return '<div style="white-space:nowrap;">' + p + '</div>';
   }
@@ -565,10 +581,28 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   function fitPost(root, b){
     var L = layoutFor(), panel = root.querySelector('#pcPanel'), inn = root.querySelector('#pcIn');
     if(!panel) return;
-    for(var s = L.s0 * 1.4; s >= 0.35; s -= 0.04){
-      inn.innerHTML = detailsHtml(b, s, L);
-      if(panel.offsetHeight <= L.det.h - 10 && inn.scrollWidth <= inn.clientWidth + 1) break;
+    var fits = function(){ return panel.offsetHeight <= L.det.h - 10 && inn.scrollWidth <= inn.clientWidth + 1; };
+    var s, note = '';
+    BO = {hide: false, size: 0, text: ''};
+    if(!blurbIsFull(b)){
+      for(s = L.s0 * 1.4; s >= 0.35; s -= 0.04){ inn.innerHTML = detailsHtml(b, s, L); if(fits()) break; }
+    } else {
+      // Full blurb: keep it at its smallest readable size (20px) while the rest is sized,
+      // then let the blurb grow back up into whatever room is left.
+      var found = false; BO.size = 20;
+      for(s = L.s0 * 1.4; s >= 0.35; s -= 0.04){ inn.innerHTML = detailsHtml(b, s, L); if(fits()){ found = true; break; } }
+      if(found){
+        var best = 20, cap = Math.round(28 * s);
+        for(var px = 21; px <= cap; px++){ BO.size = px; inn.innerHTML = detailsHtml(b, s, L); if(fits()) best = px; else break; }
+        BO.size = best; inn.innerHTML = detailsHtml(b, s, L);
+      } else {
+        s = 0.35; var full = blurbClean(b), n = full.length;
+        while(n > 40){ n = Math.floor(n * 0.95); BO.text = blurbTrim(full, n); inn.innerHTML = detailsHtml(b, s, L); if(fits()) break; }
+        note = 'The full blurb would not fit even at the smallest readable size, so it was trimmed to ' + BO.text.length + ' characters.';
+      }
     }
+    g('pBlurbNote').textContent = note;
+    BO = {hide: false, size: 0, text: ''};
   }
 
 
@@ -592,7 +626,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     g('sumPanel').textContent = pn.join(', ');
     g('sumImg').textContent = imgProc ? 'Added, ' + g('pImgH').value + 'px' : 'None';
     var tcv = g('pTextCol').value.toLowerCase();
-    g('sumText').textContent = (tcv === '#3b2a55' ? 'Dark' : tcv === '#fbf7ff' ? 'Light' : 'Custom') + ', ' + (g('pRateStyle').value === 'heart' ? 'hearts' : 'stars');
+    g('sumText').textContent = (tcv === '#3b2a55' ? 'Dark' : tcv === '#fbf7ff' ? 'Light' : 'Custom') + ', ' + (g('pRateStyle').value === 'heart' ? 'hearts' : 'stars') + (g('pShowBlurb').checked ? ', blurb' : '');
   }
 
   // Wait for fonts and every image, then run cb (sizes are wrong before that).
@@ -607,7 +641,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   function renderPost(){
     updateSummaries();
     var b = currentBook(), host = g('previewHost');
-    ['pOp','pBlur','pPanelOp','pScale','pImgH','pImgTol'].forEach(function(id){ g(id + 'V').textContent = g(id).value + (id === 'pBlur' || id === 'pImgH' ? 'px' : '%'); });
+    ['pOp','pBlur','pPanelOp','pScale','pImgH','pImgTol','pBlurbLen'].forEach(function(id){ g(id + 'V').textContent = g(id).value + (id === 'pBlur' || id === 'pImgH' ? 'px' : (id === 'pBlurbLen' ? '' : '%')); });
     g('pDownloadBtn').disabled = !b; g('pCoverBtn').disabled = !(b && (b.cover || hiFor(b)));
     var sc = g('previewScale'), stage = document.querySelector('.preview-stage');
     if(!b){
@@ -669,8 +703,10 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   g('pLight').addEventListener('click', function(){ g('pTextCol').value = '#FBF7FF'; g('pAccCol').value = '#E4D2F2'; renderPost(); });
   g('pDark').addEventListener('click', function(){ g('pTextCol').value = '#3B2A55'; g('pAccCol').value = '#6B4E93'; renderPost(); });
 
-  ['pOp','pBlur','pPanelOp','pScale','pImgH','pTapeCol','pBase','pPanelCol','pTextCol','pAccCol'].forEach(function(id){ g(id).addEventListener('input', renderPost); });
-  ['pSize','pArcOn','pImgAlign','pTapeOn','pPanelOn','pRateStyle','pShowSeries','pShowRating','pShowGenre','pShowTropes','bookSelect','statusFilter'].forEach(function(id){ g(id).addEventListener('change', renderPost); });
+  ['pOp','pBlur','pPanelOp','pScale','pImgH','pBlurbLen','pTapeCol','pBase','pPanelCol','pTextCol','pAccCol'].forEach(function(id){ g(id).addEventListener('input', renderPost); });
+  ['pShowBlurb','pArcOn','pImgAlign','pTapeOn','pPanelOn','pRateStyle','pShowSeries','pShowRating','pShowGenre','pShowTropes','bookSelect','statusFilter'].forEach(function(id){ g(id).addEventListener('change', renderPost); });
+  // Blurb defaults: on for Story, off for the feed sizes (you can still toggle it after).
+  g('pSize').addEventListener('change', function(){ g('pShowBlurb').checked = g('pSize').value === 'story'; renderPost(); });
   g('emojiInput').addEventListener('input', renderPost);
   g('pImgFile').addEventListener('change', function(e){
     var f = e.target.files && e.target.files[0]; if(!f) return;
@@ -680,6 +716,27 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   });
   g('pImgClear').addEventListener('click', function(){ imgOrig = null; imgProc = ''; g('pImgFile').value = ''; renderPost(); });
   ['pImgTol','pImgAuto'].forEach(function(id){ g(id).addEventListener(id === 'pImgTol' ? 'input' : 'change', function(){ processImg(); renderPost(); }); });
+  function askBlurb(){
+    var b = currentBook();
+    if(!b || !b.blurb || !g('pShowBlurb').checked || document.getElementById('blurbAsk')) return;
+    if(!g('tab-image').classList.contains('active')) return;
+    var len = blurbClean(b).length, lim = +g('pBlurbLen').value, key = blurbKey(b);
+    if(len <= lim || blurbChoice[key] !== undefined) return;
+    var o = document.createElement('div'); o.id = 'blurbAsk';
+    o.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(59,42,85,0.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;';
+    o.innerHTML = '<div style="background:var(--card);border:1px solid var(--line-strong);border-radius:14px;padding:22px 22px 18px;max-width:380px;font-family:var(--font-body);color:var(--ink);">' +
+      '<div style="font-weight:700;margin-bottom:8px;">This blurb is longer than your limit</div>' +
+      '<p style="font-size:13px;line-height:1.6;margin:0 0 16px;">It has ' + len + ' characters and your limit is ' + lim + '. Add the whole blurb (its text gets smaller to fit), or keep it trimmed?</p>' +
+      '<div class="btn-row" style="margin:0;"><button class="copy-btn" id="blurbFull" type="button" style="margin:0;">Use the full blurb</button><button class="btn-secondary" id="blurbTrim" type="button">Keep it trimmed</button></div></div>';
+    document.body.appendChild(o);
+    var pick = function(v){ blurbChoice[key] = v; o.remove(); document.removeEventListener('keydown', esc); renderPost(); };
+    var esc = function(e){ if(e.key === 'Escape') pick('trim'); };
+    document.addEventListener('keydown', esc);
+    o.querySelector('#blurbFull').onclick = function(){ pick('full'); };
+    o.querySelector('#blurbTrim').onclick = function(){ pick('trim'); };
+  }
+  ['pShowBlurb','bookSelect','pBlurbLen','pSize'].forEach(function(id){ g(id).addEventListener('change', function(){ setTimeout(askBlurb, 0); }); });
+  document.querySelector('.tab-btn[data-tab="image"]').addEventListener('click', function(){ setTimeout(askBlurb, 0); });
   window.addEventListener('resize', renderPost);
 
   onAuthStateChanged(auth, function(user){
