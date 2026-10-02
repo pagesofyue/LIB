@@ -948,10 +948,10 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 <div class="overlay" id="overlay" style="display:none;">
   <div class="modal">
     <h2 id="modalTitle">Add a book</h2>
-    <form id="bookForm">
+    <form id="bookForm" novalidate>
       <div class="core-fields" id="coreFields1">
       <div class="field">
-        <label>Cover image <span id="coverDefaultHint" style="font-weight:normal;color:var(--muted);">(default — used if a format below doesn't have its own)</span></label>
+        <label>Cover image * <span id="coverDefaultHint" style="font-weight:normal;color:var(--muted);">(default — used if a format below doesn't have its own)</span></label>
         <div class="cover-upload">
           <div class="cover-preview" id="coverPreview"><span class="ph">No cover</span></div>
           <div class="cover-btns">
@@ -3755,6 +3755,16 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
     var existingBook = editingId ? books.find(function(x){ return x.id === editingId; }) : null;
     var formats = collectFormats(existingBook ? existingBook.formats : null);
+
+    // Cover is the third (and last) required field: either the default cover
+    // or a cover on any checked format counts.
+    if(modalMode !== 'reviewOnly'){
+      var hasCover = !!pendingCover || formats.some(function(f){ return !!f.cover; });
+      if(!hasCover){
+        showFormError('Cover is required.');
+        return;
+      }
+    }
 
     if(modalMode !== 'reviewOnly'){
       var dupOf = findDuplicateOf(title, authorVal, formats.map(function(f){ return f.type; }), editingId);
