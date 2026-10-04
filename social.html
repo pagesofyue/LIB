@@ -253,6 +253,16 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
             </div>
           </div>
         </div>
+
+        <div class="acc" id="accQr" style="display:none;">
+          <button type="button" class="acc-h"><b>QR codes</b><span class="acc-sum" id="sumQr"></span></button>
+          <div class="acc-b">
+            <div class="line"><div class="it"><span class="lb" style="width:96px;">Amazon</span><label class="upbtn">Upload QR<input type="file" id="pQr_amazon" accept="image/*" hidden></label><button class="xbtn" id="pQrX_amazon" type="button" title="Remove QR code">&#10005;</button><span class="lb" id="pQrN_amazon" style="text-transform:none;font-weight:400;letter-spacing:0;"></span></div></div>
+            <div class="line"><div class="it"><span class="lb" style="width:96px;">Goodreads</span><label class="upbtn">Upload QR<input type="file" id="pQr_goodreads" accept="image/*" hidden></label><button class="xbtn" id="pQrX_goodreads" type="button" title="Remove QR code">&#10005;</button><span class="lb" id="pQrN_goodreads" style="text-transform:none;font-weight:400;letter-spacing:0;"></span></div></div>
+            <div class="line"><div class="it"><span class="lb" style="width:96px;">Yue's Review</span><label class="upbtn">Upload QR<input type="file" id="pQr_review" accept="image/*" hidden></label><button class="xbtn" id="pQrX_review" type="button" title="Remove QR code">&#10005;</button><span class="lb" id="pQrN_review" style="text-transform:none;font-weight:400;letter-spacing:0;"></span></div></div>
+            <p class="hint" style="margin:4px 0 0;">Story only. A code shows on the post once you upload it, and is kept for that book until you close the page.</p>
+          </div>
+        </div>
        </div>
       </div>
       <div class="img-preview">
@@ -437,6 +447,9 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
 
   // Hi-res cover: used for this post only (never written to the library), kept per book for this session.
   var hiCover = null;
+  // QR codes: per book, this session only (never written to the library).
+  var qrStore = {};
+  function qrFor(b){ return (b && qrStore[b.id]) || {}; }
   function hiFor(b){ return (b && hiCover && hiCover.id === b.id) ? hiCover.url : ''; }
 
   // Built-in backgrounds (image data lives in the BG_PRESETS script at the bottom of the file).
@@ -534,12 +547,12 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     var emoji = g('emojiInput').value.trim() || '\uD83D\uDCCC';
     var base = 68, z = function(n){ return Math.round(n * s); };
     var series = (g('pShowSeries').checked && b.series) ? escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ', Book ' + b.seriesNumber : '') : '';
-    var info = g('pShowInfo').checked;
-    var p = (info ? '<div style="font-size:' + z(base) + 'px;line-height:1.12;color:' + acc + ';">' + escapeHtml(b.title || '') + '</div>' : '') +
-      (info && b.author ? '<div style="font-size:' + z(42) + 'px;margin-top:16px;line-height:1.2;color:' + txt + ';">' + escapeHtml(b.author) + '</div>' : '') +
-      (info && series ? '<div style="font-size:' + z(30) + 'px;margin-top:8px;line-height:1.25;color:' + txt + ';opacity:0.85;">' + series + '</div>' : '') +
-      (g('pShowRating').checked && b.rating ? '<div style="font-size:' + z(66) + 'px;letter-spacing:0.32em;margin-top:20px;line-height:1.1;color:' + acc + ';">' + ratingHtml(b.rating, g('pRateStyle').value) + '</div>' : '') +
-      (g('pShowGenre').checked && b.genre ? '<div style="margin-top:' + z(40) + 'px;"><div style="font-size:' + z(52) + 'px;line-height:1.1;color:' + acc + ';">Genre</div><div style="font-size:' + z(38) + 'px;margin-top:8px;line-height:1.25;color:' + txt + ';">' + escapeHtml(b.genre) + '</div></div>' : '');
+    var info = g('pShowInfo').checked, ctr = L.mode === 'stack' ? 'text-align:center;' : '';
+    var p = (info ? '<div style="' + ctr + 'font-size:' + z(base) + 'px;line-height:1.12;color:' + acc + ';">' + escapeHtml(b.title || '') + '</div>' : '') +
+      (info && b.author ? '<div style="' + ctr + 'font-size:' + z(42) + 'px;margin-top:16px;line-height:1.2;color:' + txt + ';">' + escapeHtml(b.author) + '</div>' : '') +
+      (info && series ? '<div style="' + ctr + 'font-size:' + z(30) + 'px;margin-top:8px;line-height:1.25;color:' + txt + ';opacity:0.85;">' + series + '</div>' : '') +
+      (g('pShowRating').checked && b.rating ? '<div style="' + ctr + (ctr ? 'text-indent:0.32em;' : '') + 'font-size:' + z(66) + 'px;letter-spacing:0.32em;margin-top:20px;line-height:1.1;color:' + acc + ';">' + ratingHtml(b.rating, g('pRateStyle').value) + '</div>' : '') +
+      (g('pShowGenre').checked && b.genre ? '<div style="' + ctr + 'margin-top:' + z(40) + 'px;"><div style="font-size:' + z(52) + 'px;line-height:1.1;color:' + acc + ';">Genre</div><div style="font-size:' + z(38) + 'px;margin-top:8px;line-height:1.25;color:' + txt + ';">' + escapeHtml(b.genre) + '</div></div>' : '');
     if(g('pShowTropes').checked && b.tropes && b.tropes.length){
       var n = b.tropes.length, cols = L.mode === 'stack' ? (n > 4 ? 2 : 1) : (n > 10 ? 2 : 1);
       p += '<div style="margin-top:' + z(40) + 'px;"><div style="font-size:' + z(52) + 'px;line-height:1.1;color:' + acc + ';">Tropes</div>' +
@@ -589,9 +602,17 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
       if(dw > iw){ dw = iw; ih = Math.round(dw * procH / procW); }
       imgBlock = '<div style="margin-top:22px;text-align:' + g('pImgAlign').value + ';font-size:0;"><img src="' + imgProc + '" style="display:inline-block;width:' + dw + 'px;height:' + ih + 'px;"></div>';
     }
+    var qrBlock = '';
+    if(g('pSize').value === 'story'){
+      var qq = qrFor(b), qi = [['amazon', 'Amazon'], ['goodreads', 'Goodreads'], ['review', "Yue's Review"]].filter(function(it){ return qq[it[0]]; });
+      if(qi.length) qrBlock = '<div style="margin-top:34px;display:flex;justify-content:center;gap:54px;">' + qi.map(function(it){
+        return '<div style="text-align:center;"><img src="' + qq[it[0]] + '" style="display:block;margin:0 auto;width:170px;height:170px;background:#fff;padding:8px;box-sizing:border-box;border-radius:10px;object-fit:contain;">' +
+          '<div style="font-size:26px;line-height:1.1;margin-top:10px;white-space:nowrap;color:' + txt + ';">' + escapeHtml(it[1]) + '</div></div>';
+      }).join('') + '</div>';
+    }
     var stamp = '';
     var detBox = '<div style="position:absolute;left:' + d.x + 'px;top:' + d.y + 'px;width:' + d.w + 'px;height:' + d.h + 'px;display:table;"><div style="display:table-cell;vertical-align:middle;">' +
-      '<div id="pcPanel" style="' + panelBg + 'position:relative;padding:40px 34px;box-sizing:border-box;width:' + d.w + 'px;">' + tape + '<div id="pcIn">' + detailsHtml(b, L.s0, L) + '</div>' + imgBlock + '</div></div></div>';
+      '<div id="pcPanel" style="' + panelBg + 'position:relative;padding:40px 34px;box-sizing:border-box;width:' + d.w + 'px;">' + tape + '<div id="pcIn">' + detailsHtml(b, L.s0, L) + '</div>' + imgBlock + qrBlock + '</div></div></div>';
     var footer = '<div style="position:absolute;left:0;right:0;bottom:' + L.fb + 'px;text-align:center;white-space:nowrap;font-size:30px;color:' + txt + ';opacity:0.6;">pagesofyue.com | ARC Catalog : arc.pagesofyue.com</div>';
     return '<div id="postRoot" style="' + F + 'width:' + W + 'px;height:' + H + 'px;position:relative;overflow:hidden;background:' + g('pBase').value + ';">' + bgHtml + coverBox + stamp + detBox + footer + '</div>';
   }
@@ -636,6 +657,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   function syncBlurbUi(){
     var st = g('pSize').value === 'story';
     g('blurbBox').style.display = st ? '' : 'none';
+    g('accQr').style.display = st ? '' : 'none';
     if(!st){ g('pShowBlurb').checked = false; g('pFullBlurb').checked = false; }
     g('pBlurbLen').disabled = g('pFullBlurb').checked;
   }
@@ -650,6 +672,9 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     if(g('pTapeOn').checked) pn.push('tape');
     if(g('pArcOn').checked) pn.push('ARC label');
     g('sumPanel').textContent = pn.join(', ');
+    var qn = qrFor(currentBook()), qc = ['amazon', 'goodreads', 'review'].filter(function(k){ return qn[k]; }).length;
+    g('sumQr').textContent = qc ? qc + ' added' : 'None';
+    ['amazon', 'goodreads', 'review'].forEach(function(k){ g('pQrN_' + k).textContent = qn[k] ? 'Added' : ''; });
     g('sumImg').textContent = imgProc ? 'Added, ' + g('pImgH').value + 'px' : 'None';
     var tcv = g('pTextCol').value.toLowerCase();
     g('sumText').textContent = (tcv === '#3b2a55' ? 'Dark' : tcv === '#fbf7ff' ? 'Light' : 'Custom') + ', ' + (g('pRateStyle').value === 'heart' ? 'hearts' : 'stars') + (g('pShowBlurb').checked ? (g('pFullBlurb').checked ? ', whole blurb' : ', blurb') : '');
@@ -744,6 +769,20 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   });
   g('pImgClear').addEventListener('click', function(){ imgOrig = null; imgProc = ''; g('pImgFile').value = ''; renderPost(); });
   ['pImgTol','pImgAuto'].forEach(function(id){ g(id).addEventListener(id === 'pImgTol' ? 'input' : 'change', function(){ processImg(); renderPost(); }); });
+  ['amazon', 'goodreads', 'review'].forEach(function(k){
+    g('pQr_' + k).addEventListener('change', function(e){
+      var f = e.target.files && e.target.files[0], b = currentBook(); if(!f || !b) return;
+      var r = new FileReader();
+      r.onload = function(){ var im = new Image(); im.onload = function(){
+        var sc = Math.min(1, 600 / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement('canvas');
+        c.width = Math.round(im.naturalWidth * sc); c.height = Math.round(im.naturalHeight * sc);
+        var x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.imageSmoothingQuality = 'high'; x.drawImage(im, 0, 0, c.width, c.height);
+        (qrStore[b.id] = qrStore[b.id] || {})[k] = c.toDataURL('image/png'); g('pQr_' + k).value = ''; renderPost();
+      }; im.src = r.result; };
+      r.readAsDataURL(f);
+    });
+    g('pQrX_' + k).addEventListener('click', function(){ var b = currentBook(); if(b && qrStore[b.id]) delete qrStore[b.id][k]; g('pQr_' + k).value = ''; renderPost(); });
+  });
   window.addEventListener('resize', renderPost);
   setBgPreset(bgPresetKey);
 
