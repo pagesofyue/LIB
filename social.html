@@ -623,7 +623,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     }
     var stamp = '';
     var detBox = '<div style="position:absolute;left:' + d.x + 'px;top:' + d.y + 'px;width:' + d.w + 'px;height:' + d.h + 'px;display:table;"><div style="display:table-cell;vertical-align:middle;">' +
-      '<div id="pcPanel" style="' + panelBg + 'position:relative;padding:40px 34px;box-sizing:border-box;width:' + d.w + 'px;">' + tape + '<div id="pcIn">' + detailsHtml(b, L.s0, L) + '</div>' + imgBlock + qrBlock + '</div></div></div>';
+      '<div id="pcPanel" style="' + panelBg + 'position:relative;padding:' + (tape ? 70 : 40) + 'px 34px 40px;box-sizing:border-box;width:' + d.w + 'px;">' + tape + '<div id="pcIn">' + detailsHtml(b, L.s0, L) + '</div>' + imgBlock + qrBlock + '</div></div></div>';
     var footer = '<div style="position:absolute;left:0;right:0;bottom:' + L.fb + 'px;text-align:center;white-space:nowrap;font-size:30px;color:' + txt + ';opacity:0.6;">pagesofyue.com | ARC Catalog : arc.pagesofyue.com</div>';
     return '<div id="postRoot" style="' + F + 'width:' + W + 'px;height:' + H + 'px;position:relative;overflow:hidden;background:' + g('pBase').value + ';">' + bgHtml + coverBox + stamp + detBox + footer + '</div>';
   }
