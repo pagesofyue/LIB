@@ -624,7 +624,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .custom-trope-row input{flex:1;padding:7px 10px;border:1px solid var(--line-strong);border-radius:7px;background:var(--card);font-size:13px;}
 
 .rating-input-row{display:flex;align-items:center;gap:10px;}
-.rating-input-row input[type=number]{width:80px;}
+.rating-input-row input.fmtRating{width:84px;text-align:center;}
+.rating-out-of{font-size:12px;color:var(--muted);}
+.rating-preview{display:inline-flex;align-items:center;gap:2px;}
+.rating-preview .star{position:relative;display:inline-block;font-size:18px;line-height:20px;}
+.rating-preview .star .back{color:var(--line-strong);}
+.rating-preview .star .front{position:absolute;top:0;left:0;color:var(--accent-deep);overflow:hidden;white-space:nowrap;}
 .star-preview{font-size:18px;}
 
 .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;}
@@ -2004,35 +2009,32 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     return Object.keys(set).sort();
   }
 
-  function starsHtml(rating, size){
+  // One glyph per slot, each clipped on its own, so a partial rating (4.25, 3.6...)
+  // lands on the right star instead of being a % of the whole row.
+  function fracGlyphs(rating, glyph, size, fillColor, bgColor, gap){
     rating = Math.max(0, Math.min(5, rating || 0));
-    var pct = (rating / 5) * 100;
-    var fontSize = size || 14;
-    return '<span class="stars" style="font-size:' + fontSize + 'px;">' +
-      '<span class="stars-bg">★★★★★</span>' +
-      '<span class="stars-fill" style="width:' + pct + '%;">★★★★★</span>' +
-      '</span>';
+    var out = '<span style="display:inline-block;white-space:nowrap;line-height:1;' + (size ? 'font-size:' + size + 'px;' : '') + 'letter-spacing:0;">';
+    for(var i = 1; i <= 5; i++){
+      var pct = Math.max(0, Math.min(1, rating - (i - 1))) * 100;
+      out += '<span style="position:relative;display:inline-block;margin-right:' + (i < 5 ? gap : 0) + 'px;">' +
+        '<span style="color:' + bgColor + ';">' + glyph + '</span>' +
+        '<span style="position:absolute;top:0;left:0;width:' + pct + '%;overflow:hidden;white-space:nowrap;color:' + fillColor + ';">' + glyph + '</span>' +
+        '</span>';
+    }
+    return out + '</span>';
+  }
+
+  function starsHtml(rating, size){
+    return fracGlyphs(rating, '\u2605', size || 14, 'var(--accent-deep)', 'var(--line-strong)', 2);
   }
 
   function heartsHtml(rating, size){
-    rating = Math.max(0, Math.min(5, rating || 0));
-    var pct = (rating / 5) * 100;
-    var fontSize = size || 20;
-    return '<span class="hearts" style="font-size:' + fontSize + 'px;">' +
-      '<span class="hearts-bg">♥♥♥♥♥</span>' +
-      '<span class="hearts-fill" style="width:' + pct + '%;">♥♥♥♥♥</span>' +
-      '</span>';
+    return fracGlyphs(rating, '\u2665', size || 20, '#C2456B', 'var(--line-strong)', 3);
   }
 
-  function starsPlain(rating){
-    rating = Math.max(0, Math.min(5, rating || 0));
-    var full = Math.floor(rating);
-    var half = (rating - full) >= 0.5;
-    var s = '';
-    for(var i=0;i<full;i++) s += '★';
-    if(half) s += '⯨';
-    for(var i=0;i<(5-full-(half?1:0));i++) s += '☆';
-    return s;
+  // Used on the exported postcards/receipts (inline colours only, html2canvas-safe).
+  function starsPlain(rating, size){
+    return fracGlyphs(rating, '\u2605', size, '#6B4E93', 'rgba(59,42,85,0.22)', 2);
   }
 
   var booksReadScope = 'year'; // 'year' | 'month' — which timeframe the "Books read" card shows
@@ -2542,7 +2544,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
     var seriesHtml = b.series ? '<p class="series series-line">' + escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '') + '</p>' : '';
 
-    var ratingHtml = (af.rating || af.rating === 0) && af.rating > 0 ? '<div class="rating-row">' + starsHtml(af.rating) + '<span class="rating-num">' + af.rating.toFixed(1) + '</span></div>' : '';
+    var ratingHtml = (af.rating || af.rating === 0) && af.rating > 0 ? '<div class="rating-row">' + starsHtml(af.rating) + '<span class="rating-num">' + fmtRatingNum(af.rating) + '</span></div>' : '';
 
     var isConfirming = confirmingDelete === b.id;
 
@@ -3140,9 +3142,20 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     return '<span class="fmt-status-badge" style="background:var(--' + meta.varName + ');color:var(--' + meta.varName + '-deep);">' + escapeHtml(label) + '</span>';
   }
 
-  // Renders the 5-star display for a given rating (0-5, any fraction).
-  // A separate hidden <input id="fmtRating_KEY"> holds the authoritative
-  // numeric value so the existing save/sync code doesn't need to change.
+  // Ratings are typed (0-5, up to 2 decimals, e.g. 4.25 or 3.6). These helpers
+  // keep parsing/formatting identical everywhere. A comma decimal (4,5) is accepted.
+  function parseRating(v){
+    var n = parseFloat(String(v == null ? '' : v).replace(',', '.'));
+    if(isNaN(n)) return 0;
+    return Math.round(Math.max(0, Math.min(5, n)) * 100) / 100;
+  }
+  function fmtRatingNum(r){
+    var t = (Math.round((r || 0) * 100) / 100).toFixed(2);
+    return t.charAt(t.length - 1) === '0' ? t.slice(0, -1) : t;
+  }
+
+  // Read-only 5-star preview for a given rating (any fraction). Each star is
+  // clipped on its own, so 4.25 really shows a quarter of the fifth star.
   function starsWidgetHtml(rating){
     var out = '';
     for(var i = 1; i <= 5; i++){
@@ -3158,11 +3171,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       '<div class="field">' +
         '<label>Rating</label>' +
         '<div class="rating-input-row">' +
-          '<div class="rating-stars" id="fmtRatingStars_' + key + '" data-type="' + escapeHtml(type) + '" tabindex="0" role="slider" aria-valuemin="0" aria-valuemax="5" aria-valuenow="' + rating + '" aria-label="Rating, half-star increments">' +
-            starsWidgetHtml(rating) +
-          '</div>' +
-          '<span class="rating-value" id="fmtRatingValue_' + key + '">' + (rating ? rating : '0') + '</span>' +
-          '<input type="number" min="0" max="5" step="0.25" class="fmtRating sr-only" data-type="' + escapeHtml(type) + '" id="fmtRating_' + key + '" value="' + (st.rating || '') + '">' +
+          '<input type="text" inputmode="decimal" autocomplete="off" placeholder="0 – 5" class="fmtRating" data-type="' + escapeHtml(type) + '" id="fmtRating_' + key + '" value="' + (rating ? fmtRatingNum(rating) : '') + '" aria-label="Rating out of 5">' +
+          '<span class="rating-out-of">/ 5</span>' +
+          '<span class="rating-preview" id="fmtRatingStars_' + key + '" aria-hidden="true">' + starsWidgetHtml(rating) + '</span>' +
         '</div>' +
       '</div>';
   }
@@ -3327,38 +3338,24 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
           document.getElementById('fmtBorrowField_' + key).style.display = this.value === 'Borrowed' ? 'block' : 'none';
         });
       }
-      // Half-star tappable rating. The visible widget is decorative; the
-      // hidden numeric <input id="fmtRating_KEY"> stays the source of truth
-      // that collectFormats()/syncFormatPanelStateFromDom() already read.
+      // Typed rating. The input is the source of truth that
+      // collectFormats()/syncFormatPanelStateFromDom() read; the stars next to
+      // it are just a live preview.
       var ratingEl = document.getElementById('fmtRating_' + key);
       var starsEl = document.getElementById('fmtRatingStars_' + key);
-      var starsValueEl = document.getElementById('fmtRatingValue_' + key);
-      function setRating(v){
-        v = Math.max(0, Math.min(5, Math.round(v * 2) / 2));
-        ratingEl.value = v || '';
+      function applyRating(v){
         starsEl.innerHTML = starsWidgetHtml(v);
-        starsEl.setAttribute('aria-valuenow', v);
-        starsValueEl.textContent = v ? v : '0';
         formatPanelState[type] = formatPanelState[type] || {};
         formatPanelState[type].rating = v;
       }
-      starsEl.addEventListener('click', function(e){
-        var rect = this.getBoundingClientRect();
-        var frac = (e.clientX - rect.left) / rect.width;
-        setRating(frac * 5);
-      });
-      starsEl.addEventListener('keydown', function(e){
-        var current = parseFloat(ratingEl.value) || 0;
-        if(e.key === 'ArrowRight' || e.key === 'ArrowUp'){ e.preventDefault(); setRating(current + 0.5); }
-        else if(e.key === 'ArrowLeft' || e.key === 'ArrowDown'){ e.preventDefault(); setRating(current - 0.5); }
-        else if(e.key === 'Home'){ e.preventDefault(); setRating(0); }
-        else if(e.key === 'End'){ e.preventDefault(); setRating(5); }
-      });
-      // Kept so a value entered via the hidden input directly (e.g. browser
-      // autofill or a screen reader typing into the number field) still
-      // updates the visible stars and formatPanelState.
       ratingEl.addEventListener('input', function(){
-        setRating(parseFloat(this.value) || 0);
+        applyRating(parseRating(this.value));
+      });
+      // Tidy the box on leave: clamp to 0-5 and trim to 2 decimals.
+      ratingEl.addEventListener('blur', function(){
+        var v = parseRating(this.value);
+        this.value = v ? fmtRatingNum(v) : '';
+        applyRating(v);
       });
       // Tries to fill in a Platform ID from whatever ARC source is currently
       // selected. Shared by the initial render, the "is ARC" checkbox, and
@@ -3488,7 +3485,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       if(currentEl) formatPanelState[type].currentPage = currentEl.value ? Number(currentEl.value) : null;
       if(dnfEl) formatPanelState[type].dnfReason = dnfEl.value.trim();
       if(borrowEl) formatPanelState[type].borrowDueDate = borrowEl.value || '';
-      if(ratingEl) formatPanelState[type].rating = ratingEl.value ? Math.round(parseFloat(ratingEl.value) * 4) / 4 : 0;
+      if(ratingEl) formatPanelState[type].rating = parseRating(ratingEl.value);
       if(isArcEl) formatPanelState[type].isARC = isArcEl.checked;
       if(arcSourceEl) formatPanelState[type].arcSource = arcSourceEl.value;
       if(dueDateEl) formatPanelState[type].dueDate = dueDateEl.value;
@@ -3906,7 +3903,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         '<td style="padding:6px 4px;max-width:150px;">' + escapeHtml(b.title) + '</td>' +
         '<td style="padding:6px 4px;color:#7C6D94;">' + escapeHtml(b.author||'—') + '</td>' +
         '<td style="padding:6px 4px;">' + exportStatusCell(b) + '</td>' +
-        '<td style="padding:6px 4px;text-align:right;">' + (b.rating ? b.rating.toFixed(1) : '—') + '</td>' +
+        '<td style="padding:6px 4px;text-align:right;">' + (b.rating ? fmtRatingNum(b.rating) : '—') + '</td>' +
         '</tr>';
     }).join('');
     return '<div style="width:440px;padding:26px;background:#FBF7FF;border:2px solid #3B2A55;font-family:\'Courier Prime\',monospace;color:#3B2A55;">' +
@@ -4701,7 +4698,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     inner += '<div class="detail-row"><span class="dl">Status</span><span class="dv">' + escapeHtml(statusLabelForValue(f.status, f.type)) + '</span></div>';
     if(f.status === 'dnf' && f.dnfReason) inner += '<div class="detail-row"><span class="dl">DNF reason</span><span class="dv">' + escapeHtml(f.dnfReason) + '</span></div>';
     if(f.platformId) inner += '<div class="detail-row"><span class="dl">ID</span><span class="dv">' + escapeHtml(f.platformId) + '</span></div>';
-    if(f.rating) inner += '<div class="detail-row"><span class="dl">Rating</span><span class="dv">' + starsHtml(f.rating, 13) + ' <span class="rating-num">' + f.rating.toFixed(1) + '</span></span></div>';
+    if(f.rating) inner += '<div class="detail-row"><span class="dl">Rating</span><span class="dv">' + starsHtml(f.rating, 13) + ' <span class="rating-num">' + fmtRatingNum(f.rating) + '</span></span></div>';
     if(f.type === 'Paperback' && f.ownership) inner += '<div class="detail-row"><span class="dl">Ownership</span><span class="dv">' + escapeHtml(f.ownership) + '</span></div>';
     if(f.type === 'Paperback' && f.ownership === 'Borrowed' && f.borrowDueDate) inner += '<div class="detail-row"><span class="dl">Return by</span><span class="dv">' + fmtDate(f.borrowDueDate) + '</span></div>';
     if(f.totalPages) inner += '<div class="detail-row"><span class="dl">' + unit + '</span><span class="dv">' + (f.currentPage||0) + ' / ' + f.totalPages + '</span></div>';

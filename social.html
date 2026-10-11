@@ -435,13 +435,20 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   }
   function safeName(s){ return (s || 'book').replace(/[^a-z0-9]/gi, '_').toLowerCase(); }
 
-  // Rating: half-steps, stars or hearts. A half is a glyph clipped to its left side.
+  // Rating: any fraction (4.25, 3.6...), stars or hearts. Only the last,
+  // partial glyph is clipped, so it keeps the same box as a full one and the
+  // row layout/centering matches a whole rating.
   function ratingHtml(r, style){
     r = Math.max(0, Math.min(5, r || 0));
     var ch = style === 'heart' ? '\u2665' : '\u2605';
-    var full = Math.floor(r), half = (r - full) >= 0.5, out = '';
+    var full = Math.floor(r + 1e-9), frac = Math.round((r - full) * 100) / 100, out = '';
     for(var i = 0; i < full; i++) out += ch;
-    if(half) out += '<span style="display:inline-block;width:0.46em;overflow:hidden;vertical-align:top;letter-spacing:0;">' + ch + '</span>';
+    if(frac > 0.001 && full < 5){
+      out += '<span style="position:relative;display:inline-block;letter-spacing:0;margin-right:0.32em;">' +
+        '<span style="color:transparent;">' + ch + '</span>' +
+        '<span style="position:absolute;top:0;left:0;width:' + (frac * 100) + '%;overflow:hidden;white-space:nowrap;">' + ch + '</span>' +
+        '</span>';
+    }
     return out;
   }
 
