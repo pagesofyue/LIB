@@ -586,7 +586,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     var p = (info ? '<div style="' + ctr + 'font-size:' + zz(base, 'pSzTitle') + 'px;line-height:1.12;color:' + acc + ';">' + escapeHtml(b.title || '') + '</div>' : '') +
       (info && b.author ? '<div style="' + ctr + 'font-size:' + zz(42, 'pSzAuthor') + 'px;margin-top:16px;line-height:1.2;color:' + txt + ';">' + escapeHtml(b.author) + '</div>' : '') +
       (series ? '<div style="' + ctr + 'font-size:' + zz(30, 'pSzSeries') + 'px;margin-top:' + (info ? 8 : 0) + 'px;line-height:1.25;color:' + txt + ';opacity:0.85;">' + series + '</div>' : '') +
-      (g('pShowRating').checked && b.rating ? '<div style="' + ctr + (ctr ? 'text-indent:0.32em;' : '') + 'font-size:' + zz(66, 'pSzRating') + 'px;letter-spacing:0.32em;margin-top:20px;line-height:1.1;color:' + acc + ';">' + ratingHtml(b.rating, g('pRateStyle').value) + '</div>' : '') +
+      (g('pShowRating').checked && b.rating ? '<div style="' + ctr + (ctr ? 'text-indent:0.32em;' : '') + 'white-space:nowrap;font-size:' + zz(66, 'pSzRating') + 'px;letter-spacing:0.32em;margin-top:20px;line-height:1.1;color:' + acc + ';">' + ratingHtml(b.rating, g('pRateStyle').value) + '</div>' : '') +
       (g('pShowGenre').checked && b.genre ? '<div style="' + ctr + 'margin-top:' + z(40) + 'px;"><div style="font-size:' + zz(52, 'pSzGenre') + 'px;line-height:1.1;color:' + acc + ';">Genre</div><div style="font-size:' + zz(38, 'pSzGenre') + 'px;margin-top:8px;line-height:1.25;color:' + txt + ';">' + escapeHtml(b.genre) + '</div></div>' : '');
     if(g('pShowTropes').checked && b.tropes && b.tropes.length){
       var n = b.tropes.length, cols = L.mode === 'stack' ? (n > 4 ? 2 : 1) : (n > 10 ? 2 : 1);
@@ -598,7 +598,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
       var bl = BO.text || (blurbIsFull(b) ? blurbClean(b) : blurbTrim(blurbClean(b), +g('pBlurbLen').value));
       p += '<div style="margin-top:' + z(36) + 'px;font-size:' + (BO.size || Math.round(28 * s * blurbK())) + 'px;line-height:1.45;white-space:normal;color:' + txt + ';opacity:0.92;">' + escapeHtml(bl) + '</div>';
     }
-    return '<div style="white-space:nowrap;">' + p + '</div>';
+    return '<div style="white-space:normal;overflow-wrap:break-word;">' + p + '</div>';
   }
 
   function buildPost(b){
@@ -642,13 +642,13 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
       var qq = qrFor(b), qi = [['amazon', 'Amazon'], ['goodreads', 'Goodreads'], ['review', "Yue's Review"]].filter(function(it){ return qq[it[0]]; });
       if(qi.length) qrBlock = '<div style="margin-top:34px;display:flex;justify-content:center;gap:54px;">' + qi.map(function(it){
         return '<div style="text-align:center;"><img src="' + qq[it[0]] + '" style="display:block;margin:0 auto;width:170px;height:170px;background:#fff;padding:8px;box-sizing:border-box;border-radius:10px;object-fit:contain;">' +
-          '<div style="font-size:' + Math.round(26 * szK('pSzQr')) + 'px;line-height:1.1;margin-top:10px;white-space:nowrap;color:' + txt + ';">' + escapeHtml(it[1]) + '</div></div>';
+          '<div style="font-size:' + Math.round(26 * szK('pSzQr')) + 'px;line-height:1.1;margin-top:10px;white-space:normal;color:' + txt + ';">' + escapeHtml(it[1]) + '</div></div>';
       }).join('') + '</div>';
     }
     var stamp = '';
     var detBox = '<div style="position:absolute;left:' + d.x + 'px;top:' + d.y + 'px;width:' + d.w + 'px;height:' + d.h + 'px;display:table;"><div style="display:table-cell;vertical-align:middle;">' +
       '<div id="pcPanel" style="' + panelBg + 'position:relative;padding:' + (tape ? 70 : 40) + 'px 34px 40px;box-sizing:border-box;width:' + d.w + 'px;">' + tape + '<div id="pcIn">' + detailsHtml(b, L.s0, L) + '</div>' + imgBlock + qrBlock + '</div></div></div>';
-    var footer = '<div style="position:absolute;left:0;right:0;bottom:' + L.fb + 'px;text-align:center;white-space:nowrap;font-size:' + Math.round(30 * szK('pSzFooter')) + 'px;color:' + txt + ';opacity:0.6;">pagesofyue.com | ARC Catalog : arc.pagesofyue.com</div>';
+    var footer = '<div style="position:absolute;left:0;right:0;bottom:' + L.fb + 'px;text-align:center;white-space:normal;padding:0 40px;box-sizing:border-box;line-height:1.3;font-size:' + Math.round(30 * szK('pSzFooter')) + 'px;color:' + txt + ';opacity:0.6;">pagesofyue.com | ARC Catalog : arc.pagesofyue.com</div>';
     return '<div id="postRoot" style="' + F + 'width:' + W + 'px;height:' + H + 'px;position:relative;overflow:hidden;background:' + g('pBase').value + ';">' + bgHtml + coverBox + stamp + detBox + footer + '</div>';
   }
 
