@@ -243,6 +243,29 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
                 <label class="ck"><input type="checkbox" id="pShowGenre" checked> Genre</label>
                 <label class="ck"><input type="checkbox" id="pShowTropes" checked> Tropes</label></div>
             </div>
+            <div class="line" style="margin-top:6px;">
+              <div class="it grow"><span class="lb">Text sizes</span><span class="hint" style="margin:0;">100% is the automatic size. Everything still shrinks to fit the panel.</span></div>
+              <div class="it"><button class="btn-secondary sm" id="pSzReset" type="button">Reset sizes</button></div>
+            </div>
+              <div class="line">
+                <div class="it grow"><span class="lb" style="min-width:64px;">Title</span><input type="range" id="pSzTitle" min="50" max="200" value="100" step="5"><span class="val" id="pSzTitleV">100%</span></div>
+                <div class="it grow"><span class="lb" style="min-width:64px;">Author</span><input type="range" id="pSzAuthor" min="50" max="200" value="100" step="5"><span class="val" id="pSzAuthorV">100%</span></div>
+              </div>
+              <div class="line">
+                <div class="it grow"><span class="lb" style="min-width:64px;">Series</span><input type="range" id="pSzSeries" min="50" max="200" value="100" step="5"><span class="val" id="pSzSeriesV">100%</span></div>
+                <div class="it grow"><span class="lb" style="min-width:64px;">Rating</span><input type="range" id="pSzRating" min="50" max="200" value="100" step="5"><span class="val" id="pSzRatingV">100%</span></div>
+              </div>
+              <div class="line">
+                <div class="it grow"><span class="lb" style="min-width:64px;">Genre</span><input type="range" id="pSzGenre" min="50" max="200" value="100" step="5"><span class="val" id="pSzGenreV">100%</span></div>
+                <div class="it grow"><span class="lb" style="min-width:64px;">Tropes</span><input type="range" id="pSzTropes" min="50" max="200" value="100" step="5"><span class="val" id="pSzTropesV">100%</span></div>
+              </div>
+              <div class="line">
+                <div class="it grow"><span class="lb" style="min-width:64px;">Tape label</span><input type="range" id="pSzTape" min="50" max="200" value="100" step="5"><span class="val" id="pSzTapeV">100%</span></div>
+                <div class="it grow"><span class="lb" style="min-width:64px;">QR labels</span><input type="range" id="pSzQr" min="50" max="200" value="100" step="5"><span class="val" id="pSzQrV">100%</span></div>
+              </div>
+              <div class="line">
+                <div class="it grow"><span class="lb" style="min-width:64px;">Footer</span><input type="range" id="pSzFooter" min="50" max="200" value="100" step="5"><span class="val" id="pSzFooterV">100%</span></div>
+              </div>
             <div id="blurbBox" style="display:none;">
               <div class="line">
                 <div class="it" title="Story size only. On by default."><label class="ck"><input type="checkbox" id="pShowBlurb"> Blurb</label></div>
@@ -549,6 +572,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   var BO = {hide: false, size: 0, text: ''}, blurbChoice = {};
   function blurbClean(b){ return String(b.blurb || '').replace(/\s+/g, ' ').trim(); }
   function blurbK(){ return (+g('pBlurbSize').value || 100) / 100; }
+  function szK(id){ return (+g(id).value || 100) / 100; }
   function blurbKey(b){ return b.id + ':' + g('pBlurbLen').value; }
   function blurbTrim(t, n){ return t.length > n ? t.slice(0, n).replace(/\s+\S*$/, '') + '\u2026' : t; }
   function blurbIsFull(b){ return !!(b && b.blurb && g('pSize').value === 'story' && g('pShowBlurb').checked && g('pFullBlurb').checked); }
@@ -556,18 +580,18 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   function detailsHtml(b, s, L){
     var txt = g('pTextCol').value, acc = g('pAccCol').value;
     var emoji = g('emojiInput').value.trim() || '\uD83D\uDCCC';
-    var base = 68, z = function(n){ return Math.round(n * s); };
+    var base = 68, z = function(n){ return Math.round(n * s); }, zz = function(n, id){ return Math.round(n * s * szK(id)); };
     var series = (g('pShowSeries').checked && b.series) ? escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ', Book ' + b.seriesNumber : '') : '';
     var info = g('pShowInfo').checked, ctr = L.mode === 'stack' ? 'text-align:center;' : '';
-    var p = (info ? '<div style="' + ctr + 'font-size:' + z(base) + 'px;line-height:1.12;color:' + acc + ';">' + escapeHtml(b.title || '') + '</div>' : '') +
-      (info && b.author ? '<div style="' + ctr + 'font-size:' + z(42) + 'px;margin-top:16px;line-height:1.2;color:' + txt + ';">' + escapeHtml(b.author) + '</div>' : '') +
-      (series ? '<div style="' + ctr + 'font-size:' + z(30) + 'px;margin-top:' + (info ? 8 : 0) + 'px;line-height:1.25;color:' + txt + ';opacity:0.85;">' + series + '</div>' : '') +
-      (g('pShowRating').checked && b.rating ? '<div style="' + ctr + (ctr ? 'text-indent:0.32em;' : '') + 'font-size:' + z(66) + 'px;letter-spacing:0.32em;margin-top:20px;line-height:1.1;color:' + acc + ';">' + ratingHtml(b.rating, g('pRateStyle').value) + '</div>' : '') +
-      (g('pShowGenre').checked && b.genre ? '<div style="' + ctr + 'margin-top:' + z(40) + 'px;"><div style="font-size:' + z(52) + 'px;line-height:1.1;color:' + acc + ';">Genre</div><div style="font-size:' + z(38) + 'px;margin-top:8px;line-height:1.25;color:' + txt + ';">' + escapeHtml(b.genre) + '</div></div>' : '');
+    var p = (info ? '<div style="' + ctr + 'font-size:' + zz(base, 'pSzTitle') + 'px;line-height:1.12;color:' + acc + ';">' + escapeHtml(b.title || '') + '</div>' : '') +
+      (info && b.author ? '<div style="' + ctr + 'font-size:' + zz(42, 'pSzAuthor') + 'px;margin-top:16px;line-height:1.2;color:' + txt + ';">' + escapeHtml(b.author) + '</div>' : '') +
+      (series ? '<div style="' + ctr + 'font-size:' + zz(30, 'pSzSeries') + 'px;margin-top:' + (info ? 8 : 0) + 'px;line-height:1.25;color:' + txt + ';opacity:0.85;">' + series + '</div>' : '') +
+      (g('pShowRating').checked && b.rating ? '<div style="' + ctr + (ctr ? 'text-indent:0.32em;' : '') + 'font-size:' + zz(66, 'pSzRating') + 'px;letter-spacing:0.32em;margin-top:20px;line-height:1.1;color:' + acc + ';">' + ratingHtml(b.rating, g('pRateStyle').value) + '</div>' : '') +
+      (g('pShowGenre').checked && b.genre ? '<div style="' + ctr + 'margin-top:' + z(40) + 'px;"><div style="font-size:' + zz(52, 'pSzGenre') + 'px;line-height:1.1;color:' + acc + ';">Genre</div><div style="font-size:' + zz(38, 'pSzGenre') + 'px;margin-top:8px;line-height:1.25;color:' + txt + ';">' + escapeHtml(b.genre) + '</div></div>' : '');
     if(g('pShowTropes').checked && b.tropes && b.tropes.length){
       var n = b.tropes.length, cols = L.mode === 'stack' ? (n > 4 ? 2 : 1) : (n > 10 ? 2 : 1);
-      p += '<div style="margin-top:' + z(40) + 'px;"><div style="font-size:' + z(52) + 'px;line-height:1.1;color:' + acc + ';">Tropes</div>' +
-        '<div style="margin-top:10px;column-count:' + cols + ';column-gap:24px;font-size:' + z(36) + 'px;line-height:1.5;color:' + txt + ';">' +
+      p += '<div style="margin-top:' + z(40) + 'px;"><div style="font-size:' + zz(52, 'pSzTropes') + 'px;line-height:1.1;color:' + acc + ';">Tropes</div>' +
+        '<div style="margin-top:10px;column-count:' + cols + ';column-gap:24px;font-size:' + zz(36, 'pSzTropes') + 'px;line-height:1.5;color:' + txt + ';">' +
         b.tropes.map(function(t){ return '<div style="break-inside:avoid;">' + escapeHtml(emoji) + ' ' + escapeHtml(t) + '</div>'; }).join('') + '</div></div>';
     }
     if(!BO.hide && g('pSize').value === 'story' && g('pShowBlurb').checked && b.blurb){
@@ -594,7 +618,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
       var tc = g('pTapeCol').value, tw = 220, tfs = 26, label = arcSrc ? 'ARC via ' + arcSrc : '';
       if(label){
         var maxW = d.w - 30;
-        tfs = Math.max(14, Math.min(26, Math.floor((maxW - 70) / (0.62 * label.length))));
+        tfs = Math.max(10, Math.min(Math.round(26 * szK('pSzTape')), Math.floor((maxW - 70) / (0.62 * label.length))));
         tw = Math.min(maxW, Math.max(220, Math.round(0.62 * tfs * label.length) + 70));
       }
       var tn = parseInt(tc.slice(1), 16), tlum = 0.299 * (tn >> 16 & 255) + 0.587 * (tn >> 8 & 255) + 0.114 * (tn & 255), tcol = tlum > 170 ? '#3B2A55' : '#FBF7FF';
@@ -618,13 +642,13 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
       var qq = qrFor(b), qi = [['amazon', 'Amazon'], ['goodreads', 'Goodreads'], ['review', "Yue's Review"]].filter(function(it){ return qq[it[0]]; });
       if(qi.length) qrBlock = '<div style="margin-top:34px;display:flex;justify-content:center;gap:54px;">' + qi.map(function(it){
         return '<div style="text-align:center;"><img src="' + qq[it[0]] + '" style="display:block;margin:0 auto;width:170px;height:170px;background:#fff;padding:8px;box-sizing:border-box;border-radius:10px;object-fit:contain;">' +
-          '<div style="font-size:26px;line-height:1.1;margin-top:10px;white-space:nowrap;color:' + txt + ';">' + escapeHtml(it[1]) + '</div></div>';
+          '<div style="font-size:' + Math.round(26 * szK('pSzQr')) + 'px;line-height:1.1;margin-top:10px;white-space:nowrap;color:' + txt + ';">' + escapeHtml(it[1]) + '</div></div>';
       }).join('') + '</div>';
     }
     var stamp = '';
     var detBox = '<div style="position:absolute;left:' + d.x + 'px;top:' + d.y + 'px;width:' + d.w + 'px;height:' + d.h + 'px;display:table;"><div style="display:table-cell;vertical-align:middle;">' +
       '<div id="pcPanel" style="' + panelBg + 'position:relative;padding:' + (tape ? 70 : 40) + 'px 34px 40px;box-sizing:border-box;width:' + d.w + 'px;">' + tape + '<div id="pcIn">' + detailsHtml(b, L.s0, L) + '</div>' + imgBlock + qrBlock + '</div></div></div>';
-    var footer = '<div style="position:absolute;left:0;right:0;bottom:' + L.fb + 'px;text-align:center;white-space:nowrap;font-size:30px;color:' + txt + ';opacity:0.6;">pagesofyue.com | ARC Catalog : arc.pagesofyue.com</div>';
+    var footer = '<div style="position:absolute;left:0;right:0;bottom:' + L.fb + 'px;text-align:center;white-space:nowrap;font-size:' + Math.round(30 * szK('pSzFooter')) + 'px;color:' + txt + ';opacity:0.6;">pagesofyue.com | ARC Catalog : arc.pagesofyue.com</div>';
     return '<div id="postRoot" style="' + F + 'width:' + W + 'px;height:' + H + 'px;position:relative;overflow:hidden;background:' + g('pBase').value + ';">' + bgHtml + coverBox + stamp + detBox + footer + '</div>';
   }
 
@@ -708,7 +732,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   function renderPost(){
     updateSummaries();
     var b = currentBook(), host = g('previewHost');
-    ['pOp','pBlur','pPanelOp','pScale','pImgH','pImgTol','pBlurbLen','pBlurbSize'].forEach(function(id){ g(id + 'V').textContent = g(id).value + (id === 'pBlur' || id === 'pImgH' ? 'px' : (id === 'pBlurbLen' ? '' : '%')); });
+    ['pOp','pBlur','pPanelOp','pScale','pImgH','pImgTol','pBlurbLen','pBlurbSize','pSzTitle','pSzAuthor','pSzSeries','pSzRating','pSzGenre','pSzTropes','pSzTape','pSzQr','pSzFooter'].forEach(function(id){ g(id + 'V').textContent = g(id).value + (id === 'pBlur' || id === 'pImgH' ? 'px' : (id === 'pBlurbLen' ? '' : '%')); });
     g('pDownloadBtn').disabled = !b; g('pCoverBtn').disabled = !(b && (b.cover || hiFor(b)));
     var sc = g('previewScale'), stage = document.querySelector('.preview-stage');
     if(!b){
@@ -771,11 +795,15 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   g('pLight').addEventListener('click', function(){ g('pTextCol').value = '#FBF7FF'; g('pAccCol').value = '#E4D2F2'; renderPost(); });
   g('pDark').addEventListener('click', function(){ g('pTextCol').value = '#3B2A55'; g('pAccCol').value = '#6B4E93'; renderPost(); });
 
-  ['pOp','pBlur','pPanelOp','pScale','pImgH','pBlurbLen','pBlurbSize','pTapeCol','pBase','pPanelCol','pTextCol','pAccCol'].forEach(function(id){ g(id).addEventListener('input', renderPost); });
+  ['pOp','pBlur','pPanelOp','pScale','pImgH','pBlurbLen','pBlurbSize','pSzTitle','pSzAuthor','pSzSeries','pSzRating','pSzGenre','pSzTropes','pSzTape','pSzQr','pSzFooter','pTapeCol','pBase','pPanelCol','pTextCol','pAccCol'].forEach(function(id){ g(id).addEventListener('input', renderPost); });
   ['pShowBlurb','pFullBlurb','pShowInfo','pArcOn','pImgAlign','pTapeOn','pPanelOn','pRateStyle','pShowSeries','pShowRating','pShowGenre','pShowTropes','bookSelect','statusFilter'].forEach(function(id){ g(id).addEventListener('change', renderPost); });
   // Blurb is a Story-only option: on by default there, hidden and off for the feed sizes.
   g('pSize').addEventListener('change', function(){ g('pShowBlurb').checked = g('pSize').value === 'story'; renderPost(); });
   g('pFullBlurb').addEventListener('change', function(){ if(g('pFullBlurb').checked) g('pShowBlurb').checked = true; renderPost(); });
+  g('pSzReset').addEventListener('click', function(){
+    ['pBlurbSize','pSzTitle','pSzAuthor','pSzSeries','pSzRating','pSzGenre','pSzTropes','pSzTape','pSzQr','pSzFooter'].forEach(function(id){ g(id).value = 100; });
+    renderPost();
+  });
   g('emojiInput').addEventListener('input', renderPost);
   g('pImgFile').addEventListener('change', function(e){
     var f = e.target.files && e.target.files[0]; if(!f) return;
