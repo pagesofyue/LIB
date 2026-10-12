@@ -96,6 +96,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
 .it input[type=range]{flex:1;min-width:60px;margin:0;padding:0;}
 .it input[type=color]{width:40px;height:28px;padding:1px;border:1px solid var(--line-strong);border-radius:6px;background:var(--card);cursor:pointer;}
 .it input[type=checkbox]{margin:0;width:auto;}
+.szb{min-width:34px;padding:3px 10px;font-size:16px;line-height:1.1;}
 .it .val{font-size:12px;color:var(--muted);width:40px;text-align:right;flex:none;}
 .ck{display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;white-space:nowrap;}
 .upbtn{display:inline-block;background:var(--card);color:var(--ink);border:1px solid var(--line-strong);border-radius:8px;padding:6px 12px;font-family:var(--font-body);font-size:13px;font-weight:600;cursor:pointer;}
@@ -248,23 +249,23 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
               <div class="it"><button class="btn-secondary sm" id="pSzReset" type="button">Reset sizes</button></div>
             </div>
               <div class="line">
-                <div class="it grow"><span class="lb" style="min-width:64px;">Title</span><input type="range" id="pSzTitle" min="50" max="200" value="100" step="5"><span class="val" id="pSzTitleV">100%</span></div>
-                <div class="it grow"><span class="lb" style="min-width:64px;">Author</span><input type="range" id="pSzAuthor" min="50" max="200" value="100" step="5"><span class="val" id="pSzAuthorV">100%</span></div>
+                <div class="it grow"><span class="lb" style="min-width:64px;">Title</span><button type="button" class="btn-secondary sm szb" data-sz="pSzTitle" data-d="-5" aria-label="Smaller">−</button><span class="val" id="pSzTitleV" style="width:48px;text-align:center;">100%</span><input type="hidden" id="pSzTitle" value="100"><button type="button" class="btn-secondary sm szb" data-sz="pSzTitle" data-d="5" aria-label="Larger">+</button></div>
+                <div class="it grow"><span class="lb" style="min-width:64px;">Author</span><button type="button" class="btn-secondary sm szb" data-sz="pSzAuthor" data-d="-5" aria-label="Smaller">−</button><span class="val" id="pSzAuthorV" style="width:48px;text-align:center;">100%</span><input type="hidden" id="pSzAuthor" value="100"><button type="button" class="btn-secondary sm szb" data-sz="pSzAuthor" data-d="5" aria-label="Larger">+</button></div>
               </div>
               <div class="line">
-                <div class="it grow"><span class="lb" style="min-width:64px;">Series</span><input type="range" id="pSzSeries" min="50" max="200" value="100" step="5"><span class="val" id="pSzSeriesV">100%</span></div>
-                <div class="it grow"><span class="lb" style="min-width:64px;">Rating</span><input type="range" id="pSzRating" min="50" max="200" value="100" step="5"><span class="val" id="pSzRatingV">100%</span></div>
+                <div class="it grow"><span class="lb" style="min-width:64px;">Series</span><button type="button" class="btn-secondary sm szb" data-sz="pSzSeries" data-d="-5" aria-label="Smaller">−</button><span class="val" id="pSzSeriesV" style="width:48px;text-align:center;">100%</span><input type="hidden" id="pSzSeries" value="100"><button type="button" class="btn-secondary sm szb" data-sz="pSzSeries" data-d="5" aria-label="Larger">+</button></div>
+                <div class="it grow"><span class="lb" style="min-width:64px;">Rating</span><button type="button" class="btn-secondary sm szb" data-sz="pSzRating" data-d="-5" aria-label="Smaller">−</button><span class="val" id="pSzRatingV" style="width:48px;text-align:center;">100%</span><input type="hidden" id="pSzRating" value="100"><button type="button" class="btn-secondary sm szb" data-sz="pSzRating" data-d="5" aria-label="Larger">+</button></div>
               </div>
               <div class="line">
-                <div class="it grow"><span class="lb" style="min-width:64px;">Genre</span><input type="range" id="pSzGenre" min="50" max="200" value="100" step="5"><span class="val" id="pSzGenreV">100%</span></div>
-                <div class="it grow"><span class="lb" style="min-width:64px;">Tropes</span><input type="range" id="pSzTropes" min="50" max="200" value="100" step="5"><span class="val" id="pSzTropesV">100%</span></div>
+                <div class="it grow"><span class="lb" style="min-width:64px;">Genre</span><button type="button" class="btn-secondary sm szb" data-sz="pSzGenre" data-d="-5" aria-label="Smaller">−</button><span class="val" id="pSzGenreV" style="width:48px;text-align:center;">100%</span><input type="hidden" id="pSzGenre" value="100"><button type="button" class="btn-secondary sm szb" data-sz="pSzGenre" data-d="5" aria-label="Larger">+</button></div>
+                <div class="it grow"><span class="lb" style="min-width:64px;">Tropes</span><button type="button" class="btn-secondary sm szb" data-sz="pSzTropes" data-d="-5" aria-label="Smaller">−</button><span class="val" id="pSzTropesV" style="width:48px;text-align:center;">100%</span><input type="hidden" id="pSzTropes" value="100"><button type="button" class="btn-secondary sm szb" data-sz="pSzTropes" data-d="5" aria-label="Larger">+</button></div>
               </div>
               <div class="line">
-                <div class="it grow"><span class="lb" style="min-width:64px;">Tape label</span><input type="range" id="pSzTape" min="50" max="200" value="100" step="5"><span class="val" id="pSzTapeV">100%</span></div>
-                <div class="it grow"><span class="lb" style="min-width:64px;">QR labels</span><input type="range" id="pSzQr" min="50" max="200" value="100" step="5"><span class="val" id="pSzQrV">100%</span></div>
+                <div class="it grow"><span class="lb" style="min-width:64px;">Tape label</span><button type="button" class="btn-secondary sm szb" data-sz="pSzTape" data-d="-5" aria-label="Smaller">−</button><span class="val" id="pSzTapeV" style="width:48px;text-align:center;">100%</span><input type="hidden" id="pSzTape" value="100"><button type="button" class="btn-secondary sm szb" data-sz="pSzTape" data-d="5" aria-label="Larger">+</button></div>
+                <div class="it grow"><span class="lb" style="min-width:64px;">QR labels</span><button type="button" class="btn-secondary sm szb" data-sz="pSzQr" data-d="-5" aria-label="Smaller">−</button><span class="val" id="pSzQrV" style="width:48px;text-align:center;">100%</span><input type="hidden" id="pSzQr" value="100"><button type="button" class="btn-secondary sm szb" data-sz="pSzQr" data-d="5" aria-label="Larger">+</button></div>
               </div>
               <div class="line">
-                <div class="it grow"><span class="lb" style="min-width:64px;">Footer</span><input type="range" id="pSzFooter" min="50" max="200" value="100" step="5"><span class="val" id="pSzFooterV">100%</span></div>
+                <div class="it grow"><span class="lb" style="min-width:64px;">Footer</span><button type="button" class="btn-secondary sm szb" data-sz="pSzFooter" data-d="-5" aria-label="Smaller">−</button><span class="val" id="pSzFooterV" style="width:48px;text-align:center;">100%</span><input type="hidden" id="pSzFooter" value="100"><button type="button" class="btn-secondary sm szb" data-sz="pSzFooter" data-d="5" aria-label="Larger">+</button></div>
               </div>
             <div id="blurbBox" style="display:none;">
               <div class="line">
@@ -273,7 +274,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
                 <div class="it grow"><span class="lb">Max length</span><input type="range" id="pBlurbLen" min="80" max="600" value="300" step="10"><span class="val" id="pBlurbLenV">300</span></div>
               </div>
               <div class="line">
-                <div class="it grow" title="Make the blurb text smaller or larger. 100% is the automatic size. The rest of the text shrinks if a bigger blurb needs the room."><span class="lb">Blurb size</span><input type="range" id="pBlurbSize" min="50" max="200" value="100" step="5"><span class="val" id="pBlurbSizeV">100%</span></div>
+                <div class="it grow" title="Make the blurb text smaller or larger. 100% is the automatic size. The rest of the text shrinks if a bigger blurb needs the room."><span class="lb">Blurb size</span><button type="button" class="btn-secondary sm szb" data-sz="pBlurbSize" data-d="-5" aria-label="Smaller">−</button><span class="val" id="pBlurbSizeV" style="width:48px;text-align:center;">100%</span><input type="hidden" id="pBlurbSize" value="100"><button type="button" class="btn-secondary sm szb" data-sz="pBlurbSize" data-d="5" aria-label="Larger">+</button></div>
               </div>
               <p class="hint" id="pBlurbNote" style="margin:4px 0 0;"></p>
             </div>
@@ -800,6 +801,13 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   // Blurb is a Story-only option: on by default there, hidden and off for the feed sizes.
   g('pSize').addEventListener('change', function(){ g('pShowBlurb').checked = g('pSize').value === 'story'; renderPost(); });
   g('pFullBlurb').addEventListener('change', function(){ if(g('pFullBlurb').checked) g('pShowBlurb').checked = true; renderPost(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.szb'), function(btn){
+    btn.addEventListener('click', function(){
+      var el = g(btn.getAttribute('data-sz'));
+      el.value = Math.max(50, Math.min(200, (+el.value || 100) + (+btn.getAttribute('data-d'))));
+      renderPost();
+    });
+  });
   g('pSzReset').addEventListener('click', function(){
     ['pBlurbSize','pSzTitle','pSzAuthor','pSzSeries','pSzRating','pSzGenre','pSzTropes','pSzTape','pSzQr','pSzFooter'].forEach(function(id){ g(id).value = 100; });
     renderPost();
