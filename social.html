@@ -103,6 +103,10 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
 .upbtn:hover,.xbtn:hover{border-color:var(--accent);}
 .xbtn{background:var(--card);color:var(--muted);border:1px solid var(--line-strong);border-radius:8px;padding:5px 9px;font-family:var(--font-body);font-size:13px;line-height:1;cursor:pointer;}
 .btn-secondary.sm{padding:5px 10px;font-size:12px;}
+.ta{display:block;width:100%;min-height:96px;padding:8px 10px;margin-top:6px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);font-family:var(--font-body);font-size:13px;line-height:1.5;color:var(--ink);resize:vertical;white-space:pre-wrap;}
+.ta:focus,.numin:focus,.txin:focus{outline:2px solid var(--accent);outline-offset:1px;}
+.numin{width:66px;padding:6px 8px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);font-family:var(--font-body);font-size:13px;color:var(--ink);}
+.txin{width:130px;padding:6px 8px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);font-family:var(--font-body);font-size:13px;color:var(--ink);}
 </style>
 </head>
 <body>
@@ -172,7 +176,10 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
           <div class="acc-b">
             <div class="line">
               <div class="it"><span class="lb">Size</span><select id="pSize"><option value="portrait" selected>4:5 portrait (1080 × 1350)</option><option value="square">1:1 square (1080 × 1080)</option><option value="story">Story / Reel 9:16 (1080 × 1920)</option></select></div>
-              <div class="it grow" title="Smaller cover = bigger text panel and bigger text. Larger cover = smaller panel and text."><span class="lb">Cover</span><input type="range" id="pScale" min="50" max="130" value="100" step="1"><span class="val" id="pScaleV">100%</span></div>
+              <div class="it grow" title="Smaller cover = bigger text panel and bigger text. With Auto fit on, this is the largest the cover can be."><span class="lb">Cover</span><input type="range" id="pScale" min="50" max="130" value="100" step="1"><span class="val" id="pScaleV">100%</span></div>
+            </div>
+            <div class="line">
+              <div class="it" title="Story only. When a blurb or review is on, the cover shrinks as much as needed so the text stays readable. The Cover slider sets its largest size."><label class="ck"><input type="checkbox" id="pCoverAuto" checked> Auto-fit cover to blurb/review</label></div>
             </div>
             <div class="line">
               <div class="it" title="Untick to leave the title and author off the post. Series, rating, genre, tropes and blurb keep their own settings."><label class="ck"><input type="checkbox" id="pShowInfo" checked> Title &amp; author</label></div>
@@ -267,17 +274,26 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
               <div class="line">
                 <div class="it grow"><span class="lb" style="min-width:64px;">Footer</span><button type="button" class="btn-secondary sm szb" data-sz="pSzFooter" data-d="-5" aria-label="Smaller">−</button><span class="val" id="pSzFooterV" style="width:48px;text-align:center;">100%</span><input type="hidden" id="pSzFooter" value="100"><button type="button" class="btn-secondary sm szb" data-sz="pSzFooter" data-d="5" aria-label="Larger">+</button></div>
               </div>
-            <div id="blurbBox" style="display:none;">
-              <div class="line">
-                <div class="it" title="Story size only. On by default."><label class="ck"><input type="checkbox" id="pShowBlurb"> Blurb</label></div>
-                <div class="it" title="Include the entire blurb. Its text shrinks to fit."><label class="ck"><input type="checkbox" id="pFullBlurb"> Whole blurb</label></div>
-                <div class="it grow"><span class="lb">Max length</span><input type="range" id="pBlurbLen" min="80" max="600" value="300" step="10"><span class="val" id="pBlurbLenV">300</span></div>
-              </div>
-              <div class="line">
-                <div class="it grow" title="Make the blurb text smaller or larger. 100% is the automatic size. The rest of the text shrinks if a bigger blurb needs the room."><span class="lb">Blurb size</span><button type="button" class="btn-secondary sm szb" data-sz="pBlurbSize" data-d="-5" aria-label="Smaller">−</button><span class="val" id="pBlurbSizeV" style="width:48px;text-align:center;">100%</span><input type="hidden" id="pBlurbSize" value="100"><button type="button" class="btn-secondary sm szb" data-sz="pBlurbSize" data-d="5" aria-label="Larger">+</button></div>
-              </div>
-              <p class="hint" id="pBlurbNote" style="margin:4px 0 0;"></p>
+          </div>
+        </div>
+
+        <div class="acc" id="accBlurb" style="display:none;">
+          <button type="button" class="acc-h"><b>Blurb &amp; review</b><span class="acc-sum" id="sumBlurb"></span></button>
+          <div class="acc-b">
+            <div class="line">
+              <div class="it"><label class="ck"><input type="checkbox" id="pShowBlurb"> Blurb</label></div>
+              <div class="it" title="Font size in px on the 1080-wide post. Leave blank for Auto (the largest size that fits)."><span class="lb">Font size</span><input type="number" class="numin" id="pBlurbSize" min="8" max="200" step="1" placeholder="Auto"><span class="lb" style="text-transform:none;">px</span></div>
+              <div class="it"><button class="btn-secondary sm" id="pBlurbReset" type="button" title="Put back the blurb from your library">Reset to library blurb</button></div>
             </div>
+            <textarea class="ta" id="pBlurbText" rows="6" placeholder="Pick a book to pull in its blurb. Edit or trim it here."></textarea>
+            <div class="line" style="margin-top:16px;">
+              <div class="it"><label class="ck"><input type="checkbox" id="pShowReview"> Review</label></div>
+              <div class="it"><span class="lb">Heading</span><input type="text" class="txin" id="pReviewHead" value="Review" placeholder="None"></div>
+              <div class="it" title="Font size in px on the 1080-wide post. Leave blank for Auto."><span class="lb">Font size</span><input type="number" class="numin" id="pReviewSize" min="8" max="200" step="1" placeholder="Auto"><span class="lb" style="text-transform:none;">px</span></div>
+            </div>
+            <textarea class="ta" id="pReviewText" rows="6" placeholder="Write or paste your review here."></textarea>
+            <p class="hint" id="pBlurbNote" style="margin:6px 0 0;"></p>
+            <p class="hint" style="margin:4px 0 0;">Story only. Line breaks and spacing are kept. Edits are for this post and kept for that book until you close the page. They are not saved to your library.</p>
           </div>
         </div>
 
@@ -560,8 +576,8 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
 
   // Cover size drives the split: the details panel takes whatever the cover gives up,
   // and fitPost grows the text to fill it.
-  function layoutFor(){
-    var L = baseLayout(), c = L.cover, m = g('pScale').value / 100;
+  function layoutFor(mo){
+    var L = baseLayout(), c = L.cover, m = mo || g('pScale').value / 100;
     c.cw = Math.round(c.w * m); c.cmh = Math.round(c.mh * m);
     if(L.mode === 'side'){ c.cx = c.x; L.det.x = c.x + c.cw + 30; L.det.w = W - 40 - L.det.x; }
     else { c.cx = Math.round((W - c.cw) / 2); L.det.y = c.y + c.cmh + 30; L.det.h = 1730 - L.det.y; }
@@ -569,14 +585,23 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   }
 
   // Details content; s scales every size. Nothing wraps — fitPost shrinks until each line fits.
-  // ---- Blurb: over-limit choice (full = shrink the blurb to fit, trim = cut at the limit) ----
-  var BO = {hide: false, size: 0, text: ''}, blurbChoice = {};
-  function blurbClean(b){ return String(b.blurb || '').replace(/\s+/g, ' ').trim(); }
-  function blurbK(){ return (+g('pBlurbSize').value || 100) / 100; }
+  // ---- Blurb & review: always the full text, line breaks and spacing kept. Edits are per book, this session only. ----
+  var BO = {auto: 0, f: 1}, blurbEdits = {}, reviewEdits = {}, shownFor = null, taTimer = null;
   function szK(id){ return (+g(id).value || 100) / 100; }
-  function blurbKey(b){ return b.id + ':' + g('pBlurbLen').value; }
-  function blurbTrim(t, n){ return t.length > n ? t.slice(0, n).replace(/\s+\S*$/, '') + '\u2026' : t; }
-  function blurbIsFull(b){ return !!(b && b.blurb && g('pSize').value === 'story' && g('pShowBlurb').checked && g('pFullBlurb').checked); }
+  function normText(t){ return String(t == null ? '' : t).replace(/\r\n?/g, '\n').replace(/^(?:[ \t]*\n)+/, '').replace(/\s+$/, ''); }
+  function blurbText(b){ return b ? normText(Object.prototype.hasOwnProperty.call(blurbEdits, b.id) ? blurbEdits[b.id] : b.blurb) : ''; }
+  function reviewText(b){ return b ? normText(reviewEdits[b.id]) : ''; }
+  function typedPx(id){ var v = parseFloat(g(id).value); return v > 0 ? Math.max(8, Math.min(200, Math.round(v))) : 0; }
+  function blurbOn(b){ return !!(b && g('pSize').value === 'story' && g('pShowBlurb').checked && blurbText(b)); }
+  function reviewOn(b){ return !!(b && g('pSize').value === 'story' && g('pShowReview').checked && reviewText(b)); }
+  function syncTextareas(b){
+    var id = b ? b.id : '';
+    g('pBlurbText').disabled = g('pReviewText').disabled = g('pBlurbReset').disabled = !b;
+    if(shownFor === id) return;
+    shownFor = id;
+    g('pBlurbText').value = b ? (Object.prototype.hasOwnProperty.call(blurbEdits, id) ? blurbEdits[id] : (b.blurb || '')) : '';
+    g('pReviewText').value = b ? (reviewEdits[id] || '') : '';
+  }
 
   function detailsHtml(b, s, L){
     var txt = g('pTextCol').value, acc = g('pAccCol').value;
@@ -595,18 +620,23 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
         '<div style="margin-top:10px;column-count:' + cols + ';column-gap:24px;font-size:' + zz(36, 'pSzTropes') + 'px;line-height:1.5;color:' + txt + ';">' +
         b.tropes.map(function(t){ return '<div style="break-inside:avoid;">' + escapeHtml(emoji) + ' ' + escapeHtml(t) + '</div>'; }).join('') + '</div></div>';
     }
-    if(!BO.hide && g('pSize').value === 'story' && g('pShowBlurb').checked && b.blurb){
-      var bl = BO.text || (blurbIsFull(b) ? blurbClean(b) : blurbTrim(blurbClean(b), +g('pBlurbLen').value));
-      p += '<div style="margin-top:' + z(36) + 'px;font-size:' + (BO.size || Math.round(28 * s * blurbK())) + 'px;line-height:1.45;white-space:normal;color:' + txt + ';opacity:0.92;">' + escapeHtml(bl) + '</div>';
+    var bsz = function(id){ var t = typedPx(id); return t ? Math.max(8, Math.round(t * BO.f)) : (BO.auto || Math.round(28 * s)); };
+    if(blurbOn(b)){
+      p += '<div style="margin-top:' + z(36) + 'px;font-size:' + bsz('pBlurbSize') + 'px;line-height:1.45;white-space:pre-wrap;overflow-wrap:break-word;color:' + txt + ';opacity:0.92;">' + escapeHtml(blurbText(b)) + '</div>';
+    }
+    if(reviewOn(b)){
+      var rh = g('pReviewHead').value.trim();
+      p += '<div style="margin-top:' + z(36) + 'px;">' + (rh ? '<div style="font-size:' + z(52) + 'px;line-height:1.1;color:' + acc + ';margin-bottom:10px;">' + escapeHtml(rh) + '</div>' : '') +
+        '<div style="font-size:' + bsz('pReviewSize') + 'px;line-height:1.45;white-space:pre-wrap;overflow-wrap:break-word;color:' + txt + ';opacity:0.92;">' + escapeHtml(reviewText(b)) + '</div></div>';
     }
     return '<div style="white-space:normal;overflow-wrap:break-word;">' + p + '</div>';
   }
 
-  function buildPost(b){
-    var L = layoutFor(), c = L.cover, d = L.det, txt = g('pTextCol').value;
+  function buildPost(b, mo, lite){
+    var L = layoutFor(mo), c = L.cover, d = L.det, txt = g('pTextCol').value;
     var cw = c.cw, cmh = c.cmh, cxs = c.cx, cbh = L.mode === 'side' ? c.h : c.cmh;
     var F = "font-family:'Special Elite',monospace;";
-    var bg = bgUrl();
+    var bg = lite ? '' : bgUrl();
     var bgHtml = bg ? '<img src="' + bg + '" style="position:absolute;left:0;top:0;width:' + W + 'px;height:' + H + 'px;opacity:' + (g('pOp').value / 100) + ';">' : '';
     var cs = hiFor(b) || b.cover;
     var cover = cs
@@ -653,37 +683,60 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     return '<div id="postRoot" style="' + F + 'width:' + W + 'px;height:' + H + 'px;position:relative;overflow:hidden;background:' + g('pBase').value + ';">' + bgHtml + coverBox + stamp + detBox + footer + '</div>';
   }
 
-  // Step the text size down until nothing overflows the panel sideways or vertically.
-  function fitPost(root, b){
-    var L = layoutFor(), panel = root.querySelector('#pcPanel'), inn = root.querySelector('#pcIn');
+  // Auto cover: with a blurb/review on, shrink the cover (down to 45%) until the text panel can hold the
+  // text at a readable size (32px for Auto, or the size you typed). The cover slider is the largest it may be.
+  function coverAutoOn(b){ return !!(g('pSize').value === 'story' && g('pCoverAuto').checked && (blurbOn(b) || reviewOn(b))); }
+  function chooseCover(container, b){
+    var mx = g('pScale').value / 100, best = Math.min(mx, 0.45);
+    var autoUsed = (blurbOn(b) && !typedPx('pBlurbSize')) || (reviewOn(b) && !typedPx('pReviewSize'));
+    for(var m = mx; m >= 0.45 - 1e-9; m = Math.round((m - 0.05) * 100) / 100){
+      container.innerHTML = buildPost(b, m, true);
+      var L = layoutFor(m), root = container.firstChild, panel = root.querySelector('#pcPanel'), inn = root.querySelector('#pcIn');
+      BO = {auto: autoUsed ? 32 : 0, f: 1};
+      inn.innerHTML = detailsHtml(b, 0.8, L);
+      if(panel.offsetHeight <= L.det.h - 10 && inn.scrollWidth <= inn.clientWidth + 1){ best = m; break; }
+    }
+    BO = {auto: 0, f: 1};
+    return best;
+  }
+  function settle(container, b, done){
+    var tok = container._tok = (container._tok || 0) + 1, ok = function(){ return container.isConnected && container._tok === tok; };
+    whenReady(container.firstChild, function(){
+      if(!ok()) return;
+      var m = 0, pre = '';
+      if(coverAutoOn(b)){
+        m = chooseCover(container, b);
+        if(m < g('pScale').value / 100) pre = 'Cover auto-sized to ' + Math.round(m * 100) + '% to make room for the text.';
+        container.innerHTML = buildPost(b, m);
+      }
+      var root = container.firstChild;
+      whenReady(root, function(){ if(!ok()) return; fitPost(root, b, m, pre); if(done) done(root); });
+    });
+  }
+
+  // Step the text size down until nothing overflows. Blurb/review text is never cut:
+  // a typed font size is kept as long as the rest of the post can shrink to make room.
+  function fitPost(root, b, mo, pre){
+    var L = layoutFor(mo), panel = root.querySelector('#pcPanel'), inn = root.querySelector('#pcIn');
     if(!panel) return;
     var fits = function(){ return panel.offsetHeight <= L.det.h - 10 && inn.scrollWidth <= inn.clientWidth + 1; };
-    var s, note = '';
-    BO = {hide: false, size: 0, text: ''};
-    if(!blurbIsFull(b) || blurbK() !== 1){
-      for(s = L.s0 * 1.4; s >= 0.35; s -= 0.04){ inn.innerHTML = detailsHtml(b, s, L); if(fits()) break; }
-      if(blurbIsFull(b) && !fits()){
-        s = 0.35; var fullM = blurbClean(b), nM = fullM.length;
-        while(nM > 40){ nM = Math.floor(nM * 0.95); BO.text = blurbTrim(fullM, nM); inn.innerHTML = detailsHtml(b, s, L); if(fits()) break; }
-        note = 'The full blurb would not fit at this size, so it was trimmed to ' + BO.text.length + ' characters. Try a smaller blurb size.';
-      }
-    } else {
-      // Full blurb: keep it at its smallest readable size (20px) while the rest is sized,
-      // then let the blurb grow back up into whatever room is left.
-      var found = false; BO.size = 20;
-      for(s = L.s0 * 1.4; s >= 0.35; s -= 0.04){ inn.innerHTML = detailsHtml(b, s, L); if(fits()){ found = true; break; } }
-      if(found){
-        var best = 20, cap = Math.round(28 * s);
-        for(var px = 21; px <= cap; px++){ BO.size = px; inn.innerHTML = detailsHtml(b, s, L); if(fits()) best = px; else break; }
-        BO.size = best; inn.innerHTML = detailsHtml(b, s, L);
-      } else {
-        s = 0.35; var full = blurbClean(b), n = full.length;
-        while(n > 40){ n = Math.floor(n * 0.95); BO.text = blurbTrim(full, n); inn.innerHTML = detailsHtml(b, s, L); if(fits()) break; }
-        note = 'The full blurb would not fit even at the smallest readable size, so it was trimmed to ' + BO.text.length + ' characters.';
-      }
+    var draw = function(s){ inn.innerHTML = detailsHtml(b, s, L); };
+    var bo = blurbOn(b), ro = reviewOn(b);
+    var autoUsed = (bo && !typedPx('pBlurbSize')) || (ro && !typedPx('pReviewSize'));
+    var s, note = pre ? pre + ' ' : '', found = false;
+    BO = {auto: autoUsed ? 20 : 0, f: 1};
+    for(s = L.s0 * 1.4; s >= 0.35; s -= 0.04){ draw(s); if(fits()){ found = true; break; } }
+    if(found && autoUsed){
+      var best = 20, cap = Math.round(28 * s);
+      for(var px = 21; px <= cap; px++){ BO.auto = px; draw(s); if(fits()) best = px; else break; }
+      BO.auto = best; draw(s); note += 'Auto font size: ' + best + 'px.';
+    } else if(!found){
+      s = 0.35;
+      for(var k = 0; k < 40; k++){ BO.f *= 0.95; if(BO.auto) BO.auto = Math.max(10, Math.round(BO.auto * 0.95)); draw(s); if(fits()) break; }
+      note += fits() ? 'The text is too long for that size, so it was shrunk to fit. Trim it or lower the font size for bigger type.' : 'The text is still too long to fit. Trim it to make it fit.';
     }
     g('pBlurbNote').textContent = note;
-    BO = {hide: false, size: 0, text: ''};
+    BO = {auto: 0, f: 1};
   }
 
 
@@ -697,10 +750,9 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   });
   function syncBlurbUi(){
     var st = g('pSize').value === 'story';
-    g('blurbBox').style.display = st ? '' : 'none';
+    g('accBlurb').style.display = st ? '' : 'none';
     g('accQr').style.display = st ? '' : 'none';
-    if(!st){ g('pShowBlurb').checked = false; g('pFullBlurb').checked = false; }
-    g('pBlurbLen').disabled = g('pFullBlurb').checked;
+    if(!st) g('pShowBlurb').checked = false;
   }
   function updateSummaries(){
     syncBlurbUi();
@@ -718,7 +770,9 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     ['amazon', 'goodreads', 'review'].forEach(function(k){ g('pQrN_' + k).textContent = qn[k] ? 'Added' : ''; });
     g('sumImg').textContent = imgProc ? 'Added, ' + g('pImgH').value + 'px' : 'None';
     var tcv = g('pTextCol').value.toLowerCase();
-    g('sumText').textContent = (tcv === '#3b2a55' ? 'Dark' : tcv === '#fbf7ff' ? 'Light' : 'Custom') + ', ' + (g('pRateStyle').value === 'heart' ? 'hearts' : 'stars') + (g('pShowBlurb').checked ? (g('pFullBlurb').checked ? ', whole blurb' : ', blurb') : '');
+    g('sumText').textContent = (tcv === '#3b2a55' ? 'Dark' : tcv === '#fbf7ff' ? 'Light' : 'Custom') + ', ' + (g('pRateStyle').value === 'heart' ? 'hearts' : 'stars');
+    var bp = []; if(g('pShowBlurb').checked) bp.push('blurb'); if(g('pShowReview').checked) bp.push('review');
+    g('sumBlurb').textContent = bp.length ? bp.join(' + ') : 'Off';
   }
 
   // Wait for fonts and every image, then run cb (sizes are wrong before that).
@@ -733,7 +787,8 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   function renderPost(){
     updateSummaries();
     var b = currentBook(), host = g('previewHost');
-    ['pOp','pBlur','pPanelOp','pScale','pImgH','pImgTol','pBlurbLen','pBlurbSize','pSzTitle','pSzAuthor','pSzSeries','pSzRating','pSzGenre','pSzTropes','pSzTape','pSzQr','pSzFooter'].forEach(function(id){ g(id + 'V').textContent = g(id).value + (id === 'pBlur' || id === 'pImgH' ? 'px' : (id === 'pBlurbLen' ? '' : '%')); });
+    syncTextareas(b);
+    ['pOp','pBlur','pPanelOp','pScale','pImgH','pImgTol','pSzTitle','pSzAuthor','pSzSeries','pSzRating','pSzGenre','pSzTropes','pSzTape','pSzQr','pSzFooter'].forEach(function(id){ g(id + 'V').textContent = g(id).value + (id === 'pBlur' || id === 'pImgH' ? 'px' : '%'); });
     g('pDownloadBtn').disabled = !b; g('pCoverBtn').disabled = !(b && (b.cover || hiFor(b)));
     var sc = g('previewScale'), stage = document.querySelector('.preview-stage');
     if(!b){
@@ -745,7 +800,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     var root = host.firstChild, k = Math.min(Math.max(220, Math.min(stage.clientWidth - 34, 366)) / W, 700 / H);
     host.style.transformOrigin = 'top left'; host.style.transform = 'scale(' + k + ')';
     sc.style.width = Math.round(W * k) + 'px'; sc.style.height = Math.round(H * k) + 'px';
-    whenReady(root, function(){ if(root.isConnected) fitPost(root, b); });
+    settle(host, b);
   }
 
   function flash(msg){ var n = g('pNote'); n.textContent = msg; n.style.display = 'inline'; setTimeout(function(){ n.style.display = 'none'; }, 2400); }
@@ -755,9 +810,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     if(!b || !window.html2canvas){ flash('Export unavailable — check your connection.'); return; }
     var st = document.createElement('div'); st.style.cssText = 'position:fixed;left:-20000px;top:0;';
     st.innerHTML = buildPost(b); document.body.appendChild(st);
-    var root = st.firstChild;
-    whenReady(root, function(){
-      fitPost(root, b);
+    settle(st, b, function(root){
       window.html2canvas(root, {scale: 2, backgroundColor: null, useCORS: true}).then(function(c){
         var a = document.createElement('a');
         a.download = 'arc-review-' + safeName(b.title) + '-' + g('pSize').value + '.png'; a.href = c.toDataURL('image/png'); a.click();
@@ -796,11 +849,10 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
   g('pLight').addEventListener('click', function(){ g('pTextCol').value = '#FBF7FF'; g('pAccCol').value = '#E4D2F2'; renderPost(); });
   g('pDark').addEventListener('click', function(){ g('pTextCol').value = '#3B2A55'; g('pAccCol').value = '#6B4E93'; renderPost(); });
 
-  ['pOp','pBlur','pPanelOp','pScale','pImgH','pBlurbLen','pBlurbSize','pSzTitle','pSzAuthor','pSzSeries','pSzRating','pSzGenre','pSzTropes','pSzTape','pSzQr','pSzFooter','pTapeCol','pBase','pPanelCol','pTextCol','pAccCol'].forEach(function(id){ g(id).addEventListener('input', renderPost); });
-  ['pShowBlurb','pFullBlurb','pShowInfo','pArcOn','pImgAlign','pTapeOn','pPanelOn','pRateStyle','pShowSeries','pShowRating','pShowGenre','pShowTropes','bookSelect','statusFilter'].forEach(function(id){ g(id).addEventListener('change', renderPost); });
+  ['pOp','pBlur','pPanelOp','pScale','pImgH','pBlurbSize','pReviewSize','pReviewHead','pSzTitle','pSzAuthor','pSzSeries','pSzRating','pSzGenre','pSzTropes','pSzTape','pSzQr','pSzFooter','pTapeCol','pBase','pPanelCol','pTextCol','pAccCol'].forEach(function(id){ g(id).addEventListener('input', renderPost); });
+  ['pShowBlurb','pShowReview','pCoverAuto','pShowInfo','pArcOn','pImgAlign','pTapeOn','pPanelOn','pRateStyle','pShowSeries','pShowRating','pShowGenre','pShowTropes','bookSelect','statusFilter'].forEach(function(id){ g(id).addEventListener('change', renderPost); });
   // Blurb is a Story-only option: on by default there, hidden and off for the feed sizes.
   g('pSize').addEventListener('change', function(){ g('pShowBlurb').checked = g('pSize').value === 'story'; renderPost(); });
-  g('pFullBlurb').addEventListener('change', function(){ if(g('pFullBlurb').checked) g('pShowBlurb').checked = true; renderPost(); });
   Array.prototype.forEach.call(document.querySelectorAll('.szb'), function(btn){
     btn.addEventListener('click', function(){
       var el = g(btn.getAttribute('data-sz'));
@@ -809,7 +861,8 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     });
   });
   g('pSzReset').addEventListener('click', function(){
-    ['pBlurbSize','pSzTitle','pSzAuthor','pSzSeries','pSzRating','pSzGenre','pSzTropes','pSzTape','pSzQr','pSzFooter'].forEach(function(id){ g(id).value = 100; });
+    ['pSzTitle','pSzAuthor','pSzSeries','pSzRating','pSzGenre','pSzTropes','pSzTape','pSzQr','pSzFooter'].forEach(function(id){ g(id).value = 100; });
+    g('pBlurbSize').value = ''; g('pReviewSize').value = '';
     renderPost();
   });
   g('emojiInput').addEventListener('input', renderPost);
@@ -835,6 +888,11 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-bo
     });
     g('pQrX_' + k).addEventListener('click', function(){ var b = currentBook(); if(b && qrStore[b.id]) delete qrStore[b.id][k]; g('pQr_' + k).value = ''; renderPost(); });
   });
+  // Blurb / review text boxes: edits are kept per book for this session.
+  function laterRender(){ clearTimeout(taTimer); taTimer = setTimeout(renderPost, 150); }
+  g('pBlurbText').addEventListener('input', function(){ var b = currentBook(); if(!b) return; blurbEdits[b.id] = g('pBlurbText').value; if(!g('pShowBlurb').checked && g('pSize').value === 'story') g('pShowBlurb').checked = true; laterRender(); });
+  g('pReviewText').addEventListener('input', function(){ var b = currentBook(); if(!b) return; reviewEdits[b.id] = g('pReviewText').value; if(!g('pShowReview').checked) g('pShowReview').checked = true; laterRender(); });
+  g('pBlurbReset').addEventListener('click', function(){ var b = currentBook(); if(!b) return; delete blurbEdits[b.id]; g('pBlurbText').value = b.blurb || ''; renderPost(); });
   window.addEventListener('resize', renderPost);
   setBgPreset(bgPresetKey);
 
