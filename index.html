@@ -505,6 +505,10 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .requested-stamp{flex:none;font-family:var(--font-stamp);font-size:10px;font-weight:400;letter-spacing:0.06em;text-align:center;border:1.5px dashed var(--requested-deep);color:var(--requested-deep);background:radial-gradient(circle at 35% 35%, rgba(92,115,150,0.18), transparent 70%);border-radius:4px;padding:7px 8px;transform:rotate(-3deg);line-height:1.15;}
 .arc-source{font-size:10.5px;color:var(--muted);margin-top:2px;font-family:var(--font-mono);white-space:nowrap;overflow:hidden;max-width:100%;display:block;}
 .form-error{display:none;font-size:12.5px;font-weight:600;color:#8A3B3B;background:#F4D9D9;border:1px solid rgba(138,59,59,0.3);border-radius:6px;padding:8px 10px;margin-top:14px;}
+.migrated-banner{display:block;font-size:11.5px;font-weight:700;letter-spacing:0.02em;color:var(--accent-deep);background:var(--card-hover);border:1px solid var(--accent);border-radius:6px;padding:5px 10px;margin-bottom:10px;text-align:center;}
+.accept-migration-wrap{margin-top:18px;text-align:center;}
+.accept-migration-btn{background:none;border:1px solid var(--accent);color:var(--accent-deep);border-radius:6px;padding:4px 12px;font-size:11px;font-family:var(--font-body);cursor:pointer;}
+.accept-migration-btn:hover{background:var(--accent);color:#fff;}
 .dup-banner{display:block;font-size:12.5px;font-weight:700;letter-spacing:0.02em;color:#8A3B3B;background:#F4D9D9;border:1px solid rgba(138,59,59,0.3);border-radius:6px;padding:7px 10px;margin-bottom:10px;text-align:center;}
 .arc-link{display:inline-block;font-size:10.5px;color:var(--accent-deep);margin-top:3px;text-decoration:underline;font-family:var(--font-body);}
 
@@ -846,6 +850,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         <button type="button" class="nav-dropdown-item" id="navSeries">Series</button>
         <button type="button" class="nav-dropdown-item" id="navPlatforms">Platforms</button>
         <button type="button" class="nav-dropdown-item" id="navCalendar">Calendar</button>
+        <a class="nav-dropdown-item" href="./tbr.html">TBR List</a>
       </div>
     </div>
     <div class="nav-dropdown" id="navProfileDropdown">
@@ -2430,6 +2435,15 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     // is selected above — see statusGroupWeight below for the exact order.
     filtered.sort(function(a,b){ return statusGroupWeight(a) - statusGroupWeight(b); });
 
+    // Books moved over from the TBR page stay pinned at the very top (newest
+    // first) until "Accept migration" is clicked in their detail panel.
+    filtered.sort(function(a,b){
+      var pa = a.migrationPending ? 1 : 0, pb = b.migrationPending ? 1 : 0;
+      if(pa !== pb) return pb - pa;
+      if(pa && pb) return (b.migratedAt || 0) - (a.migratedAt || 0);
+      return 0;
+    });
+
     return filtered;
   }
 
@@ -2554,6 +2568,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     var genreTabHtml = b.genre ? '<div class="genre-tab" style="background:' + genreColorFor(b.genre) + ';">' + escapeHtml(b.genre) + '</div>' : '';
     var toplineHtml = (genreTabHtml || platformIdBadgeHtml) ? '<div class="card-topline">' + genreTabHtml + platformIdBadgeHtml + '</div>' : '';
     var ribbonHtml = af.status === 'reading' ? '<div class="reading-ribbon" title="Currently reading"></div>' : '';
+    var migratedBadgeHtml = b.migrationPending ? '<div class="migrated-banner" title="Moved over from your TBR list">↪ Migrated from TBR</div>' : '';
     var dupBadgeHtml = duplicateIds[b.id] ? '<div class="dup-banner" title="Another entry has the same title, author, and format">⚠ Possible Duplicate</div>' : '';
 
     var card = document.createElement('div');
@@ -2561,6 +2576,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     card.innerHTML =
       '<div class="status-tab ' + af.status + '"></div>' +
       toplineHtml +
+      migratedBadgeHtml +
       dupBadgeHtml +
       '<div class="card-top">' +
         '<div class="cover-col">' + ribbonHtml + '<div class="cover-thumb' + (af.type === 'Audiobook' ? ' audiobook-cover' : '') + '">' + coverHtml + '</div>' + formatLabelHtml + '</div>' +
@@ -4685,7 +4701,24 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     '</div>' +
     blurbHtml +
     pubInfoHtml +
-    rows + buildLinksHtml(b);
+    rows + buildLinksHtml(b) + buildAcceptMigrationHtml(b);
+  }
+
+  function buildAcceptMigrationHtml(b){
+    if(!b.migrationPending) return '';
+    return '<div class="accept-migration-wrap"><button type="button" class="accept-migration-btn" id="acceptMigrationBtn">Accept migration</button></div>';
+  }
+
+  function acceptMigration(){
+    var b = books.find(function(x){ return x.id === currentViewBookId; });
+    if(!b || !b.migrationPending) return;
+    delete b.migrationPending;
+    delete b.migratedAt;
+    books = books.map(function(x){ return x.id === b.id ? b : x; });
+    saveBookRemote(b);
+    document.getElementById('viewContent').innerHTML = buildViewHtml(b);
+    wireLinksHandlers();
+    render();
   }
 
   // Renders one format's status/progress/ownership as its own block with its own
@@ -4755,6 +4788,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   function wireLinksHandlers(){
     var addBtn = document.getElementById('linkAddBtn');
     if(addBtn) addBtn.onclick = addCustomLink;
+    var acceptBtn = document.getElementById('acceptMigrationBtn');
+    if(acceptBtn) acceptBtn.onclick = acceptMigration;
     document.querySelectorAll('#viewContent .book-link-row .link-remove').forEach(function(btn){
       btn.onclick = function(){ removeCustomLink(parseInt(btn.getAttribute('data-idx'), 10)); };
     });
