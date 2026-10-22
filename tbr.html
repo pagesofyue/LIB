@@ -293,6 +293,24 @@ body[data-theme="velaris"] .header p{color:#D2C6F1;}
 .bm{display:inline-block;padding:7px 14px;border-radius:20px;background:var(--ink);color:var(--paper);font-size:13px;text-decoration:none;cursor:grab;}
 details.card summary{cursor:pointer;font-weight:700;font-size:15px;}
 details.card p{font-size:12.5px;color:var(--muted);margin:10px 0;}
+.view-switch{display:flex;border:1px solid var(--line-strong);border-radius:10px;overflow:hidden;}
+.view-switch button{background:var(--card);border:none;padding:8px 12px;font-size:12px;cursor:pointer;font-family:var(--font-body);color:var(--muted);}
+.view-switch button.on{background:var(--ink);color:var(--paper);}
+.dl-btn{background:var(--card);border:1px solid var(--line-strong);border-radius:10px;padding:8px 12px;font-size:12px;cursor:pointer;font-family:var(--font-body);color:var(--ink);}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;}
+.gcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:6px;}
+.gcard.clickable{cursor:pointer;}
+.gcard:hover{background:var(--card-hover);}
+.gcover{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:6px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;text-align:center;overflow:hidden;}
+.gcard .btns{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
+.tbl-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;}
+table.tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:640px;}
+.tbl th{text-align:left;font-size:11px;color:var(--muted);padding:8px;border-bottom:1px solid var(--line-strong);white-space:nowrap;}
+.tbl td{padding:8px;border-bottom:1px solid var(--line);vertical-align:middle;}
+.tbl tr.clickable{cursor:pointer;}
+.tbl tr.clickable:hover td{background:var(--card-hover);}
+.tbl img.thumb,.tbl .thumb{width:34px;height:50px;object-fit:cover;border-radius:3px;background:var(--accent);display:block;}
+.tbl .acts{display:flex;gap:4px;flex-wrap:wrap;}
 @media(max-width:520px){.form-grid{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -345,6 +363,7 @@ try{var t=localStorage.getItem('hiraya_theme');if(t)document.body.setAttribute('
           <div class="field"><label for="fSource">Source</label><select id="fSource"></select></div>
         </div>
         <div class="field"><label for="fCover">Cover image link</label><input type="text" id="fCover" placeholder="Paste an image link, or upload on the left"></div>
+        <div class="field"><label for="fBlurb">Blurb</label><textarea id="fBlurb" rows="4" placeholder="Book description (auto-filled by the bookmarklet when it can find one)"></textarea></div>
         <div class="field"><label for="fNotes">Notes</label><textarea id="fNotes" rows="2" placeholder="Optional (deadline, who recommended it, etc.)"></textarea></div>
         <div class="actions">
           <button class="btn-primary" id="saveBtn">Add to TBR</button>
@@ -364,6 +383,12 @@ try{var t=localStorage.getItem('hiraya_theme');if(t)document.body.setAttribute('
   <div class="toolbar">
     <input type="text" id="search" placeholder="Search title, author, notes...">
     <select id="filterSource"></select>
+    <div class="view-switch" id="viewSwitch">
+      <button type="button" data-view="grid">Grid</button>
+      <button type="button" data-view="list">List</button>
+      <button type="button" data-view="table">Table</button>
+    </div>
+    <button type="button" class="dl-btn" id="downloadBtn">Download (.csv)</button>
     <span class="count" id="count"></span>
   </div>
   <div id="list"></div>
@@ -392,6 +417,8 @@ try{var t=localStorage.getItem('hiraya_theme');if(t)document.body.setAttribute('
   const DEFAULT_ARC = ['NetGalley','Edelweiss','BookSirens','BookishFirst','Publisher (direct)','Author (direct)'];
   let user = null, tbr = [], arcSources = [], editingId = null, coverData = '';
   let prefill = readPrefill();
+  let viewMode = 'list';
+  try{ viewMode = localStorage.getItem('hiraya_tbr_view') || 'list'; }catch(e){}
 
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -414,7 +441,7 @@ try{var t=localStorage.getItem('hiraya_theme');if(t)document.body.setAttribute('
   function readPrefill(){
     const p = new URLSearchParams(location.search);
     if(!p.get('title') && !p.get('link')) return null;
-    return { title: p.get('title') || '', author: p.get('author') || '', cover: p.get('cover') || '', link: p.get('link') || '' };
+    return { title: p.get('title') || '', author: p.get('author') || '', cover: p.get('cover') || '', link: p.get('link') || '', blurb: p.get('blurb') || '' };
   }
   function bookmarklet(base){
     return 'javascript:(' + function(base){
@@ -424,14 +451,15 @@ try{var t=localStorage.getItem('hiraya_theme');if(t)document.body.setAttribute('
         document.querySelectorAll('script[type="application/ld+json"]').forEach(function(s){
           try{
             var d = JSON.parse(s.textContent); var arr = Array.isArray(d) ? d : (d['@graph'] || [d]);
-            arr.forEach(function(x){ if(x && x.author && !ld.author){ var a = Array.isArray(x.author) ? x.author[0] : x.author; ld.author = (a && a.name) || (typeof a === 'string' ? a : ''); } if(x && x.name && !ld.name) ld.name = x.name; if(x && x.image && !ld.image) ld.image = Array.isArray(x.image) ? x.image[0] : (x.image.url || x.image); });
+            arr.forEach(function(x){ if(x && x.author && !ld.author){ var a = Array.isArray(x.author) ? x.author[0] : x.author; ld.author = (a && a.name) || (typeof a === 'string' ? a : ''); } if(x && x.name && !ld.name) ld.name = x.name; if(x && x.description && !ld.desc) ld.desc = x.description; if(x && x.image && !ld.image) ld.image = Array.isArray(x.image) ? x.image[0] : (x.image.url || x.image); });
           }catch(e){}
         });
       }catch(e){}
       var title = (m('og:title') || ld.name || document.title || '').split(' | ')[0];
       var author = m('book:author') || m('author') || ld.author || '';
       var cover = m('og:image') || m('twitter:image') || (typeof ld.image === 'string' ? ld.image : '') || '';
-      var q = 'title=' + encodeURIComponent(title) + '&author=' + encodeURIComponent(author) + '&cover=' + encodeURIComponent(cover) + '&link=' + encodeURIComponent(location.href);
+      var blurb = (m('og:description') || m('description') || m('twitter:description') || ld.desc || '').slice(0, 1500);
+      var q = 'blurb=' + encodeURIComponent(blurb) + '&title=' + encodeURIComponent(title) + '&author=' + encodeURIComponent(author) + '&cover=' + encodeURIComponent(cover) + '&link=' + encodeURIComponent(location.href);
       window.open(base + '?' + q, '_blank');
     }.toString() + ')(' + JSON.stringify(base) + ')';
   }
@@ -463,6 +491,7 @@ try{var t=localStorage.getItem('hiraya_theme');if(t)document.body.setAttribute('
       $('fAuthor').value = prefill.author.trim();
       $('fLink').value = prefill.link;
       $('fCover').value = prefill.cover;
+      $('fBlurb').value = prefill.blurb.trim();
       $('fSource').value = guessSource(prefill.link);
       updateCoverPreview();
       history.replaceState(null, '', location.pathname);
@@ -541,11 +570,43 @@ try{var t=localStorage.getItem('hiraya_theme');if(t)document.body.setAttribute('
     const rows = tbr.filter(t => {
       if(f === '__none' && t.source) return false;
       if(f !== '__all' && f !== '__none' && t.source !== f) return false;
-      return !q || [t.title, t.author, t.notes, t.source].join(' ').toLowerCase().indexOf(q) !== -1;
+      return !q || [t.title, t.author, t.notes, t.blurb, t.source].join(' ').toLowerCase().indexOf(q) !== -1;
     });
     $('count').textContent = rows.length + ' of ' + tbr.length;
     if(!rows.length){
       $('list').innerHTML = '<div class="empty">' + (tbr.length ? 'Nothing matches that filter.' : 'Your TBR is empty — add your first book above.') + '</div>';
+      return;
+    }
+    document.querySelectorAll('#viewSwitch button').forEach(b => b.classList.toggle('on', b.getAttribute('data-view') === viewMode));
+    const chip = t => '<span class="chip' + (t.source ? ' arc' : '') + '">' + (t.source ? 'ARC · ' + esc(t.source) : 'Regular TBR') + '</span>';
+    const btns = t => '<button class="icon-btn" data-move="' + esc(t.id) + '">Move to library</button>' +
+      '<button class="icon-btn" data-edit="' + esc(t.id) + '">Edit</button>' +
+      '<button class="icon-btn" data-del="' + esc(t.id) + '">Delete</button>';
+    const imgOrNone = (t, cls) => t.cover
+      ? '<img class="' + cls + '" src="' + esc(t.cover) + '" referrerpolicy="no-referrer" alt="" onerror="this.outerHTML=\'<div class=&quot;' + cls + '&quot;>No cover</div>\'">'
+      : '<div class="' + cls + '">No cover</div>';
+
+    if(viewMode === 'grid'){
+      $('list').innerHTML = '<div class="grid">' + rows.map(t => {
+        const url = safeUrl(t.link);
+        return '<div class="gcard' + (url ? ' clickable' : '') + '" data-url="' + esc(url) + '">' + imgOrNone(t, 'gcover') +
+          '<div class="item-title" style="font-size:13.5px;">' + esc(t.title) + '</div>' +
+          (t.author ? '<div class="item-author">' + esc(t.author) + '</div>' : '') +
+          '<div>' + chip(t) + '</div><div class="btns">' + btns(t) + '</div></div>';
+      }).join('') + '</div>';
+      return;
+    }
+    if(viewMode === 'table'){
+      $('list').innerHTML = '<div class="tbl-wrap"><table class="tbl"><thead><tr><th></th><th>Title</th><th>Author</th><th>Source</th><th>Link</th><th>Added</th><th></th></tr></thead><tbody>' +
+        rows.map(t => {
+          const url = safeUrl(t.link);
+          return '<tr class="' + (url ? 'clickable' : '') + '" data-url="' + esc(url) + '"><td>' + imgOrNone(t, 'thumb') + '</td>' +
+            '<td><b>' + esc(t.title) + '</b></td><td>' + esc(t.author || '') + '</td>' +
+            '<td>' + (t.source ? esc(t.source) : '<span style="color:var(--muted)">—</span>') + '</td>' +
+            '<td>' + (url ? esc(url.replace(/^https?:\/\//, '').slice(0, 28)) + '…' : '') + '</td>' +
+            '<td style="white-space:nowrap;">' + (t.createdAt ? new Date(t.createdAt).toLocaleDateString() : '') + '</td>' +
+            '<td><div class="acts">' + btns(t) + '</div></td></tr>';
+        }).join('') + '</tbody></table></div>';
       return;
     }
     $('list').innerHTML = rows.map(t => {
@@ -554,20 +615,17 @@ try{var t=localStorage.getItem('hiraya_theme');if(t)document.body.setAttribute('
         '<div class="item-main">' +
         '<div class="item-title">' + esc(t.title) + '</div>' +
         (t.author ? '<div class="item-author">by ' + esc(t.author) + '</div>' : '') +
-        '<span class="chip' + (t.source ? ' arc' : '') + '">' + (t.source ? 'ARC · ' + esc(t.source) : 'Regular TBR') + '</span>' +
+        chip(t) +
         (url ? '<div class="item-link">🔗 ' + esc(url.replace(/^https?:\/\//, '').slice(0, 60)) + '</div>' : '') +
+        (t.blurb ? '<div class="item-notes">' + esc(t.blurb.length > 160 ? t.blurb.slice(0, 160) + '…' : t.blurb) + '</div>' : '') +
         (t.notes ? '<div class="item-notes">' + esc(t.notes) + '</div>' : '') +
-        '</div><div class="item-side">' +
-        '<button class="icon-btn" data-move="' + esc(t.id) + '">Move to library</button>' +
-        '<button class="icon-btn" data-edit="' + esc(t.id) + '">Edit</button>' +
-        '<button class="icon-btn" data-del="' + esc(t.id) + '">Delete</button>' +
-        '</div></div>';
+        '</div><div class="item-side">' + btns(t) + '</div></div>';
     }).join('');
   }
 
   function resetForm(){
     editingId = null; coverData = '';
-    ['fTitle','fAuthor','fLink','fNotes','fCover'].forEach(id => $(id).value = '');
+    ['fTitle','fAuthor','fLink','fNotes','fCover','fBlurb'].forEach(id => $(id).value = '');
     $('fSource').value = '';
     $('formTitle').textContent = 'Add to TBR';
     $('saveBtn').textContent = 'Add to TBR';
@@ -584,6 +642,7 @@ try{var t=localStorage.getItem('hiraya_theme');if(t)document.body.setAttribute('
       id: editingId || uid(), title: title,
       author: $('fAuthor').value.trim(), link: $('fLink').value.trim(),
       source: $('fSource').value, cover: currentCover(),
+      blurb: $('fBlurb').value.trim().slice(0, 4000),
       notes: $('fNotes').value.trim(), createdAt: Date.now()
     };
     const next = tbr.slice();
@@ -617,7 +676,7 @@ try{var t=localStorage.getItem('hiraya_theme');if(t)document.body.setAttribute('
       isARC: !!t.source, arcSource: t.source || '', dueDate: '', arcFormLink: '',
       totalPages: null, currentPage: null, dateStarted: '', dateFinished: '',
       genre: '', rating: 0, tropes: [], cover: t.cover || null, dnfReason: '',
-      nowPlaying: '', review: t.notes || '', postcardCaption: '', blurb: '', isbn: '', publishDate: '',
+      nowPlaying: '', review: t.notes || '', postcardCaption: '', blurb: t.blurb || '', isbn: '', publishDate: '',
       customLinks: url ? [{ label: t.source || 'Book page', url: url }] : [],
       migrationPending: true, migratedAt: now, createdAt: now, statusChangedAt: now
     };
@@ -635,7 +694,7 @@ try{var t=localStorage.getItem('hiraya_theme');if(t)document.body.setAttribute('
       const t = tbr.find(x => x.id === ed); if(!t) return;
       editingId = t.id;
       $('fTitle').value = t.title; $('fAuthor').value = t.author || '';
-      $('fLink').value = t.link || ''; $('fNotes').value = t.notes || '';
+      $('fLink').value = t.link || ''; $('fNotes').value = t.notes || ''; $('fBlurb').value = t.blurb || '';
       if(t.cover && t.cover.indexOf('data:') === 0){ coverData = t.cover; $('fCover').value = ''; }
       else { coverData = ''; $('fCover').value = t.cover || ''; }
       if(t.source && arcSources.indexOf(t.source) === -1){
@@ -656,10 +715,31 @@ try{var t=localStorage.getItem('hiraya_theme');if(t)document.body.setAttribute('
       }
       return;
     }
-    const card = e.target.closest('.item');
+    const card = e.target.closest('[data-url]');
     if(card && card.getAttribute('data-url') && !e.target.closest('button')){
       window.open(card.getAttribute('data-url'), '_blank', 'noopener');
     }
+  });
+
+  document.querySelectorAll('#viewSwitch button').forEach(b => b.addEventListener('click', () => {
+    viewMode = b.getAttribute('data-view');
+    try{ localStorage.setItem('hiraya_tbr_view', viewMode); }catch(e){}
+    render();
+  }));
+
+  $('downloadBtn').addEventListener('click', () => {
+    if(!tbr.length){ showBanner('Nothing to download yet.'); return; }
+    const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+    const head = ['Title','Author','Source','ARC','Link','Cover link','Blurb','Notes','Date added'];
+    const lines = tbr.map(t => [t.title, t.author, t.source, t.source ? 'Yes' : 'No', t.link,
+      (t.cover && t.cover.indexOf('data:') !== 0) ? t.cover : '', t.blurb, t.notes,
+      t.createdAt ? new Date(t.createdAt).toISOString().slice(0, 10) : ''].map(q).join(','));
+    const csv = '\ufeff' + head.map(q).join(',') + '\n' + lines.join('\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = 'hiraya-tbr-' + new Date().toISOString().slice(0, 10) + '.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
 
   $('search').addEventListener('input', render);
