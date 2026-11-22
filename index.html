@@ -812,6 +812,12 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .post-image-btn{margin-right:auto;text-decoration:none;}
 .card-pages{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin:3px 0 0;}
 body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .arcHint,body.shelf-kindle #providerFilter,body.shelf-kindle #statDueSoon{display:none !important;}
+#kindleExtras{display:none;}
+body.kindle-form #kindleExtras{display:block;}
+body.kindle-form #field-formats,body.kindle-form #formatPanels,body.kindle-form #coverDefaultHint,body.kindle-form #coverReq,body.kindle-form #authorReq,body.kindle-form #pubInfoToggle .hint{display:none !important;}
+body.kindle-form #blurbToggle>summary,body.kindle-form #pubInfoToggle>summary{list-style:none;cursor:default;pointer-events:none;font-weight:600;color:var(--ink);margin-bottom:6px;}
+body.kindle-form #blurbToggle>summary::-webkit-details-marker,body.kindle-form #pubInfoToggle>summary::-webkit-details-marker{display:none;}
+body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;padding:0;}
 </style>
 </head>
 <body>
@@ -987,10 +993,12 @@ body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .
 <div class="overlay" id="overlay" style="display:none;">
   <div class="modal">
     <h2 id="modalTitle">Add a book</h2>
+    <p class="hint" id="kindleIdLine" style="display:none;margin:-6px 0 12px;font-family:var(--font-mono);"></p>
+    <p class="hint" id="moveHint" style="display:none;margin:-6px 0 12px;"></p>
     <form id="bookForm" novalidate>
       <div class="core-fields" id="coreFields1">
       <div class="field">
-        <label>Cover image * <span id="coverDefaultHint" style="font-weight:normal;color:var(--muted);">(default — used if a format below doesn't have its own)</span></label>
+        <label>Cover image <span id="coverReq">*</span> <span id="coverDefaultHint" style="font-weight:normal;color:var(--muted);">(default — used if a format below doesn't have its own)</span></label>
         <div class="cover-upload">
           <div class="cover-preview" id="coverPreview"><span class="ph">No cover</span></div>
           <div class="cover-btns">
@@ -1007,7 +1015,7 @@ body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .
       </div>
       <div class="field-row">
         <div class="field">
-          <label>Author *</label>
+          <label>Author <span id="authorReq">*</span></label>
           <input type="text" id="f_author" placeholder="Gene Wolfe">
         </div>
         <div class="field">
@@ -1085,6 +1093,25 @@ body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .
           <input type="date" id="f_dateFinished" lang="en-US">
         </div>
       </div>
+      <div id="kindleExtras">
+        <div class="field-row">
+          <div class="field">
+            <label>Batch date <span style="font-weight:normal;color:var(--muted);">(when you bought it)</span></label>
+            <input type="date" id="f_batchDate" lang="en-US">
+          </div>
+          <div class="field">
+            <label>Rating</label>
+            <div class="rating-input-row">
+              <input type="text" inputmode="decimal" autocomplete="off" placeholder="0 – 5" id="f_kRating">
+              <span class="rating-out-of">/ 5</span>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Amazon link</label>
+          <input type="text" id="f_amazonLink" placeholder="https://www.amazon.com/...">
+        </div>
+      </div>
       </div>
       <div class="field" id="field-review">
         <label>Your review (optional)</label>
@@ -1099,6 +1126,7 @@ body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .
       </div>
       <div class="form-error" id="formError" role="alert"></div>
       <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="moveToLibBtn" style="display:none;margin-right:auto;">Move to Library</button>
         <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
         <button type="submit" class="btn-primary" id="saveBtn">Save book</button>
       </div>
@@ -2610,6 +2638,12 @@ body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .
     var arcSourceHtml = (af.isARC && af.arcSource) ? '<div class="arc-source">via ' + escapeHtml(af.arcSource) + '</div>' : '';
     var arcLinkHtml = (af.isARC && af.arcFormLink) ? '<a class="arc-link" href="' + escapeHtml(af.arcFormLink) + '" target="_blank" rel="noopener">Review form ↗</a>' : '';
 
+    var kindleHtml = '';
+    if(activeShelf === 'amazon'){
+      if(b.amzId || b.batchDate) kindleHtml += '<p class="card-pages">' + escapeHtml(b.amzId || '') + ((b.amzId && b.batchDate) ? ' · ' : '') + (b.batchDate ? 'Batch ' + escapeHtml(fmtShort(b.batchDate)) : '') + '</p>';
+      if(b.amazonLink) kindleHtml += '<a class="arc-link" href="' + escapeHtml(b.amazonLink) + '" target="_blank" rel="noopener">Amazon ↗</a>';
+    }
+
     var tropesExpanded = !!cardExpandedTropes[b.id];
     var tagsHtml = '';
     if(b.tropes && b.tropes.length){
@@ -2649,7 +2683,7 @@ body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .
         '<div class="cover-col">' + ribbonHtml + '<div class="cover-thumb' + (af.type === 'Audiobook' ? ' audiobook-cover' : '') + '">' + coverHtml + '</div>' + formatLabelHtml + '</div>' +
         '<div class="card-info"><h3>' + escapeHtml(b.title) + '</h3>' +
         (b.author ? '<p class="byline">' + escapeHtml(b.author) + '</p>' : '') +
-        seriesHtml + pagesHtml + arcSourceHtml + arcLinkHtml + '</div>' +
+        seriesHtml + pagesHtml + kindleHtml + arcSourceHtml + arcLinkHtml + '</div>' +
         stampColHtml +
       '</div>' +
       formatTabsHtml(b, af) +
@@ -3581,6 +3615,57 @@ body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .
   }
 
   // Builds the formats[] array to save, preserving existing format ids where possible.
+  // --- Kindle shelf helpers ---
+  var movingFromKindleId = null;
+  var moveAfterSave = false;
+  var lastBatchDate = '';
+
+  function nextAmzId(){
+    var hi = 0;
+    allBooksCombined().forEach(function(b){
+      var m = (b.amzId || '').match(/^AMZ(\d+)$/i);
+      if(m) hi = Math.max(hi, parseInt(m[1], 10));
+    });
+    var n = hi + 1;
+    return 'AMZ' + (n < 1000 ? String(n).padStart(3, '0') : String(n));
+  }
+  function kindleUrl(u){
+    u = (u || '').trim();
+    if(!u) return '';
+    if(!/^https?:\/\//i.test(u)) u = 'https://' + u;
+    return /^https?:\/\/[^\s]+$/i.test(u) ? u : '';
+  }
+  // Every Kindle book is a single digital copy, so there's no format picker:
+  // status comes from the reading dates and rating from the Kindle rating box.
+  function buildKindleFormats(existingBook){
+    var started = document.getElementById('f_dateStarted').value;
+    var finished = document.getElementById('f_dateFinished').value;
+    var status = finished ? 'finished' : (started ? 'reading' : 'want');
+    var len = document.getElementById('f_bookLength').value ? Number(document.getElementById('f_bookLength').value) : null;
+    var old = (existingBook && existingBook.formats && existingBook.formats[0]) ? existingBook.formats[0] : {};
+    var cur = (status === 'finished' && len) ? len : ((old.currentPage || old.currentPage === 0) ? old.currentPage : null);
+    return [Object.assign({}, old, {
+      id: old.id || fmtUid(), type: 'eBook / ePub', cover: pendingCover || '', status: status, dnfReason: '',
+      totalPages: len, currentPage: cur, ownership: '', borrowDueDate: '',
+      rating: parseRating(document.getElementById('f_kRating').value),
+      isARC: false, arcSource: '', dueDate: '', noDeadline: false, arcFormLink: '', platformId: ''
+    })];
+  }
+  function placePublishDateField(kindleForm){
+    var field = document.getElementById('f_publishDate').closest('.field');
+    var row = document.querySelector('#pubInfoToggle .field-row');
+    if(kindleForm){ if(field.nextElementSibling !== row) row.parentNode.insertBefore(field, row); }
+    else { if(row.nextElementSibling !== field) row.parentNode.insertBefore(field, row.nextSibling); }
+  }
+  function startMoveToLibrary(id){
+    var old = books.find(function(x){ return x.id === id; });
+    if(!old) return;
+    var draft = Object.assign({}, old, { formats: (old.formats || []).map(function(f){ return Object.assign({}, f); }) });
+    delete draft.shelf;
+    movingFromKindleId = id;
+    openModal(null, 'full', draft);
+  }
+
   function collectFormats(existingFormats){
     syncFormatPanelStateFromDom();
     var existingById = {};
@@ -3760,7 +3845,7 @@ body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .
     showFormError('');
     var b = id ? books.find(function(x){ return x.id === id; }) : (draft || null);
     var isReviewOnly = modalMode === 'reviewOnly';
-    document.getElementById('modalTitle').textContent = isReviewOnly ? 'Edit review' : ((id && b) ? 'Edit book' : (activeShelf === 'amazon' ? 'Add to Kindle' : 'Add a book'));
+    document.getElementById('modalTitle').textContent = isReviewOnly ? 'Edit review' : (movingFromKindleId ? 'Move to Library' : ((id && b) ? 'Edit book' : (activeShelf === 'amazon' ? 'Add to Kindle' : 'Add a book')));
     document.getElementById('coreFields1').style.display = isReviewOnly ? 'none' : '';
     document.getElementById('coreFields2').style.display = isReviewOnly ? 'none' : '';
     document.getElementById('field-review').style.display = isReviewOnly ? '' : 'none';
@@ -3789,12 +3874,32 @@ body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .
     renderTropeOptions();
     document.getElementById('tropeSearchInput').value = '';
     populateFormatUI(b);
+
+    // Kindle shelf: a simpler single-digital-copy form. (Moving a book to the library uses the full form.)
+    var kindleForm = activeShelf === 'amazon' && !isReviewOnly && !movingFromKindleId;
+    document.body.classList.toggle('kindle-form', kindleForm);
+    placePublishDateField(kindleForm);
+    var idLine = document.getElementById('kindleIdLine');
+    idLine.style.display = kindleForm ? 'block' : 'none';
+    document.getElementById('moveHint').style.display = movingFromKindleId ? 'block' : 'none';
+    if(movingFromKindleId) document.getElementById('moveHint').textContent = 'Moving from Kindle — fill in anything still missing (author, cover, formats and status), then save to add it to your library.';
+    document.getElementById('moveToLibBtn').style.display = (kindleForm && id) ? '' : 'none';
+    if(kindleForm){
+      idLine.textContent = 'ID: ' + ((b && b.amzId) ? b.amzId : nextAmzId());
+      document.getElementById('blurbToggle').open = true;
+      document.getElementById('pubInfoToggle').open = true;
+      document.getElementById('f_batchDate').value = b ? (b.batchDate || '') : lastBatchDate;
+      document.getElementById('f_amazonLink').value = b ? (b.amazonLink || '') : '';
+      document.getElementById('f_kRating').value = (b && b.rating) ? fmtRatingNum(b.rating) : '';
+    }
     document.getElementById('overlay').style.display = 'flex';
     if(!isReviewOnly) document.getElementById('f_title').focus();
   }
 
   function closeModal(){
     document.getElementById('overlay').style.display = 'none';
+    document.body.classList.remove('kindle-form');
+    movingFromKindleId = null;
     editingId = null;
     modalMode = 'full';
   }
@@ -3805,6 +3910,19 @@ body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .
     document.getElementById('addAnotherFormatBtn').style.display = 'none';
   };
   document.getElementById('cancelBtn').onclick = closeModal;
+  ['blurbToggle', 'pubInfoToggle'].forEach(function(id){
+    var el = document.getElementById(id);
+    el.addEventListener('toggle', function(){
+      if(document.body.classList.contains('kindle-form') && !el.open) el.open = true;
+    });
+  });
+  document.getElementById('moveToLibBtn').onclick = function(){
+    // Save the Kindle form first so nothing typed is lost, then open the full form.
+    moveAfterSave = true;
+    var form = document.getElementById('bookForm');
+    if(form.requestSubmit) form.requestSubmit();
+    else form.dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
+  };
   document.getElementById('overlay').addEventListener('click', function(e){
     if(e.target.id === 'overlay') closeModal();
   });
@@ -3820,6 +3938,9 @@ body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .
     e.preventDefault();
     var title = document.getElementById('f_title').value.trim();
     var authorVal = document.getElementById('f_author').value.trim();
+    var kindleMode = activeShelf === 'amazon' && !movingFromKindleId && modalMode !== 'reviewOnly';
+    var doMove = moveAfterSave;
+    moveAfterSave = false;
 
     // Review-only edits never touch title/author, so they skip these checks.
     if(modalMode !== 'reviewOnly'){
@@ -3828,7 +3949,7 @@ body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .
         document.getElementById('f_title').focus();
         return;
       }
-      if(!authorVal){
+      if(!authorVal && !kindleMode){
         showFormError('Author is required.');
         document.getElementById('f_author').focus();
         return;
@@ -3836,11 +3957,11 @@ body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .
     }
 
     var existingBook = editingId ? books.find(function(x){ return x.id === editingId; }) : null;
-    var formats = collectFormats(existingBook ? existingBook.formats : null);
+    var formats = kindleMode ? buildKindleFormats(existingBook) : collectFormats(existingBook ? existingBook.formats : null);
 
     // Cover is the third (and last) required field: either the default cover
     // or a cover on any checked format counts.
-    if(modalMode !== 'reviewOnly'){
+    if(modalMode !== 'reviewOnly' && !kindleMode){
       var hasCover = !!pendingCover || formats.some(function(f){ return !!f.cover; });
       if(!hasCover){
         showFormError('Cover is required.');
@@ -3849,7 +3970,10 @@ body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .
     }
 
     if(modalMode !== 'reviewOnly'){
+      var booksBeforeDupCheck = books;
+      if(movingFromKindleId) books = mainShelf;
       var dupOf = findDuplicateOf(title, authorVal, formats.map(function(f){ return f.type; }), editingId);
+      books = booksBeforeDupCheck;
       if(dupOf && !dupOverride){
         showDupPrompt(title, authorVal);
         return;
@@ -3874,6 +3998,11 @@ body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .
       publishDate: document.getElementById('f_publishDate').value.trim(),
       tropes: selectedTropes.slice()
     };
+    if(kindleMode){
+      data.batchDate = document.getElementById('f_batchDate').value;
+      data.amazonLink = kindleUrl(document.getElementById('f_amazonLink').value);
+      if(data.batchDate) lastBatchDate = data.batchDate;
+    }
     applyLegacyFieldsFromFormats(data);
     // Length (in Additional info) is just a manual entry point for the same
     // totalPages value the format panels use for progress — it only applies
@@ -3883,7 +4012,18 @@ body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .
     if(!data.totalPages && manualLength) data.totalPages = manualLength;
 
     var finalBook = data;
-    if(editingId){
+    if(movingFromKindleId){
+      var kindleOld = books.find(function(x){ return x.id === movingFromKindleId; }) || {};
+      data.id = movingFromKindleId;
+      data.amzId = kindleOld.amzId || '';
+      data.batchDate = kindleOld.batchDate || '';
+      data.amazonLink = kindleOld.amazonLink || '';
+      data.createdAt = kindleOld.createdAt || Date.now();
+      data.statusChangedAt = Date.now();
+      books = books.filter(function(x){ return x.id !== movingFromKindleId; });
+      mainShelf.unshift(data);
+      showBanner('Moved to your library.');
+    } else if(editingId){
       data.id = editingId;
       books = books.map(function(b){
         if(b.id !== editingId) return b;
@@ -3896,6 +4036,7 @@ body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .
       data.createdAt = Date.now();
       data.statusChangedAt = Date.now();
       tagShelf(data);
+      if(data.shelf === 'amazon') data.amzId = nextAmzId();
       books.push(data);
     }
 
@@ -3903,6 +4044,7 @@ body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .
     closeModal();
     render();
     if(currentActiveNav === 'navReviews') renderReviewsView();
+    if(doMove) startMoveToLibrary(finalBook.id);
   });
 
   document.getElementById('searchInput').addEventListener('input', render);
@@ -4181,22 +4323,10 @@ body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .
 
   var currentActiveNav = 'navLibrary';
 
-  function placePublishDateField(){
-    var field = document.getElementById('f_publishDate').closest('.field');
-    if(activeShelf === 'amazon'){
-      var anchor = document.getElementById('field-formats');
-      if(field.parentNode !== anchor.parentNode) anchor.parentNode.insertBefore(field, anchor);
-    } else {
-      var row = document.querySelector('#pubInfoToggle .field-row');
-      if(field.parentNode !== row.parentNode) row.parentNode.insertBefore(field, row.nextSibling);
-    }
-  }
-
   function switchView(activeNavId){
     currentActiveNav = activeNavId;
     var shelfChanged = setShelf(activeNavId === 'navAmazon' ? 'amazon' : 'main');
     document.body.classList.toggle('shelf-kindle', activeShelf === 'amazon');
-    placePublishDateField();
     var activeViewId = NAV_TABS[activeNavId];
     Object.keys(NAV_TABS).forEach(function(navId){
       document.getElementById(navId).classList.toggle('active', navId === activeNavId);
