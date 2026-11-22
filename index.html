@@ -811,6 +811,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .cover-thumb{box-shadow:0 6px 14px rgba(59,42,85,0.28);}
 .post-image-btn{margin-right:auto;text-decoration:none;}
 .card-pages{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin:3px 0 0;}
+body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .arcHint,body.shelf-kindle #providerFilter,body.shelf-kindle #statDueSoon{display:none !important;}
 </style>
 </head>
 <body>
@@ -869,7 +870,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   <div class="view-nav" id="mainNav">
     <button class="view-tab active" id="navLibrary">My Library</button>
     <button class="view-tab" id="navReviews">Reviews</button>
-    <button class="view-tab" id="navAmazon">📖 Kindle</button>
+    <button class="view-tab" id="navAmazon">Kindle</button>
     <div class="nav-dropdown" id="navBrowseDropdown">
       <button type="button" class="nav-dropdown-trigger" id="navBrowseTrigger">Browse <span class="caret">▾</span></button>
       <div class="nav-dropdown-menu">
@@ -892,7 +893,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   </div>
 
   <div id="libraryView">
-  <div id="shelfBanner" style="display:none;margin:0 0 12px;padding:10px 14px;border:1px solid var(--line-strong);border-radius:10px;background:var(--card);font-size:13px;color:var(--muted);">📖 <b style="color:var(--ink);">Kindle</b> — a separate shelf for the books you bought on Amazon. Nothing added here shows up in My Library.</div>
+  <div id="shelfBanner" style="display:none;margin:0 0 12px;padding:10px 14px;border:1px solid var(--line-strong);border-radius:10px;background:var(--card);font-size:13px;color:var(--muted);"><b style="color:var(--ink);">Kindle</b> — a separate shelf for the books you bought on Amazon. Nothing added here shows up in My Library.</div>
   <div class="stats" id="stats"></div>
 
   <div class="toolbar">
@@ -1041,8 +1042,8 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         <p class="hint">Start typing to see matching tropes you've already used, or type a new one and hit Add.</p>
       </div>
 
-      <div class="field" style="margin-top:6px;">
-        <label>Formats <span style="font-weight:normal;color:var(--muted);">(each gets its own cover, status, progress — and its own ARC info)</span></label>
+      <div class="field" id="field-formats" style="margin-top:6px;">
+        <label>Formats <span style="font-weight:normal;color:var(--muted);">(each gets its own cover, status, progress<span class="arcHint"> — and its own ARC info</span>)</span></label>
         <div class="checkbox-row" id="formatCheckboxRow" style="gap:16px;flex-wrap:wrap;display:none;">
           <span><input type="checkbox" class="f_formatType" value="Paperback" id="f_fmt_paperback"> <label for="f_fmt_paperback" style="display:inline;">Paperback</label></span>
           <span><input type="checkbox" class="f_formatType" value="eBook / ePub" id="f_fmt_ebook"> <label for="f_fmt_ebook" style="display:inline;">eBook / ePub</label></span>
@@ -3320,7 +3321,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
               '<input type="text" class="fmtDnfReason" data-type="' + escapeHtml(type) + '" id="fmtDnfReason_' + key + '" value="' + escapeHtml(st.dnfReason || '') + '">' +
             '</div>' +
           '</div>' +
-          '<div class="checkbox-row" style="margin:4px 0 8px;">' +
+          '<div class="checkbox-row fmtArcRow" style="margin:4px 0 8px;">' +
             '<input type="checkbox" class="fmtIsArc" data-type="' + escapeHtml(type) + '" id="fmtIsArc_' + key + '"' + (isArc ? ' checked' : '') + '>' +
             '<label for="fmtIsArc_' + key + '">This copy is an ARC (advance reader copy)</label>' +
           '</div>' +
@@ -4180,9 +4181,22 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   var currentActiveNav = 'navLibrary';
 
+  function placePublishDateField(){
+    var field = document.getElementById('f_publishDate').closest('.field');
+    if(activeShelf === 'amazon'){
+      var anchor = document.getElementById('field-formats');
+      if(field.parentNode !== anchor.parentNode) anchor.parentNode.insertBefore(field, anchor);
+    } else {
+      var row = document.querySelector('#pubInfoToggle .field-row');
+      if(field.parentNode !== row.parentNode) row.parentNode.insertBefore(field, row.nextSibling);
+    }
+  }
+
   function switchView(activeNavId){
     currentActiveNav = activeNavId;
     var shelfChanged = setShelf(activeNavId === 'navAmazon' ? 'amazon' : 'main');
+    document.body.classList.toggle('shelf-kindle', activeShelf === 'amazon');
+    placePublishDateField();
     var activeViewId = NAV_TABS[activeNavId];
     Object.keys(NAV_TABS).forEach(function(navId){
       document.getElementById(navId).classList.toggle('active', navId === activeNavId);
