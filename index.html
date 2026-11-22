@@ -810,38 +810,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .card-id-badge{font-family:var(--font-stamp);font-size:11px;font-weight:400;color:var(--muted);opacity:0.75;letter-spacing:0.06em;}
 .cover-thumb{box-shadow:0 6px 14px rgba(59,42,85,0.28);}
 .post-image-btn{margin-right:auto;text-decoration:none;}
-
-/* --- Amazon Books tab --- */
-.amz-top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:4px 0 14px;}
-.amz-top .search-wrap{flex:1 1 200px;max-width:340px;}
-.amz-top select{padding:9px 12px;border:1px solid var(--line-strong);border-radius:var(--radius);background:var(--card);font-family:var(--font-body);font-size:14px;color:var(--ink);}
-.amz-stats{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 16px;}
-.amz-stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 16px;min-width:110px;}
-.amz-stat b{display:block;font-family:var(--font-display);font-size:20px;color:var(--ink);}
-.amz-stat span{font-size:11px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;}
-.amz-form{background:var(--card);border:1px solid var(--line-strong);border-radius:12px;padding:16px;margin:0 0 18px;display:none;}
-.amz-form.open{display:block;}
-.amz-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;}
-.amz-form label{display:block;font-size:11px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px;}
-.amz-form input,.amz-form select,.amz-form textarea{width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid var(--line-strong);border-radius:8px;background:var(--paper);font-family:var(--font-body);font-size:14px;color:var(--ink);}
-.amz-form .amz-wide{grid-column:1 / -1;}
-.amz-form-actions{display:flex;gap:8px;margin-top:14px;}
-.amz-price-row{display:flex;gap:6px;}
-.amz-price-row select{width:84px;flex:none;}
-.amz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;}
-.amz-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:6px;}
-.amz-card:hover{border-color:var(--line-strong);}
-.amz-cover{aspect-ratio:2/3;border-radius:8px;overflow:hidden;background:var(--card-hover);display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;box-sizing:border-box;font-family:var(--font-display);font-size:13px;color:var(--muted);}
-.amz-cover img{width:100%;height:100%;object-fit:cover;display:block;}
-.amz-title{font-family:var(--font-display);font-size:14px;line-height:1.25;color:var(--ink);margin:2px 0 0;}
-.amz-author{font-size:12px;color:var(--muted);margin:0;}
-.amz-meta{display:flex;flex-wrap:wrap;gap:5px;font-size:10.5px;font-family:var(--font-mono);color:var(--muted);}
-.amz-pill{border:1px solid var(--line-strong);border-radius:10px;padding:1px 7px;white-space:nowrap;}
-.amz-notes{font-size:11.5px;color:var(--muted);margin:0;}
-.amz-actions{display:flex;gap:6px;margin-top:auto;padding-top:4px;flex-wrap:wrap;}
-.amz-actions button,.amz-actions a{font-size:11.5px;border:1px solid var(--line-strong);background:none;border-radius:8px;padding:4px 9px;cursor:pointer;color:var(--ink);font-family:var(--font-body);text-decoration:none;}
-.amz-actions button:hover,.amz-actions a:hover{background:var(--card-hover);}
-.amz-actions .amz-del{color:var(--dnf-deep);}
+.card-pages{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin:3px 0 0;}
 </style>
 </head>
 <body>
@@ -900,7 +869,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   <div class="view-nav" id="mainNav">
     <button class="view-tab active" id="navLibrary">My Library</button>
     <button class="view-tab" id="navReviews">Reviews</button>
-    <button class="view-tab" id="navAmazon">📦 Amazon Books</button>
+    <button class="view-tab" id="navAmazon">📖 Kindle</button>
     <div class="nav-dropdown" id="navBrowseDropdown">
       <button type="button" class="nav-dropdown-trigger" id="navBrowseTrigger">Browse <span class="caret">▾</span></button>
       <div class="nav-dropdown-menu">
@@ -923,6 +892,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   </div>
 
   <div id="libraryView">
+  <div id="shelfBanner" style="display:none;margin:0 0 12px;padding:10px 14px;border:1px solid var(--line-strong);border-radius:10px;background:var(--card);font-size:13px;color:var(--muted);">📖 <b style="color:var(--ink);">Kindle</b> — a separate shelf for the books you bought on Amazon. Nothing added here shows up in My Library.</div>
   <div class="stats" id="stats"></div>
 
   <div class="toolbar">
@@ -999,7 +969,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   <div id="platformsView" style="display:none;"></div>
   <div id="calendarView" style="display:none;"></div>
   <div id="reviewsView" style="display:none;"></div>
-  <div id="amazonView" style="display:none;"></div>
 
   <div id="readerView" style="display:none;">
     <div class="reader-intro">
@@ -1462,8 +1431,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         arcSourcePrefixes: meta.arcSourcePrefixes || {},
         arcTeams: meta.arcTeams || [],
         reviewPlatforms: meta.reviewPlatforms || [],
-        tbrList: Array.isArray(meta.tbrList) ? meta.tbrList : [],
-        amazonBooks: Array.isArray(meta.amazonBooks) ? meta.amazonBooks : []
+        tbrList: Array.isArray(meta.tbrList) ? meta.tbrList : []
       };
     },
     async saveBook(book){
@@ -1628,6 +1596,22 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   }
 
   var books = [];
+  // Two shelves share the same book model + UI. `books` always points at the active
+  // shelf's array; books on the Amazon shelf carry shelf:'amazon' in storage.
+  var activeShelf = 'main';
+  var mainShelf = [];
+  var amazonShelf = [];
+  function tagShelf(b){ if(activeShelf === 'amazon') b.shelf = 'amazon'; return b; }
+  function setShelf(target){
+    if(target === activeShelf) return false;
+    if(activeShelf === 'amazon') amazonShelf = books; else mainShelf = books;
+    activeShelf = target;
+    books = (target === 'amazon') ? amazonShelf : mainShelf;
+    return true;
+  }
+  function allBooksCombined(){
+    return activeShelf === 'amazon' ? mainShelf.concat(books) : books.concat(amazonShelf);
+  }
   var duplicateIds = {};
   // Which format-tab is currently shown per book card / detail view, keyed by book id.
   // In-memory only (resets on reload) — defaults to the "reading" format, else the first one.
@@ -1690,7 +1674,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
   };
 
   var tbrList = [];
-  var amazonBooks = [];
   function updateTbrCount(){
     var el = document.getElementById('tbrCountBadge');
     if(el) el.textContent = tbrList.length ? ' (' + tbrList.length + ')' : '';
@@ -1869,9 +1852,11 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     setSync('syncing');
     try{
       var data = await window.cloudStore.loadAll();
-      books = data.books || [];
+      var allLoaded = data.books || [];
+      activeShelf = 'main';
+      amazonShelf = allLoaded.filter(function(b){ return b.shelf === 'amazon'; });
+      books = allLoaded.filter(function(b){ return b.shelf !== 'amazon'; });
       tbrList = data.tbrList || [];
-      amazonBooks = data.amazonBooks || [];
       updateTbrCount();
       var migration = migrateAllBooks(books);
       books = migration.books;
@@ -1879,6 +1864,10 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         // Persist the migrated shape so this doesn't re-run (and re-save) on every load.
         books.forEach(function(b){ saveBookRemote(b); });
       }
+      var amzMigration = migrateAllBooks(amazonShelf);
+      amazonShelf = amzMigration.books;
+      if(amzMigration.touched){ amazonShelf.forEach(function(b){ b.shelf = 'amazon'; saveBookRemote(b); }); }
+      mainShelf = books;
       if(data.tropeList && data.tropeList.length){ tropeList = data.tropeList; }
       else { tropeList = defaultTropes.slice(); saveTropeList(); }
       if(data.genreList && data.genreList.length){ genreList = data.genreList; }
@@ -1900,6 +1889,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       normalizeArcSourceNames();
     }catch(e){
       books = [];
+      mainShelf = [];
+      amazonShelf = [];
+      activeShelf = 'main';
       tropeList = defaultTropes.slice();
       genreList = defaultGenres.slice();
       arcSourceList = defaultArcSources.slice();
@@ -1912,7 +1904,6 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       arcSourcePrefixes = {};
       arcTeams = [];
       reviewPlatforms = [];
-      amazonBooks = [];
       setSync('error');
       showBanner("Couldn't load your library from the cloud. Check your connection and refresh.");
     }
@@ -2187,14 +2178,14 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       '</div>';
 
     document.getElementById('statReading').onclick = function(){
-      switchView('navLibrary');
+      switchView(activeShelf === 'amazon' ? 'navAmazon' : 'navLibrary');
       activeStatus = 'reading';
       dueSoonFilterActive = false;
       render();
     };
     document.getElementById('statDueSoon').onclick = function(e){
       if(e.target.closest('.due-soon-settings')) return;
-      switchView('navLibrary');
+      switchView(activeShelf === 'amazon' ? 'navAmazon' : 'navLibrary');
       activeStatus = 'all';
       dueSoonFilterActive = true;
       render();
@@ -2221,7 +2212,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     };
     document.getElementById('statFinished').onclick = function(e){
       if(e.target.closest('.stat-scope-toggle')) return;
-      switchView('navLibrary');
+      switchView(activeShelf === 'amazon' ? 'navAmazon' : 'navLibrary');
       activeStatus = 'finished';
       dueSoonFilterActive = false;
       render();
@@ -2628,6 +2619,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       tagsHtml = '<div class="tags">' + tagSpans + seeMoreTagHtml + '</div>';
     }
 
+    var cardPageCount = af.totalPages || b.totalPages;
+    var pagesHtml = cardPageCount ? '<p class="card-pages">' + Number(cardPageCount).toLocaleString() + ' ' + (af.type === 'Audiobook' ? 'chapters' : 'pages') + '</p>' : '';
+
     var seriesHtml = b.series ? '<p class="series series-line">' + escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '') + '</p>' : '';
 
     var ratingHtml = (af.rating || af.rating === 0) && af.rating > 0 ? '<div class="rating-row">' + starsHtml(af.rating) + '<span class="rating-num">' + fmtRatingNum(af.rating) + '</span></div>' : '';
@@ -2654,7 +2648,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         '<div class="cover-col">' + ribbonHtml + '<div class="cover-thumb' + (af.type === 'Audiobook' ? ' audiobook-cover' : '') + '">' + coverHtml + '</div>' + formatLabelHtml + '</div>' +
         '<div class="card-info"><h3>' + escapeHtml(b.title) + '</h3>' +
         (b.author ? '<p class="byline">' + escapeHtml(b.author) + '</p>' : '') +
-        seriesHtml + arcSourceHtml + arcLinkHtml + '</div>' +
+        seriesHtml + pagesHtml + arcSourceHtml + arcLinkHtml + '</div>' +
         stampColHtml +
       '</div>' +
       formatTabsHtml(b, af) +
@@ -2948,7 +2942,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   function cascadeRename(field, oldVal, newVal){
     var affected = [];
-    books = books.map(function(b){
+    var mapper = function(b){
       if(field === 'tropes'){
         if(!b.tropes || b.tropes.indexOf(oldVal) === -1) return b;
         var newTropes = b.tropes.map(function(t){ return t === oldVal ? newVal : t; });
@@ -2964,7 +2958,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
         affected.push(updated2);
         return updated2;
       }
-    });
+    };
+    books = books.map(mapper);
+    if(activeShelf === 'amazon') mainShelf = mainShelf.map(mapper); else amazonShelf = amazonShelf.map(mapper);
     affected.forEach(function(b){ saveBookRemote(b); });
     return affected.length;
   }
@@ -3763,7 +3759,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     showFormError('');
     var b = id ? books.find(function(x){ return x.id === id; }) : (draft || null);
     var isReviewOnly = modalMode === 'reviewOnly';
-    document.getElementById('modalTitle').textContent = isReviewOnly ? 'Edit review' : ((id && b) ? 'Edit book' : 'Add a book');
+    document.getElementById('modalTitle').textContent = isReviewOnly ? 'Edit review' : ((id && b) ? 'Edit book' : (activeShelf === 'amazon' ? 'Add to Kindle' : 'Add a book'));
     document.getElementById('coreFields1').style.display = isReviewOnly ? 'none' : '';
     document.getElementById('coreFields2').style.display = isReviewOnly ? 'none' : '';
     document.getElementById('field-review').style.display = isReviewOnly ? '' : 'none';
@@ -3898,6 +3894,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       data.id = uid();
       data.createdAt = Date.now();
       data.statusChangedAt = Date.now();
+      tagShelf(data);
       books.push(data);
     }
 
@@ -4094,7 +4091,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   document.getElementById('exportBackupBtn').onclick = function(){
     document.getElementById('exportMenu').style.display = 'none';
-    var payload = {books: books, tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, authorPhotos: authorPhotos, seriesInfo: seriesInfo, authorLinks: authorLinks, sourceInfo: sourceInfo, customGenreColors: customGenreColors, arcSourcePrefixes: arcSourcePrefixes, arcTeams: arcTeams, reviewPlatforms: reviewPlatforms, tbrList: tbrList, amazonBooks: amazonBooks, exportedAt: new Date().toISOString()};
+    var payload = {books: allBooksCombined(), tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, authorPhotos: authorPhotos, seriesInfo: seriesInfo, authorLinks: authorLinks, sourceInfo: sourceInfo, customGenreColors: customGenreColors, arcSourcePrefixes: arcSourcePrefixes, arcTeams: arcTeams, reviewPlatforms: reviewPlatforms, tbrList: tbrList, exportedAt: new Date().toISOString()};
     var blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
     var url = URL.createObjectURL(blob);
     var link = document.createElement('a');
@@ -4118,7 +4115,10 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       '<button id="cancelRestoreBtn" style="margin-left:6px;padding:4px 10px;border-radius:6px;border:1px solid var(--line-strong);background:none;color:var(--ink);cursor:pointer;font-size:12px;">Cancel</button>';
     b.style.display = 'block';
     document.getElementById('confirmRestoreBtn').onclick = async function(){
-      books = migrateAllBooks(data.books).books;
+      var restoredAll = migrateAllBooks(data.books).books;
+      mainShelf = restoredAll.filter(function(b){ return b.shelf !== 'amazon'; });
+      amazonShelf = restoredAll.filter(function(b){ return b.shelf === 'amazon'; });
+      books = activeShelf === 'amazon' ? amazonShelf : mainShelf;
       tropeList = data.tropeList || data.customTropes || defaultTropes.slice();
       genreList = data.genreList || defaultGenres.slice();
       arcSourceList = data.arcSourceList || data.customArcSources || defaultArcSources.slice();
@@ -4132,11 +4132,10 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
       arcTeams = data.arcTeams || [];
       reviewPlatforms = data.reviewPlatforms || [];
       if(Array.isArray(data.tbrList)){ tbrList = data.tbrList; updateTbrCount(); }
-      if(Array.isArray(data.amazonBooks)){ amazonBooks = data.amazonBooks; }
       setSync('syncing');
       try{
-        await window.cloudStore.replaceAllBooks(books);
-        await window.cloudStore.saveMeta({tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, authorPhotos: authorPhotos, seriesInfo: seriesInfo, authorLinks: authorLinks, sourceInfo: sourceInfo, customGenreColors: customGenreColors, arcSourcePrefixes: arcSourcePrefixes, arcTeams: arcTeams, reviewPlatforms: reviewPlatforms, tbrList: tbrList, amazonBooks: amazonBooks});
+        await window.cloudStore.replaceAllBooks(restoredAll);
+        await window.cloudStore.saveMeta({tropeList: tropeList, genreList: genreList, arcSourceList: arcSourceList, readerLinks: readerLinks, authorPhotos: authorPhotos, seriesInfo: seriesInfo, authorLinks: authorLinks, sourceInfo: sourceInfo, customGenreColors: customGenreColors, arcSourcePrefixes: arcSourcePrefixes, arcTeams: arcTeams, reviewPlatforms: reviewPlatforms, tbrList: tbrList});
         setSync('idle');
       }catch(e){
         setSync('error');
@@ -4169,221 +4168,13 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     e.target.value = '';
   });
 
-
-  // --- Amazon Books: a simple purchase log (separate from the main shelf) ---
-  var AMAZON_FORMATS = ['Kindle eBook','Paperback','Hardcover','Audiobook'];
-  var AMAZON_CURRENCIES = {PHP:'₱', USD:'$'};
-  var amazonSearchTerm = '';
-  var amazonFormatFilter = '';
-  var amazonSortKey = 'newest';
-  var amazonEditingId = null;
-  var amazonLastCurrency = 'PHP';
-
-  async function saveAmazonBooks(){
-    setSync('syncing');
-    try{
-      await window.cloudStore.saveMeta({amazonBooks: amazonBooks});
-      setSync('idle');
-    }catch(e){
-      setSync('error');
-      showBanner("Couldn't save your Amazon books. Check your connection and try again.");
-    }
-  }
-
-  function amazonMoney(n, cur){
-    return (AMAZON_CURRENCIES[cur] || '') + Number(n).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-  }
-  function safeUrl(u){
-    u = (u || '').trim();
-    if(!u) return '';
-    if(!/^https?:\/\//i.test(u)) u = 'https://' + u;
-    return /^https?:\/\/[^\s]+$/i.test(u) ? u : '';
-  }
-  function formatBoughtDate(d){
-    if(!d) return '';
-    var dt = new Date(d + 'T00:00:00');
-    return isNaN(dt) ? '' : dt.toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'});
-  }
-
-  function renderAmazonView(){
-    var wrap = document.getElementById('amazonView');
-    var fmtOpts = '<option value="">All formats</option>' + AMAZON_FORMATS.map(function(f){
-      return '<option value="' + f + '"' + (amazonFormatFilter === f ? ' selected' : '') + '>' + f + '</option>';
-    }).join('');
-    wrap.innerHTML =
-      '<div class="amz-top">' +
-        '<div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
-        '<input type="text" id="amzSearch" placeholder="Search title or author..." value="' + escapeHtml(amazonSearchTerm) + '"></div>' +
-        '<select id="amzFormatFilter">' + fmtOpts + '</select>' +
-        '<select id="amzSort">' +
-          '<option value="newest"' + (amazonSortKey==='newest'?' selected':'') + '>Newest purchase</option>' +
-          '<option value="oldest"' + (amazonSortKey==='oldest'?' selected':'') + '>Oldest purchase</option>' +
-          '<option value="title"' + (amazonSortKey==='title'?' selected':'') + '>Title A–Z</option>' +
-          '<option value="price"' + (amazonSortKey==='price'?' selected':'') + '>Price: high to low</option>' +
-        '</select>' +
-        '<button type="button" class="btn-add" id="amzAddBtn">+ Add purchase</button>' +
-      '</div>' +
-      '<div class="amz-form" id="amzForm"></div>' +
-      '<div class="amz-stats" id="amzStats"></div>' +
-      '<div id="amzList"></div>';
-    document.getElementById('amzSearch').oninput = function(e){ amazonSearchTerm = e.target.value; renderAmazonList(); };
-    document.getElementById('amzFormatFilter').onchange = function(e){ amazonFormatFilter = e.target.value; renderAmazonList(); };
-    document.getElementById('amzSort').onchange = function(e){ amazonSortKey = e.target.value; renderAmazonList(); };
-    document.getElementById('amzAddBtn').onclick = function(){ openAmazonForm(null); };
-    renderAmazonList();
-  }
-
-  function openAmazonForm(id){
-    amazonEditingId = id;
-    var item = id ? amazonBooks.find(function(x){ return x.id === id; }) : null;
-    item = item || {title:'', author:'', format:'Kindle eBook', price:'', currency: amazonLastCurrency, boughtOn: new Date().toISOString().slice(0,10), link:'', cover:'', notes:''};
-    var form = document.getElementById('amzForm');
-    form.innerHTML =
-      '<div class="amz-form-grid">' +
-        '<div><label>Title *</label><input type="text" id="amzTitle" value="' + escapeHtml(item.title) + '"></div>' +
-        '<div><label>Author</label><input type="text" id="amzAuthor" value="' + escapeHtml(item.author) + '"></div>' +
-        '<div><label>Format</label><select id="amzFormat">' + AMAZON_FORMATS.map(function(f){
-          return '<option value="' + f + '"' + (item.format === f ? ' selected' : '') + '>' + f + '</option>';
-        }).join('') + '</select></div>' +
-        '<div><label>Price paid</label><div class="amz-price-row"><select id="amzCurrency">' + Object.keys(AMAZON_CURRENCIES).map(function(c){
-          return '<option value="' + c + '"' + (item.currency === c ? ' selected' : '') + '>' + c + '</option>';
-        }).join('') + '</select><input type="number" id="amzPrice" min="0" step="0.01" value="' + (item.price === '' || item.price == null ? '' : item.price) + '"></div></div>' +
-        '<div><label>Date bought</label><input type="date" id="amzDate" value="' + escapeHtml(item.boughtOn) + '"></div>' +
-        '<div><label>Amazon link</label><input type="text" id="amzLink" placeholder="https://amazon.com/..." value="' + escapeHtml(item.link) + '"></div>' +
-        '<div class="amz-wide"><label>Cover image link</label><input type="text" id="amzCover" placeholder="Right-click the cover, Copy image address" value="' + escapeHtml(item.cover) + '"></div>' +
-        '<div class="amz-wide"><label>Notes</label><input type="text" id="amzNotes" value="' + escapeHtml(item.notes) + '"></div>' +
-      '</div>' +
-      '<div class="amz-form-actions"><button type="button" class="btn-add" id="amzSaveBtn">' + (id ? 'Save changes' : 'Add to list') + '</button>' +
-      '<button type="button" class="btn-secondary" id="amzCancelBtn">Cancel</button></div>';
-    form.classList.add('open');
-    document.getElementById('amzCancelBtn').onclick = closeAmazonForm;
-    document.getElementById('amzSaveBtn').onclick = submitAmazonForm;
-    document.getElementById('amzTitle').focus();
-    form.scrollIntoView({behavior:'smooth', block:'nearest'});
-  }
-  function closeAmazonForm(){
-    amazonEditingId = null;
-    var form = document.getElementById('amzForm');
-    if(form){ form.classList.remove('open'); form.innerHTML = ''; }
-  }
-
-  async function submitAmazonForm(){
-    var title = document.getElementById('amzTitle').value.trim();
-    if(!title){ showBanner('Add a title first.'); document.getElementById('amzTitle').focus(); return; }
-    var priceRaw = document.getElementById('amzPrice').value;
-    var currency = document.getElementById('amzCurrency').value;
-    var cover = safeUrl(document.getElementById('amzCover').value);
-    amazonLastCurrency = currency;
-    var data = {
-      title: title,
-      author: document.getElementById('amzAuthor').value.trim(),
-      format: document.getElementById('amzFormat').value,
-      price: priceRaw === '' ? '' : Math.max(0, parseFloat(priceRaw) || 0),
-      currency: currency,
-      boughtOn: document.getElementById('amzDate').value,
-      link: safeUrl(document.getElementById('amzLink').value),
-      cover: cover,
-      notes: document.getElementById('amzNotes').value.trim()
-    };
-    if(amazonEditingId){
-      var idx = amazonBooks.findIndex(function(x){ return x.id === amazonEditingId; });
-      if(idx !== -1) amazonBooks[idx] = Object.assign({}, amazonBooks[idx], data);
-    } else {
-      data.id = 'amz_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
-      data.addedAt = Date.now();
-      amazonBooks.unshift(data);
-    }
-    closeAmazonForm();
-    renderAmazonList();
-    await saveAmazonBooks();
-  }
-
-  function renderAmazonList(){
-    var listEl = document.getElementById('amzList');
-    var statsEl = document.getElementById('amzStats');
-    if(!listEl) return;
-
-    // Stats cover everything bought, regardless of the current search/filter.
-    var totals = {};
-    var priced = 0;
-    amazonBooks.forEach(function(b){
-      if(b.price !== '' && b.price != null){ totals[b.currency] = (totals[b.currency] || 0) + Number(b.price); priced++; }
-    });
-    var spentHtml = Object.keys(totals).map(function(c){
-      return '<div class="amz-stat"><b>' + amazonMoney(totals[c], c) + '</b><span>Spent (' + c + ')</span></div>';
-    }).join('');
-    statsEl.innerHTML = '<div class="amz-stat"><b>' + amazonBooks.length + '</b><span>Books bought</span></div>' + spentHtml;
-
-    if(!amazonBooks.length){
-      listEl.innerHTML = '<div class="cal-empty-note">No Amazon purchases yet — tap “+ Add purchase” to log your first one.</div>';
-      return;
-    }
-
-    var q = amazonSearchTerm.trim().toLowerCase();
-    var rows = amazonBooks.filter(function(b){
-      if(amazonFormatFilter && b.format !== amazonFormatFilter) return false;
-      if(!q) return true;
-      return (b.title + ' ' + (b.author||'') + ' ' + (b.notes||'')).toLowerCase().indexOf(q) !== -1;
-    });
-    rows.sort(function(a, b){
-      if(amazonSortKey === 'title') return a.title.localeCompare(b.title);
-      if(amazonSortKey === 'price') return (Number(b.price)||0) - (Number(a.price)||0);
-      var da = a.boughtOn || '', db = b.boughtOn || '';
-      var cmp = da < db ? -1 : da > db ? 1 : (a.addedAt||0) - (b.addedAt||0);
-      return amazonSortKey === 'oldest' ? cmp : -cmp;
-    });
-
-    if(!rows.length){
-      listEl.innerHTML = '<div class="cal-empty-note">Nothing matches that search.</div>';
-      return;
-    }
-
-    listEl.innerHTML = '<div class="amz-grid">' + rows.map(function(b){
-      var cover = b.cover
-        ? '<img src="' + escapeHtml(b.cover) + '" alt="" loading="lazy" onerror="this.parentNode.textContent=this.getAttribute(\'data-t\')" data-t="' + escapeHtml(b.title) + '">'
-        : escapeHtml(b.title);
-      var pills = '<span class="amz-pill">' + escapeHtml(b.format) + '</span>';
-      if(b.price !== '' && b.price != null) pills += '<span class="amz-pill">' + amazonMoney(b.price, b.currency) + '</span>';
-      var when = formatBoughtDate(b.boughtOn);
-      return '<div class="amz-card" data-amz-id="' + b.id + '">' +
-        '<div class="amz-cover">' + cover + '</div>' +
-        '<p class="amz-title">' + escapeHtml(b.title) + '</p>' +
-        (b.author ? '<p class="amz-author">' + escapeHtml(b.author) + '</p>' : '') +
-        '<div class="amz-meta">' + pills + '</div>' +
-        (when ? '<p class="amz-notes">Bought ' + escapeHtml(when) + '</p>' : '') +
-        (b.notes ? '<p class="amz-notes">' + escapeHtml(b.notes) + '</p>' : '') +
-        '<div class="amz-actions">' +
-          (b.link ? '<a href="' + escapeHtml(b.link) + '" target="_blank" rel="noopener">View</a>' : '') +
-          '<button type="button" data-amz-edit="' + b.id + '">Edit</button>' +
-          '<button type="button" class="amz-del" data-amz-del="' + b.id + '">Delete</button>' +
-        '</div>' +
-      '</div>';
-    }).join('') + '</div>';
-  }
-
-  document.getElementById('amazonView').addEventListener('click', function(e){
-    var editBtn = e.target.closest('[data-amz-edit]');
-    if(editBtn){ openAmazonForm(editBtn.getAttribute('data-amz-edit')); return; }
-    var delBtn = e.target.closest('[data-amz-del]');
-    if(delBtn){
-      var id = delBtn.getAttribute('data-amz-del');
-      var item = amazonBooks.find(function(x){ return x.id === id; });
-      if(item && confirm('Remove “' + item.title + '” from your Amazon list?')){
-        amazonBooks = amazonBooks.filter(function(x){ return x.id !== id; });
-        if(amazonEditingId === id) closeAmazonForm();
-        renderAmazonList();
-        saveAmazonBooks();
-      }
-    }
-  });
-
   var NAV_TABS = {
     navLibrary: 'libraryView',
     navSeries: 'seriesView',
     navPlatforms: 'platformsView',
     navCalendar: 'calendarView',
     navReviews: 'reviewsView',
-    navAmazon: 'amazonView',
+    navAmazon: 'libraryView',
     navReader: 'readerView'
   };
 
@@ -4391,16 +4182,35 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 
   function switchView(activeNavId){
     currentActiveNav = activeNavId;
+    var shelfChanged = setShelf(activeNavId === 'navAmazon' ? 'amazon' : 'main');
+    var activeViewId = NAV_TABS[activeNavId];
     Object.keys(NAV_TABS).forEach(function(navId){
-      var isActive = navId === activeNavId;
-      document.getElementById(navId).classList.toggle('active', isActive);
-      document.getElementById(NAV_TABS[navId]).style.display = isActive ? 'block' : 'none';
+      document.getElementById(navId).classList.toggle('active', navId === activeNavId);
     });
+    var seen = {};
+    Object.keys(NAV_TABS).forEach(function(navId){
+      var viewId = NAV_TABS[navId];
+      if(seen[viewId]) return;
+      seen[viewId] = true;
+      document.getElementById(viewId).style.display = (viewId === activeViewId) ? 'block' : 'none';
+    });
+    document.getElementById('shelfBanner').style.display = activeShelf === 'amazon' ? 'block' : 'none';
+    if(activeNavId === 'navLibrary' || activeNavId === 'navAmazon'){
+      if(shelfChanged){
+        // Fresh start on the other shelf so a search or filter from one doesn't hide the other's books.
+        document.getElementById('searchInput').value = '';
+        document.getElementById('genreFilter').value = '';
+        document.getElementById('providerFilter').value = '';
+        document.getElementById('formatFilter').value = '';
+        activeStatus = 'active';
+        dueSoonFilterActive = false;
+      }
+      render();
+    }
     if(activeNavId === 'navSeries') renderSeriesView();
     if(activeNavId === 'navPlatforms') renderPlatformsView();
     if(activeNavId === 'navCalendar') renderCalendarView();
     if(activeNavId === 'navReviews') renderReviewsView();
-    if(activeNavId === 'navAmazon') renderAmazonView();
     updateNavDropdownHighlights();
   }
 
@@ -7459,6 +7269,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     }
 
     newBooks = newBooks.map(migrateBookToFormats);
+    newBooks.forEach(tagShelf);
     books = books.concat(newBooks);
     saveGenreList();
     saveTropeList();
@@ -7679,6 +7490,7 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
     }
 
     newBooks = newBooks.map(migrateBookToFormats);
+    newBooks.forEach(tagShelf);
     books = books.concat(newBooks);
     if(genreList.length){ saveGenreList(); renderGenreFilter(); }
     render();
