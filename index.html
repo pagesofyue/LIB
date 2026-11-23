@@ -1018,8 +1018,10 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
       </div>
       <div class="field-row">
         <div class="field">
-          <label>Author <span id="authorReq">*</span></label>
-          <input type="text" id="f_author" placeholder="Gene Wolfe">
+          <label>Author <span id="authorReq">*</span> <button type="button" id="newAuthorBtn" class="small-btn" style="margin-left:6px;font-weight:400;">＋ New author</button></label>
+          <input type="text" id="f_author" list="authorOptions" autocomplete="off" placeholder="Pick from your authors or type a name">
+          <datalist id="authorOptions"></datalist>
+          <p id="authorHint" style="font-size:12px;margin:4px 0 0;opacity:.8;"></p>
         </div>
         <div class="field">
           <label>Series</label>
@@ -3857,6 +3859,7 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
     document.getElementById('field-nowplaying').style.display = isReviewOnly ? '' : 'none';
     document.getElementById('f_title').value = b ? b.title || '' : '';
     document.getElementById('f_author').value = b ? b.author || '' : '';
+    refreshAuthorOptions();
     document.getElementById('f_series').value = b ? b.series || '' : '';
     document.getElementById('f_seriesNum').value = b && (b.seriesNumber || b.seriesNumber === 0) ? b.seriesNumber : '';
     document.getElementById('f_dateStarted').value = b ? b.dateStarted || '' : '';
@@ -5551,6 +5554,7 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
     document.getElementById('entityLinksEditOverlay').style.display = 'none';
 
     if(editingEntityKind === 'author'){
+      if(typeof updateAuthorHint === 'function') updateAuthorHint();
       if(currentActiveNav === 'navPlatforms' && platformsSubTab === 'authors') renderPlatformsView();
       if(document.getElementById('authorPeekOverlay').style.display === 'flex'){
         document.getElementById('authorPeekContent').innerHTML = buildAuthorCardHtml(editingEntityName);
@@ -5588,7 +5592,7 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
 
     var authorField = field('author', 'Author',
       '<input type="text" id="bvInput_author" value="' + escapeHtml(b.author || '') + '">',
-      bvValueOrEmpty(escapeHtml(b.author || ''), !b.author, '—'));
+      bvValueOrEmpty(authorDisplayHtml(b), !b.author, '—'));
 
     var seriesLabel = b.series ? (escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '')) : '';
     var seriesField = field('series', 'Series',
@@ -5647,7 +5651,97 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
       blurbField;
   }
 
-  // Builds the link to this book's annotation board, passing along the details
+  // ---- AUTHOR-HELPERS-START ----
+// One place per author: their website & socials live in authorLinks (the Authors tab).
+// Everything below just reads from it, so each author is only ever set up once.
+function knownAuthors(){
+  var seen = {}, out = [];
+  books.forEach(function(b){ if(b.author && !seen[b.author.toLowerCase()]){ seen[b.author.toLowerCase()] = 1; out.push(b.author); } });
+  Object.keys(authorLinks).forEach(function(n){ if(!seen[n.toLowerCase()]){ seen[n.toLowerCase()] = 1; out.push(n); } });
+  return out.sort(function(a, b){ return a.localeCompare(b); });
+}
+function canonicalAuthor(name){
+  var l = (name || '').trim().toLowerCase();
+  if(!l) return null;
+  return knownAuthors().find(function(n){ return n.toLowerCase() === l; }) || null;
+}
+function handleFromUrl(url, label){
+  try{
+    var u = new URL(url);
+    var seg = u.pathname.split('/').filter(Boolean);
+    var last = (seg[seg.length - 1] || '').replace(/^@/, '');
+    return last ? '@' + last : u.hostname.replace(/^www\./, '');
+  }catch(e){ return String(url || label || ''); }
+}
+function authorHandleInfo(name){
+  var info = authorLinks[name];
+  if(!info || !info.socials || !info.socials.length) return null;
+  var pref = ['instagram', 'tiktok', 'threads', 'twitter', 'facebook'], pick = null;
+  for(var i = 0; i < pref.length && !pick; i++){
+    pick = info.socials.find(function(s){ return (s.label || '').toLowerCase().indexOf(pref[i]) > -1 || (s.url || '').toLowerCase().indexOf(pref[i]) > -1; });
+  }
+  if(!pick) pick = info.socials.find(function(s){ return (s.label || '').trim().toLowerCase() === 'x'; });
+  if(!pick) pick = info.socials[0];
+  return {handle: handleFromUrl(pick.url, pick.label), url: pick.url, label: pick.label};
+}
+function authorDisplayHtml(b){
+  var n = b.author || '';
+  if(!n) return '';
+  var h = authorHandleInfo(n);
+  var out = escapeHtml(n);
+  if(h) out += ' · <a href="' + escapeHtml(h.url) + '" target="_blank" rel="noopener">' + escapeHtml(h.handle) + '</a>';
+  out += ' <button type="button" class="small-btn" data-author-info="' + escapeHtml(n) + '" style="margin-left:6px;">' + (h ? '✎ author info' : '＋ add social handle') + '</button>';
+  return out;
+}
+function refreshAuthorOptions(){
+  var dl = document.getElementById('authorOptions');
+  if(dl) dl.innerHTML = knownAuthors().map(function(n){ return '<option value="' + escapeHtml(n) + '"></option>'; }).join('');
+  updateAuthorHint();
+}
+function updateAuthorHint(){
+  var el = document.getElementById('authorHint'), inp = document.getElementById('f_author');
+  if(!el || !inp) return;
+  var v = inp.value.trim();
+  if(!v){ el.innerHTML = ''; return; }
+  var c = canonicalAuthor(v);
+  if(!c){ el.textContent = 'New author — you will set up their website & socials once, and it applies to all their books.'; return; }
+  var h = authorHandleInfo(c);
+  el.innerHTML = (h ? 'Social: ' + escapeHtml(h.handle) : 'No social handle yet') +
+    ' · <button type="button" class="small-btn" data-author-info="' + escapeHtml(c) + '">' + (h ? 'edit author info' : 'add author info') + '</button>';
+}
+function registerNewAuthor(name){
+  authorLinks[name] = authorLinks[name] || {website: '', socials: []};
+  saveAuthorLinks();
+  refreshAuthorOptions();
+  openEntityLinksEditModal('author', name);
+}
+document.addEventListener('click', function(e){
+  var btn = e.target.closest('[data-author-info]');
+  if(!btn) return;
+  e.preventDefault();
+  openEntityLinksEditModal('author', btn.getAttribute('data-author-info'));
+});
+document.getElementById('newAuthorBtn').addEventListener('click', function(){
+  var name = (prompt('New author’s name?') || '').trim();
+  if(!name) return;
+  var existing = canonicalAuthor(name);
+  var inp = document.getElementById('f_author');
+  if(existing){ inp.value = existing; updateAuthorHint(); showBanner('“' + existing + '” is already in your authors, so I picked her for you.'); return; }
+  inp.value = name;
+  registerNewAuthor(name);
+});
+document.getElementById('f_author').addEventListener('input', updateAuthorHint);
+document.getElementById('f_author').addEventListener('change', function(){
+  var inp = this, v = inp.value.trim();
+  if(!v){ updateAuthorHint(); return; }
+  var c = canonicalAuthor(v);
+  if(c){ inp.value = c; updateAuthorHint(); return; }
+  if(confirm('“' + v + '” is a new author. Set up their website & social handle now? You only need to do this once.')) registerNewAuthor(v);
+  else updateAuthorHint();
+});
+// ---- AUTHOR-HELPERS-END ----
+
+// Builds the link to this book's annotation board, passing along the details
 // the board uses to fill in its cover page (only short web links for the cover image).
 function annotationHref(b){
   var q = 'book=' + encodeURIComponent(b.title || '');
@@ -5655,6 +5749,11 @@ function annotationHref(b){
   if (b.series) q += '&series=' + encodeURIComponent(b.series);
   if (b.seriesNumber) q += '&idx=' + encodeURIComponent(b.seriesNumber);
   if (typeof b.cover === 'string' && /^https?:\/\//i.test(b.cover) && b.cover.length < 1500) q += '&cover=' + encodeURIComponent(b.cover);
+  var hi = authorHandleInfo(b.author || '');
+  if(hi) q += '&handle=' + encodeURIComponent(hi.handle);
+  if(b.rating > 0) q += '&rating=' + encodeURIComponent(b.rating);
+  if(b.blurb) q += '&blurb=' + encodeURIComponent(String(b.blurb).slice(0, 1200));
+  if(typeof b.amazonLink === 'string' && /^https?:\/\//i.test(b.amazonLink) && b.amazonLink.length < 500) q += '&amazon=' + encodeURIComponent(b.amazonLink);
   return 'annotation-board.html?' + q;
 }
 function openBookView(id){
