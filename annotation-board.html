@@ -63,9 +63,11 @@ input[type=number]{width:62px}
 .ph b{font:700 58px/1.1 'Playfair Display',serif}
 .ph i{font:22px 'Special Elite',monospace;font-style:normal}
 .ph.s{justify-content:flex-end;font:16px 'Special Elite',monospace;opacity:.5}
-.cp.spine{display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:56px 6px 40px;box-shadow:inset 10px 0 14px -10px rgba(0,0,0,.45),inset -10px 0 14px -10px rgba(0,0,0,.45)}
-.st{writing-mode:vertical-rl;font:700 40px 'Playfair Display',serif;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-height:820px}
-.si{font:700 28px 'Special Elite',monospace;text-align:center}
+.cp.spine{display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:40px 6px 36px;box-shadow:inset 10px 0 14px -10px rgba(0,0,0,.45),inset -10px 0 14px -10px rgba(0,0,0,.45)}
+.spw{flex:1 1 0;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.st{writing-mode:vertical-rl;font:700 40px 'Playfair Display',serif;line-height:1.05;letter-spacing:.08em;white-space:nowrap;flex:none}
+.si{font:700 56px/1 'Playfair Display',serif;text-align:center;margin-top:40px;white-space:nowrap;flex:none}
+.si:empty{display:none}
 .st,.si{position:relative}
 .cp.spine.img .st,.cp.spine.img .si{text-shadow:0 1px 4px rgba(0,0,0,.55)}
 #cvadj input[type=range]{width:90px;accent-color:var(--acc)}
@@ -127,6 +129,7 @@ label.lbl{display:flex;gap:4px;align-items:center}
   <label class="f">Title<input id="cTitle"></label><label class="f">Author<input id="cAuthor"></label><label class="f">Series<input id="cSeries"></label><label class="f">No.<input id="cIdx" style="min-width:60px;width:70px"></label>
   <label class="f">Front cover link<input id="cFront" type="url" placeholder="https://…"></label><label class="f">Back cover link<input id="cBack" type="url" placeholder="https://…"></label><label class="f">Spine color<span class="grp"><input id="cSpine" type="color"><button id="eyeSp" title="Pick a color from anywhere on screen" hidden>💧</button></span></label>
   <label class="f">Spine image<span class="grp"><button id="spUp">Upload</button><button id="spClr">Remove</button></span></label><input type="file" id="spIn" accept="image/*" hidden>
+  <label class="f">Spine font<select id="cSpFont"></select></label><label class="f">Spine text color<span class="grp"><input id="cSpInk" type="color"><button id="spInkAuto" title="Back to automatic">Auto</button></span></label><label class="f">Title size<span class="grp"><input type="range" id="cSpSize" min="20" max="140"><button id="spSizeAuto" title="Fit the title to the spine automatically">Auto</button></span></label><label class="f">Number size<span class="grp"><input type="range" id="cSpNum" min="20" max="100"><button id="spNumAuto" title="Size the number automatically">Auto</button></span></label><label class="f">Spine over full wrap<select id="cSpWrap"><option value="">Solid color</option><option value="1">See-through</option></select></label>
   <label class="f">Full wrap link (one image across the whole cover)<input id="cWrap" type="url" placeholder="https://…"></label>
   <div class="grp" id="cvadj"><span class="lbl">Adjust image</span><select id="aT"><option value="front">Front cover</option><option value="back">Back cover</option><option value="spine">Spine image</option><option value="wrap">Full wrap</option></select><select id="aFit"><option value="cover">Fill (crops edges)</option><option value="contain">Fit whole image</option><option value="fill">Stretch</option></select><label class="lbl">Zoom<input type="range" id="aZ" min="50" max="300"></label><label class="lbl">Left/right<input type="range" id="aX" min="-50" max="50"></label><label class="lbl">Up/down<input type="range" id="aY" min="-50" max="50"></label><button id="aReset">Reset</button></div>
 </div>
@@ -219,6 +222,8 @@ function mk(it){
  e.append(div("rs"),ro);style(it,e);page.append(e);
 }
 const roman=n=>{if(!(n>0&&n<4000))return String(n);let o="";for(const[v,r]of[[1000,"M"],[900,"CM"],[500,"D"],[400,"CD"],[100,"C"],[90,"XC"],[50,"L"],[40,"XL"],[10,"X"],[9,"IX"],[5,"V"],[4,"IV"],[1,"I"]])while(n>=v){o+=r;n-=v}return o};
+const BOLDOK=new Set(["Playfair Display","Times New Roman","Georgia","Arial","Verdana","Courier New","Courier Prime"]);
+const inkOf=h=>{const n=parseInt((h||"#3f2d66").slice(1),16);return((n>>16)*299+(n>>8&255)*587+(n&255)*114)/1000>150?"#2d2438":"#ffffff"};
 const fitImg=(i,a)=>{a=a||{};i.style.objectFit=a.fit||"cover";i.style.transform=`translate(${a.x||0}%,${a.y||0}%) scale(${(a.z||100)/100})`};
 const restyleCover=()=>page.querySelectorAll(".cvr img").forEach(i=>fitImg(i,(S.cover.adj||{})[i.dataset.k]));
 function buildCover(){
@@ -228,14 +233,26 @@ function buildCover(){
  const full=div("cp"),back=div("cp"),sp=div("cp spine"),fr=div("cp"),pb=div("ph s"),pf=div("ph");
  full.style.cssText=`left:0;width:${CW}px;background:transparent`;if(wr)full.append(img(c.wrap,null,"wrap"));
  back.style.cssText="left:0;width:730px"+(wr?";background:transparent":"");fr.style.cssText="left:854px;width:730px"+(wr?";background:transparent":"");
- sp.style.cssText=`left:730px;width:124px;color:${c.spineImg?"#fff":ink(c.spine)}`+(c.spineImg?"":wr?";background:transparent":`;background:${c.spine||"#3f2d66"}`);
+ sp.style.cssText=`left:730px;width:124px;color:${c.spineInk||(c.spineImg?"#fff":ink(c.spine))}`+(c.spineImg?"":wr&&c.spineClear?";background:transparent":`;background:${c.spine||"#3f2d66"}`);
  if(!wr){pb.textContent="back cover";back.append(pb);const b=document.createElement("b"),i2=document.createElement("i");b.textContent=T;i2.textContent=c.author||"";pf.append(b,i2);fr.append(pf)}
  if(c.back)back.append(img(c.back,wr?null:pb,"back"));if(c.front)fr.append(img(c.front,wr?null:pf,"front"));
- const st=div("st"),si=div("si");st.textContent=T;si.textContent=idx;
+ const sw=div("spw"),st=div("st"),si=div("si");st.textContent=T;si.textContent=idx;
+ const sf=FMAP[c.spineFont];if(sf){st.style.fontFamily=si.style.fontFamily=sf;if(!BOLDOK.has(c.spineFont))st.style.fontWeight=si.style.fontWeight="400"}
  if(c.spineImg){sp.classList.add("img");sp.append(img(c.spineImg,null,"spine"))}
- sp.append(st,si);L.append(full,back,sp,fr);return L}
-const refreshCover=()=>{const o=page.querySelector(".cvr");if(o)o.replaceWith(buildCover())};
-function render(){const cv=S.pi==0;page.innerHTML="";page.style.width=(cv?CW:820)+"px";$("#wrap").classList.toggle("wide",cv);$("#cvbar").hidden=!cv;if(cv)page.append(buildCover());cur().forEach(mk);fit();pager();syncCtl()}
+ sw.append(st);sp.append(sw,si);L.append(full,back,sp,fr);return L}
+function fitSpine(re){
+ const sp=page.querySelector(".cp.spine");if(!sp)return;
+ const sw=sp.querySelector(".spw"),st=sp.querySelector(".st"),si=sp.querySelector(".si");if(!sw||!st||!si)return;
+ const c=S.cover,txt=st.textContent,Wd=sw.clientWidth;
+ if(!re&&document.fonts&&(txt||si.textContent))document.fonts.load(`${st.style.fontWeight||700} 40px ${st.style.fontFamily||"'Playfair Display'"}`,txt||si.textContent).then(()=>{if(page.contains(sp))fitSpine(1)}).catch(()=>{});
+ if(si.textContent){let f=+c.spineNum||56;si.style.fontSize=f+"px";if(!c.spineNum&&si.offsetWidth>Wd*.9){f=Math.floor(f*Wd*.9/si.offsetWidth);si.style.fontSize=f+"px"}$("#cSpNum").value=f}
+ const H=sw.clientHeight;if(!txt||H<=0||!Wd)return;
+ const vis=(fs,ls)=>{st.style.fontSize=fs+"px";st.style.letterSpacing=ls+"px";st.style.marginBottom="0px";return st.offsetHeight-ls};
+ let fs=+c.spineSize;
+ if(!fs){let lo=10,hi=Math.floor(Wd*.95);while(hi-lo>.5){const m=(lo+hi)/2;if(vis(m,.08*m)<=H)lo=m;else hi=m}fs=lo}
+ const l=.08*fs;st.style.fontSize=fs+"px";st.style.letterSpacing=l+"px";st.style.marginBottom=(-l)+"px";$("#cSpSize").value=Math.round(fs)}
+const refreshCover=()=>{const o=page.querySelector(".cvr");if(o)o.replaceWith(buildCover());fitSpine()};
+function render(){const cv=S.pi==0;page.innerHTML="";page.style.width=(cv?CW:820)+"px";$("#wrap").classList.toggle("wide",cv);$("#cvbar").hidden=!cv;if(cv){page.append(buildCover());fitSpine()}cur().forEach(mk);fit();pager();syncCtl()}
 function fit(){const W=S.pi==0?CW:820,w=$("#wrap").clientWidth-20;scale=Math.min(1,w/W);page.style.transform=`scale(${scale})`;$("#frame").style.height=PH*scale+"px"}
 addEventListener("resize",fit);
 function pager(){const tb=$("#tabs");tb.innerHTML="";S.pages.forEach((_,k)=>{const b=document.createElement("button");b.className="tab"+(k==S.pi?" on":"");b.textContent=k?String(k):"📖 Cover";b.style.setProperty("--tc",COLORS[k%6][0]);b.onclick=()=>go(k);tb.append(b)});$("#pDel").disabled=S.pi==0}
@@ -354,15 +371,15 @@ function setCustom(h){S.cust=h;paintCsw();pickCol(8)}
 cust.oninput=e=>setCustom(e.target.value);
 if(window.EyeDropper){const eb=document.createElement("button");eb.textContent="💧";eb.title="Copy a color from anywhere on screen";eb.onclick=async()=>{try{setCustom((await new EyeDropper().open()).sRGBHex)}catch(_){}};$("#sws").append(eb)}
 const marks=()=>document.querySelectorAll(".sw").forEach((b,i)=>b.classList.toggle("on",i==S.cur));
-PAPERS.forEach((p,i)=>$("#paper").add(new Option(p[0],i)));fillFonts($("#font"));fillFonts($("#ifont"),"Item font: same as page");
+PAPERS.forEach((p,i)=>$("#paper").add(new Option(p[0],i)));fillFonts($("#font"));fillFonts($("#ifont"),"Item font: same as page");fillFonts($("#cSpFont"),"Default (Playfair Display)");
 $("#bg").onchange=e=>{S.bg=e.target.value;paint();save()};$("#paper").onchange=e=>{S.paper=+e.target.value;paint();save()};$("#font").onchange=e=>{S.font=e.target.value;paint();save()};
 $("#snap").onchange=e=>{S.snap=e.target.checked;save()};
 document.querySelectorAll(".bar").forEach(b=>b.addEventListener("mousedown",e=>{if(e.target.closest("button"))e.preventDefault()}));
 
 // ---- cover details ----
-const CF=[["cTitle","title","input"],["cAuthor","author","input"],["cSeries","series","input"],["cIdx","idx","input"],["cFront","front","change"],["cBack","back","change"],["cWrap","wrap","change"],["cSpine","spine","input"]];
+const CF=[["cTitle","title","input"],["cAuthor","author","input"],["cSeries","series","input"],["cIdx","idx","input"],["cFront","front","change"],["cBack","back","change"],["cWrap","wrap","change"],["cSpine","spine","input"],["cSpFont","spineFont","change"],["cSpInk","spineInk","input"],["cSpWrap","spineClear","change"]];
 CF.forEach(([id,k,ev])=>$("#"+id).addEventListener(ev,e=>{S.cover[k]=e.target.value.trim()&&k!="spine"?e.target.value.trim():e.target.value;refreshCover();head();save()}));
-function syncCover(){CF.forEach(([id,k])=>$("#"+id).value=S.cover[k]||(k=="spine"?"#3f2d66":""));$("#cTitle").placeholder=BOOK||"Book title";syncAdj();$("#eyeSp").hidden=!window.EyeDropper}
+function syncCover(){CF.forEach(([id,k])=>$("#"+id).value=S.cover[k]||(k=="spine"?"#3f2d66":""));$("#cSpInk").value=S.cover.spineInk||(S.cover.spineImg?"#ffffff":inkOf(S.cover.spine));$("#cTitle").placeholder=BOOK||"Book title";syncAdj();$("#eyeSp").hidden=!window.EyeDropper}
 
 const adjT=()=>$("#aT").value;
 function syncAdj(){const a=(S.cover.adj||{})[adjT()]||{};$("#aFit").value=a.fit||"cover";$("#aZ").value=a.z||100;$("#aX").value=a.x||0;$("#aY").value=a.y||0}
@@ -370,6 +387,12 @@ function setAdj(k,v){const c=S.cover,t=adjT();c.adj=c.adj||{};c.adj[t]=c.adj[t]|
 $("#aT").onchange=syncAdj;$("#aFit").onchange=e=>setAdj("fit",e.target.value);
 $("#aZ").oninput=e=>setAdj("z",+e.target.value);$("#aX").oninput=e=>setAdj("x",+e.target.value);$("#aY").oninput=e=>setAdj("y",+e.target.value);
 $("#aReset").onclick=()=>{if(S.cover.adj)delete S.cover.adj[adjT()];syncAdj();restyleCover();save()};
+$("#cSpSize").oninput=e=>{S.cover.spineSize=+e.target.value;refreshCover();save()};
+$("#spSizeAuto").onclick=()=>{delete S.cover.spineSize;refreshCover();save()};
+$("#cSpNum").oninput=e=>{S.cover.spineNum=+e.target.value;refreshCover();save()};
+$("#spNumAuto").onclick=()=>{delete S.cover.spineNum;refreshCover();save()};
+$("#spInkAuto").onclick=()=>{delete S.cover.spineInk;syncCover();refreshCover();save()};
+$("#cSpine").addEventListener("input",()=>{if(!S.cover.spineInk)$("#cSpInk").value=inkOf(S.cover.spine)});
 $("#spUp").onclick=()=>$("#spIn").click();
 $("#spClr").onclick=()=>{delete S.cover.spineImg;refreshCover();save()};
 $("#spIn").onchange=e=>{const f=e.target.files[0];e.target.value="";if(!f)return;
