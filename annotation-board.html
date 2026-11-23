@@ -331,8 +331,10 @@ function buildInfo(){
 function fitBlurb(re){
  const b=page.querySelector(".inf .ib");if(!b)return;
  if(!re&&document.fonts&&b.textContent)document.fonts.ready.then(()=>{if(page.contains(b))fitBlurb(1)}).catch(()=>{});
+ const inf=b.parentNode,q=inf.querySelector(".iq"),IH=inf.clientHeight;if(IH<=0)return;
+ const top=q&&q.children.length?q.offsetTop:IH-40;b.style.bottom=Math.max(40,IH-top+24)+"px";
  const H=b.clientHeight;if(!b.textContent||H<=0)return;
- const fits=fs=>{b.style.fontSize=fs+"px";return b.scrollHeight<=H+1};
+ const fits=fs=>{b.style.fontSize=fs+"px";return b.scrollHeight<=H};
  let hi=19;if(fits(hi))return;
  let lo=5;while(hi-lo>.25){const m=(lo+hi)/2;if(fits(m))lo=m;else hi=m}
  b.style.fontSize=lo+"px"}
