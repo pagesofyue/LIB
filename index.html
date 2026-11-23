@@ -5135,7 +5135,7 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
     if(!b) return;
     currentViewBookId = id;
     document.getElementById('viewContent').innerHTML = buildViewHtml(b);
-    document.getElementById('viewAnnotateLink').href = 'annotation-board.html?book=' + encodeURIComponent(b.title || '');
+    document.getElementById('viewAnnotateLink').href = annotationHref(b);
     wireLinksHandlers();
     document.getElementById('viewOverlay').style.display = 'flex';
   }
@@ -5647,13 +5647,23 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
       blurbField;
   }
 
-  function openBookView(id){
+  // Builds the link to this book's annotation board, passing along the details
+// the board uses to fill in its cover page (only short web links for the cover image).
+function annotationHref(b){
+  var q = 'book=' + encodeURIComponent(b.title || '');
+  if (b.author) q += '&author=' + encodeURIComponent(b.author);
+  if (b.series) q += '&series=' + encodeURIComponent(b.series);
+  if (b.seriesNumber) q += '&idx=' + encodeURIComponent(b.seriesNumber);
+  if (typeof b.cover === 'string' && /^https?:\/\//i.test(b.cover) && b.cover.length < 1500) q += '&cover=' + encodeURIComponent(b.cover);
+  return 'annotation-board.html?' + q;
+}
+function openBookView(id){
     var b = books.find(function(x){ return x.id === id; });
     if(!b) return;
     currentBookViewId = id;
     bvEditingField = null;
     document.getElementById('bookViewContent').innerHTML = buildBookViewHtml(b);
-    document.getElementById('bookViewAnnotateLink').href = 'annotation-board.html?book=' + encodeURIComponent(b.title || '');
+    document.getElementById('bookViewAnnotateLink').href = annotationHref(b);
     document.getElementById('bookViewOverlay').style.display = 'flex';
   }
 
