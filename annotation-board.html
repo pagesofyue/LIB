@@ -148,7 +148,7 @@ textarea{font:inherit;font-size:14px;width:100%;color:var(--fg);background:var(-
     <button id="del">Delete</button></div>
   <div class="grp" id="xgrp" hidden><div class="sep"></div><input id="tag" placeholder="Ch. 4 · p. 55" aria-label="Chapter or page tag"><button id="spo" title="Blur the note until you tap it">Spoiler</button><select id="stars" aria-label="Stars"></select></div>
   <div class="sep"></div>
-  <div class="grp"><span class="lbl">Page</span><select id="bg"><option value="grid">Grid</option><option value="dots">Dots</option><option value="lines">Lined</option><option value="plain">Plain</option></select><select id="paper"></select><select id="font" aria-label="Page font"></select><label class="lbl"><input type="checkbox" id="snap"> Snap</label></div>
+  <div class="grp"><span class="lbl">Page</span><select id="bg"><option value="grid">Grid</option><option value="dots">Dots</option><option value="lines">Lined</option><option value="plain">Plain</option></select><select id="paper"></select><select id="font" aria-label="Page font"></select><button id="styAll" title="Use this page's style on every page">Apply to all pages</button><label class="lbl"><input type="checkbox" id="snap"> Snap</label></div>
   <div class="grp" id="pgrp" hidden><div class="sep"></div><span class="lbl">Inside photo</span><button id="adj">Move photo</button><input type="range" id="zoom" min="20" max="300" aria-label="Zoom photo"><button id="shape">Shape: Original</button><button id="zreset">Reset</button></div>
 </div>
 
@@ -236,22 +236,24 @@ const cur=()=>S.pages[S.pi],nid=()=>Math.max(0,...cur().map(i=>i.id))+1,get=id=>
 
 // ---- history + saving ----
 const H={a:[],i:-1,busy:false},SRC=new Map(),SRCI=[];let t,warned=0,pending=false,dirtyMd=false;
-const shot=()=>JSON.stringify({p:S.pages,c:S.cover,i:S.info,pi:S.pi},(k,v)=>{if((k=="src"||k=="spineImg")&&typeof v=="string"&&v.length>200){let n=SRC.get(v);if(n==null){n=SRCI.length;SRCI.push(v);SRC.set(v,n)}return"@@"+n}return v});
+const shot=()=>JSON.stringify({p:S.pages,c:S.cover,i:S.info,s:S.ps||[],pi:S.pi},(k,v)=>{if((k=="src"||k=="spineImg")&&typeof v=="string"&&v.length>200){let n=SRC.get(v);if(n==null){n=SRCI.length;SRCI.push(v);SRC.set(v,n)}return"@@"+n}return v});
 const unshot=j=>JSON.parse(j,(k,v)=>typeof v=="string"&&v.startsWith("@@")?SRCI[+v.slice(2)]:v);
 function hist(){if(H.busy)return;const j=shot();if(H.a[H.i]===j)return;H.a=H.a.slice(0,H.i+1);H.a.push(j);if(H.a.length>60)H.a.shift();H.i=H.a.length-1;uiHist()}
 function uiHist(){$("#undo").disabled=H.i<=0;$("#redo").disabled=H.i>=H.a.length-1}
 function persist(){pending=false;hist();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){if(!warned){warned=1;alert("This browser’s storage is full, so recent changes aren’t saved. Download the .md now to keep your work.")}}}
 function save(){pending=true;if(!dirtyMd){dirtyMd=true;$("#saveBtn").textContent="Save & export ● ▾"}clearTimeout(t);t=setTimeout(persist,300)}
-function jump(i){if(pending){clearTimeout(t);persist()}if(i<0||i>=H.a.length)return;H.i=i;H.busy=true;const o=unshot(H.a[i]);S.pages=o.p;S.cover=o.c;S.info=o.i||S.info;S.pi=Math.min(o.pi,o.p.length-1);sel=null;adj=false;render();syncCover();persist();H.busy=false;uiHist()}
+function jump(i){if(pending){clearTimeout(t);persist()}if(i<0||i>=H.a.length)return;H.i=i;H.busy=true;const o=unshot(H.a[i]);S.pages=o.p;S.cover=o.c;S.info=o.i||S.info;S.ps=o.s||[];S.pi=Math.min(o.pi,o.p.length-1);sel=null;adj=false;render();syncCover();persist();H.busy=false;uiHist()}
 const undo=()=>{if(pending){clearTimeout(t);persist()}jump(H.i-1)},redo=()=>jump(H.i+1);
 $("#undo").onclick=undo;$("#redo").onclick=redo;
 
 // ---- drawing ----
+const pageStyle=k=>{k=k==null?S.pi:k;const o=S.ps&&S.ps[k];return{bg:o&&o.bg||S.bg,paper:o&&PAPERS[o.paper]?o.paper:S.paper,font:o&&o.font||S.font}};
+const psPad=()=>{if(!Array.isArray(S.ps))S.ps=[];while(S.ps.length<S.pages.length)S.ps.push(null);S.ps.length=S.pages.length};
 function paint(){
- const p=PAPERS[S.paper];page.style.background=p[1];page.style.setProperty("--gc",p[3]);page.style.color=p[2];page.style.fontFamily=FMAP[S.font]||FMAP["Special Elite"];
+ const st=pageStyle(),p=PAPERS[st.paper];$("#bg").value=st.bg;$("#paper").value=st.paper;$("#font").value=st.font;page.style.background=p[1];page.style.setProperty("--gc",p[3]);page.style.color=p[2];page.style.fontFamily=FMAP[st.font]||FMAP["Special Elite"];
  const g="linear-gradient(var(--gc) 1px,transparent 1px)";
- page.style.backgroundImage={grid:`${g},linear-gradient(90deg,var(--gc) 1px,transparent 1px)`,dots:"radial-gradient(var(--gc) 1.8px,transparent 2px)",lines:g,plain:"none"}[S.bg];
- page.style.backgroundSize={grid:"28px 28px",dots:"28px 28px",lines:"100% 32px",plain:"auto"}[S.bg];page.style.backgroundPosition="14px 14px";
+ page.style.backgroundImage={grid:`${g},linear-gradient(90deg,var(--gc) 1px,transparent 1px)`,dots:"radial-gradient(var(--gc) 1.8px,transparent 2px)",lines:g,plain:"none"}[st.bg];
+ page.style.backgroundSize={grid:"28px 28px",dots:"28px 28px",lines:"100% 32px",plain:"auto"}[st.bg];page.style.backgroundPosition="14px 14px";
 }
 function style(it,e){
  const T=it.type;
@@ -326,14 +328,22 @@ function buildInfo(){
  if(f.rating>0){const r=div("rt");r.style.setProperty("--p",f.rating/5*100+"%");r.append(document.createTextNode("★★★★★"));const i=document.createElement("i");i.textContent="★★★★★";r.append(i);const w=div("");w.append(r,mk2("rn",f.rating+" / 5"));im.append(w)}
  const q=div("iq");(f.links||[]).filter(x=>x.u&&x.u.trim()).slice(0,8).forEach(x=>{const t=div("qt"),u=normUrl(x.u.trim());t.append(qrCanvas(u),mk2("ql",x.l||u.replace(/^https?:\/\/(www\.)?/,"").split("/")[0]));q.append(t)});
  L.append(ic,im,mk2("ib",f.blurb||""),q);return L}
-const refreshInfo=()=>{const o=page.querySelector(".inf");if(o)o.replaceWith(buildInfo())};
-function render(){const cv=S.pi==0,inf=S.pi==1;page.innerHTML="";page.style.width=(cv?CW:820)+"px";$("#wrap").classList.toggle("wide",cv);$("#cvbar").hidden=!cv;$("#ifbar").hidden=!inf;if(cv)page.append(buildCover());if(inf)page.append(buildInfo());cur().forEach(mk);fit();if(cv)fitSpine();pager();syncCtl()}
+function fitBlurb(re){
+ const b=page.querySelector(".inf .ib");if(!b)return;
+ if(!re&&document.fonts&&b.textContent)document.fonts.ready.then(()=>{if(page.contains(b))fitBlurb(1)}).catch(()=>{});
+ const H=b.clientHeight;if(!b.textContent||H<=0)return;
+ const fits=fs=>{b.style.fontSize=fs+"px";return b.scrollHeight<=H+1};
+ let hi=19;if(fits(hi))return;
+ let lo=5;while(hi-lo>.25){const m=(lo+hi)/2;if(fits(m))lo=m;else hi=m}
+ b.style.fontSize=lo+"px"}
+const refreshInfo=()=>{const o=page.querySelector(".inf");if(o){o.replaceWith(buildInfo());fitBlurb()}};
+function render(){const cv=S.pi==0,inf=S.pi==1;page.innerHTML="";paint();page.style.width=(cv?CW:820)+"px";$("#wrap").classList.toggle("wide",cv);$("#cvbar").hidden=!cv;$("#ifbar").hidden=!inf;if(cv)page.append(buildCover());if(inf)page.append(buildInfo());cur().forEach(mk);fit();if(cv)fitSpine();if(inf)fitBlurb();pager();syncCtl()}
 function fit(){const W=S.pi==0?CW:820,w=$("#wrap").clientWidth-20;scale=Math.min(1,w/W);page.style.transform=`scale(${scale})`;$("#frame").style.height=PH*scale+"px"}
 addEventListener("resize",fit);
 function pager(){const tb=$("#tabs");tb.innerHTML="";S.pages.forEach((_,k)=>{const b=document.createElement("button");b.className="tab"+(k==S.pi?" on":"");b.textContent=k==0?"📖 Cover":k==1?"📋 Info":String(k-1);b.style.setProperty("--tc",COLORS[k%6][0]);b.onclick=()=>go(k);tb.append(b)});$("#pDel").disabled=S.pi<2}
 function go(i){select(null);S.pi=i;render();save()}
-$("#pAdd").onclick=()=>{const i=Math.max(S.pi+1,2);S.pages.splice(i,0,[]);go(i)};
-$("#pDel").onclick=()=>{if(S.pi<2)return;if(cur().length&&!confirm("Delete this page and everything on it?"))return;S.pages.splice(S.pi,1);S.pi=Math.min(S.pi,S.pages.length-1);select(null);render();save()};
+$("#pAdd").onclick=()=>{const i=Math.max(S.pi+1,2),st=S.pi>=2?pageStyle():null;psPad();S.pages.splice(i,0,[]);S.ps.splice(i,0,st);go(i)};
+$("#pDel").onclick=()=>{if(S.pi<2)return;if(cur().length&&!confirm("Delete this page and everything on it?"))return;psPad();S.ps.splice(S.pi,1);S.pages.splice(S.pi,1);S.pi=Math.min(S.pi,S.pages.length-1);select(null);render();save()};
 
 // ---- selection + toolbar state ----
 function select(id){sel=id;document.querySelectorAll(".item").forEach(e=>e.classList.toggle("sel",e.dataset.id==id));syncCtl()}
@@ -447,7 +457,9 @@ cust.oninput=e=>setCustom(e.target.value);
 if(window.EyeDropper){const eb=document.createElement("button");eb.textContent="💧";eb.title="Copy a color from anywhere on screen";eb.onclick=async()=>{try{setCustom((await new EyeDropper().open()).sRGBHex)}catch(_){}};$("#sws").append(eb)}
 const marks=()=>document.querySelectorAll(".sw").forEach((b,i)=>b.classList.toggle("on",i==S.cur));
 PAPERS.forEach((p,i)=>$("#paper").add(new Option(p[0],i)));fillFonts($("#font"));fillFonts($("#ifont"),"Item font: same as page");fillFonts($("#cSpFont"),"Default (Playfair Display)");
-$("#bg").onchange=e=>{S.bg=e.target.value;paint();save()};$("#paper").onchange=e=>{S.paper=+e.target.value;paint();save()};$("#font").onchange=e=>{S.font=e.target.value;paint();save()};
+const setPg=(k,v)=>{const st=pageStyle();st[k]=v;psPad();S.ps[S.pi]=st;paint();save()};
+$("#bg").onchange=e=>setPg("bg",e.target.value);$("#paper").onchange=e=>setPg("paper",+e.target.value);$("#font").onchange=e=>setPg("font",e.target.value);
+$("#styAll").onclick=()=>{const st=pageStyle();S.bg=st.bg;S.paper=st.paper;S.font=st.font;S.ps=[];paint();save()};
 $("#snap").onchange=e=>{S.snap=e.target.checked;save()};
 document.querySelectorAll(".bar").forEach(b=>b.addEventListener("mousedown",e=>{if(e.target.closest("button"))e.preventDefault()}));
 
@@ -526,7 +538,7 @@ async function snap(){
  if(!window.html2canvas)throw new Error("Export library didn’t load. Check your connection and try again.");
  select(null);document.activeElement.blur();await ready();
  const old=page.style.transform,[W,Hh]=dims(S.pi);page.style.transform="none";
- try{return await html2canvas(page,{scale:2,useCORS:true,backgroundColor:PAPERS[S.paper][1],windowWidth:Math.max(W,innerWidth),windowHeight:Hh+100,scrollX:0,scrollY:-scrollY})}
+ try{return await html2canvas(page,{scale:2,useCORS:true,backgroundColor:PAPERS[pageStyle().paper][1],windowWidth:Math.max(W,innerWidth),windowHeight:Hh+100,scrollX:0,scrollY:-scrollY})}
  finally{page.style.transform=old}
 }
 async function run(btn,fn){const x=btn.textContent;btn.disabled=true;btn.textContent="Working…";try{await fn()}catch(e){alert(e.message||"Export failed.")}btn.disabled=false;btn.textContent=x}
@@ -543,7 +555,7 @@ $("#xPdf").onclick=e=>run(e.target,async()=>{
 function toMd(){
  const n=bookName()||"My book";
  let s=`---\nmarginalia: 1\nbook: ${n}\nbg: ${S.bg}\npaper: ${S.paper}\nfont: ${S.font}\nsnap: ${S.snap?1:0}\ncover: ${JSON.stringify(S.cover)}\ninfo: ${JSON.stringify(S.info)}\n---\n\n# ${n}\n\n`;
- S.pages.forEach((pg,k)=>{s+=`<!--page-->\n## ${k==0?"Cover":k==1?"Info":"Page "+(k-1)}\n\n`;pg.forEach(i=>{const {id,text,...meta}=i;s+=`<!--item ${JSON.stringify(meta)}-->\n${text||""}\n\n`})});
+ S.pages.forEach((pg,k)=>{s+=`<!--page-->\n## ${k==0?"Cover":k==1?"Info":"Page "+(k-1)}\n\n`;if(S.ps&&S.ps[k])s+=`<!--style ${JSON.stringify(S.ps[k])}-->\n\n`;pg.forEach(i=>{const {id,text,...meta}=i;s+=`<!--item ${JSON.stringify(meta)}-->\n${text||""}\n\n`})});
  return s}
 $("#xMd").onclick=()=>{dl(new Blob([toMd()],{type:"text/markdown"}),slug()+".md");dirtyMd=false;$("#saveBtn").textContent="Save & export ▾"};
 $("#lMd").onclick=()=>$("#file").click();
@@ -554,22 +566,22 @@ $("#file").onchange=async e=>{
   if(!fm||!/^marginalia:/m.test(fm[1]))throw 0;
   const g=k=>(fm[1].match(new RegExp("^"+k+":\\s*(.*)$","m"))||[])[1];
   const chunks=s.slice(fm[0].length).split("<!--page-->");if(chunks.length>1)chunks.shift();
-  let pages=chunks.map(ch=>{const items=[],re=/<!--item (\{[\s\S]*?\})-->\n?([\s\S]*?)(?=<!--item |$)/g;let m,id=1;
-   while((m=re.exec(ch)))items.push({...JSON.parse(m[1]),id:id++,text:m[2].replace(/\s+$/,"")});return items});
+  const pst=[];let pages=chunks.map(ch=>{const items=[],re=/<!--item (\{[\s\S]*?\})-->\n?([\s\S]*?)(?=<!--item |$)/g;let m,id=1;
+   while((m=re.exec(ch)))items.push({...JSON.parse(m[1]),id:id++,text:m[2].replace(/\s+$/,"")});let sm=ch.match(/<!--style (\{[^\n]*?\})-->/),o=null;try{o=sm?JSON.parse(sm[1]):null}catch(_){}pst.push(o);return items});
   let cover=null;try{cover=g("cover")?JSON.parse(g("cover")):null}catch(_){}
   let info=null;try{info=g("info")?JSON.parse(g("info")):null}catch(_){}
-  if(!cover){cover=newCover();pages.unshift([])}
-  if(!info){info=newInfo();pages.splice(1,0,[])}
-  while(pages.length<2)pages.push([]);
+  if(!cover){cover=newCover();pages.unshift([]);pst.unshift(null)}
+  if(!info){info=newInfo();pages.splice(1,0,[]);pst.splice(1,0,null)}
+  while(pages.length<2)pages.push([]);while(pst.length<pages.length)pst.push(null);
   if(!confirm("Replace the current board with “"+f.name+"”?"))return;
   const p=+g("paper");
-  S={bg:["grid","dots","lines","plain"].includes(g("bg"))?g("bg"):"grid",paper:PAPERS[p]?p:0,font:FMAP[g("font")]?g("font"):"Special Elite",snap:g("snap")=="1",cur:S.cur,book:g("book")||S.book,cover:{...newCover(),...cover,...(cover.sFont&&!cover.spineFont?{spineFont:cover.sFont}:{}),...(cover.sInk&&!cover.spineInk?{spineInk:cover.sInk}:{})},info:{...newInfo(),...info},pages,pi:0};
+  S={bg:["grid","dots","lines","plain"].includes(g("bg"))?g("bg"):"grid",paper:PAPERS[p]?p:0,font:FMAP[g("font")]?g("font"):"Special Elite",snap:g("snap")=="1",cur:S.cur,book:g("book")||S.book,cover:{...newCover(),...cover,...(cover.sFont&&!cover.spineFont?{spineFont:cover.sFont}:{}),...(cover.sInk&&!cover.spineInk?{spineInk:cover.sInk}:{})},info:{...newInfo(),...info},pages,ps:pst,pi:0};
   sel=null;$("#bg").value=S.bg;$("#paper").value=S.paper;$("#font").value=S.font;$("#snap").checked=!!S.snap;paint();render();syncCover();head();save();
  }catch(err){alert("That doesn’t look like a pahina ni yue .md file.")}
 };
 
 $("#bg").value=S.bg;$("#paper").value=S.paper;$("#font").value=S.font;$("#snap").checked=!!S.snap;
 head();marks();paint();paintCsw();render();syncCover();hist();
-if(document.fonts){document.fonts.ready.then(()=>fitSpine());document.fonts.addEventListener&&document.fonts.addEventListener("loadingdone",()=>fitSpine())}
+if(document.fonts){document.fonts.ready.then(()=>{fitSpine();fitBlurb(1)});document.fonts.addEventListener&&document.fonts.addEventListener("loadingdone",()=>{fitSpine();fitBlurb(1)})}
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
 </script></body></html>
