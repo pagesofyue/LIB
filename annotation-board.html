@@ -113,6 +113,9 @@ textarea{font:inherit;font-size:14px;width:100%;color:var(--fg);background:var(-
 .note.quote .tag{display:block;background:none;text-align:right;margin:10px 0 0;padding:0}
 .note.quote .tag::before{content:"— "}
 .note.spoiler:not(.sel) .body{filter:blur(7px)}
+.note .ann{margin-top:12px;padding-top:10px;border-top:1px dashed color-mix(in srgb,currentColor 40%,transparent);font-size:.86em;font-style:normal;outline:none;white-space:pre-wrap;word-break:break-word;cursor:text}
+.note .ann::before{content:"✎ My note: ";font-weight:700;opacity:.7}
+.note.spoiler:not(.sel) .ann{filter:blur(7px)}
 .text{padding:4px 6px;line-height:1.4}
 .photo{padding:12px;background:#fff;border-radius:2px;box-shadow:2px 6px 14px rgba(40,20,70,.3),0 0 0 1px rgba(0,0,0,.05);line-height:1.2}
 .pwell{position:relative;background:var(--well,#e4deec);box-shadow:inset 0 0 0 1px rgba(0,0,0,.14),inset 0 3px 10px rgba(0,0,0,.2);overflow:hidden}
@@ -290,7 +293,7 @@ function mk(it){
   if(it.type=="photo"){const w=div("pwell");w.append(im);e.append(w);if(!it.ar0)im.onload=()=>{it.ar0=+(im.naturalWidth/im.naturalHeight).toFixed(4);style(it,e);save()}}else e.append(im)}
  else if(it.type=="sticker"||it.type=="rating")e.append(div("g"));
  else if(it.type=="arrow")e.innerHTML=ARROWS[it.shape||"a"];
- if(it.type=="note"){const tg=div("tag");if(it.variant=="quote")e.append(b,tg);else e.append(tg,b)}else if(b)e.append(b);
+ if(it.type=="note"){const tg=div("tag");if(it.variant=="quote"){e.append(b,tg);if(it.ann){const an=div("ann");an.contentEditable="true";an.spellcheck=false;an.textContent=it.ann;an.addEventListener("input",()=>{it.ann=an.innerText;save()});e.append(an)}}else e.append(tg,b)}else if(b)e.append(b);
  const ro=div("rot");ro.textContent="↻";ro.title="Drag to rotate";
  e.append(div("rs"),ro);style(it,e);page.append(e);
 }
@@ -384,8 +387,8 @@ page.addEventListener("pointerdown",e=>{
  if(adj&&m.type=="photo"&&e.target.closest(".pwell")){const w=it.querySelector(".pwell");
   d={m,it,pan:true,sx:e.clientX,sy:e.clientY,ox:m.px||0,oy:m.py||0,ww:w.offsetWidth,wh:w.offsetHeight,moved:false};it.setPointerCapture(e.pointerId);return}
  const rs=e.target.classList.contains("rs"),ro=e.target.classList.contains("rot");
- if(document.activeElement===it.querySelector(".body")&&!rs&&!ro)return;
- d={m,it,rs,ro,sx:e.clientX,sy:e.clientY,ox:m.x,oy:m.y,ow:m.w,moved:false};
+ const ae=document.activeElement;if(ae&&(ae===it.querySelector(".body")||ae===it.querySelector(".ann"))&&!rs&&!ro)return;
+ d={m,it,rs,ro,ann:!!e.target.closest(".ann"),sx:e.clientX,sy:e.clientY,ox:m.x,oy:m.y,ow:m.w,moved:false};
  if(ro){const q=it.getBoundingClientRect();d.cx=q.left+q.width/2;d.cy=q.top+q.height/2;d.a0=Math.atan2(e.clientY-d.cy,e.clientX-d.cx);d.r0=m.rot}
  it.setPointerCapture(e.pointerId);
 });
@@ -402,7 +405,7 @@ page.addEventListener("pointermove",e=>{
 });
 page.addEventListener("pointerup",()=>{
  if(!d)return;
- if(!d.moved&&!d.rs&&!d.ro&&!d.pan){const b=d.it.querySelector(".body");if(!b){d=null;return}b.focus();const r=document.createRange();r.selectNodeContents(b);r.collapse(false);const s=getSelection();s.removeAllRanges();s.addRange(r)}
+ if(!d.moved&&!d.rs&&!d.ro&&!d.pan){const b=(d.ann&&d.it.querySelector(".ann"))||d.it.querySelector(".body");if(!b){d=null;return}b.focus();const r=document.createRange();r.selectNodeContents(b);r.collapse(false);const s=getSelection();s.removeAllRanges();s.addRange(r)}
  if(d.moved)save();d=null
 });
 page.addEventListener("wheel",e=>{const m=get(sel);if(!adj||!m||m.type!="photo"||!e.target.closest(".item.sel .pwell"))return;
@@ -712,18 +715,25 @@ async function hlPdf(f){return hlPdfParse(await hlPdfLines(f),f.name)}
 function hlPlace(es){
  psPad();
  const st=S.pi>=2?pageStyle():null,fresh=S.pi>=2&&S.pages[S.pi].length==0;
- let next=fresh?S.pi+1:Math.max(S.pi+1,2),cp=fresh?S.pi:-1,first=cp,y=50,lastCh="";
- const H=(t,sz,w)=>{const cpl=Math.max(6,Math.floor(w/(sz*.62)));let n=0;t.split("\n").forEach(p=>{n+=Math.max(1,Math.ceil(p.length/cpl))});return Math.ceil(n*sz*1.45)+14};
- const put2=(it,h)=>{
-  if(cp<0||(y+h>1050&&S.pages[cp].length)){S.pages.splice(next,0,[]);S.ps.splice(next,0,st);cp=next++;y=50;if(first<0)first=cp}
-  const a=S.pages[cp];it.id=Math.max(0,...a.map(i=>i.id))+1;it.y=y;a.push(it);y+=h+14};
- const note=(t,x)=>put2({type:"note",x,w:420,rot:0,size:16,color:"#f8d0e4",dark:0,text:t},H(t,16,380)+30);
+ let next=fresh?S.pi+1:Math.max(S.pi+1,2),cp=fresh?S.pi:-1,first=cp,cy=[50,50],n=0;
+ const H=(t,sz,w)=>{const cpl=Math.max(6,Math.floor(w/(sz*.62)));let k=0;String(t).split("\n").forEach(p=>{k+=Math.max(1,Math.ceil(p.length/cpl))});return Math.ceil(k*sz*1.45)+14};
+ const put2=(it,h,full)=>{
+  let c=full?-1:(cy[0]<=cy[1]?0:1),y=full?Math.max(cy[0],cy[1]):cy[c];
+  if(cp<0||(y+h>1050&&S.pages[cp].length)){S.pages.splice(next,0,[]);S.ps.splice(next,0,st);cp=next++;cy=[50,50];y=50;c=full?-1:0;if(first<0)first=cp}
+  const a=S.pages[cp];it.id=Math.max(0,...a.map(i=>i.id))+1;it.y=y;if(!full)it.x=c?430:50;a.push(it);
+  if(full)cy=[y+h+20,y+h+20];else cy[c]=y+h+20};
+ const rot=()=>[-1,1,.6,-.6][n++%4];
  es.forEach(e=>{
-  if(e.ch&&e.ch!=lastCh){lastCh=e.ch;put2({type:"text",x:50,w:720,rot:0,size:22,text:e.ch,hl:null},H(e.ch,22,720))}
-  if(e.kind=="note"){note(e.text,50);return}
-  let sz=18;while(sz>12&&H(e.text,sz,720)>1000)sz-=2;
-  put2({type:"text",x:50,w:720,rot:0,size:sz,text:e.text,hl:e.color||HLC.yellow},H(e.text,sz,720));
-  if(e.note)note(e.note,90)});
+  if(e.kind=="note"){
+   const h=44+H(e.text,16,296)+(e.ch?28:0);
+   put2({type:"note",tag:e.ch||"",x:50,w:340,rot:rot(),size:16,color:"#f8d0e4",dark:0,text:e.text},h);return}
+  const q=(sz,w)=>58+H(e.text,sz,w-44)+(e.ch?sz+14:0)+(e.note?H(e.note,Math.round(sz*.86),w-44)+26:0);
+  let w=340,sz=17,full=false;
+  if(q(sz,w)>520){w=720;full=true;sz=18}
+  while(sz>12&&q(sz,w)>1000)sz-=2;
+  const it={type:"note",variant:"quote",tag:e.ch||"",x:50,w,rot:full?0:rot(),size:sz,color:e.color||HLC.yellow,dark:0,text:e.text};
+  if(e.note)it.ann=e.note;
+  put2(it,q(sz,w),full)});
  if(first>=0)go(first)}
 function hlDialog(books){
  const have=new Set();S.pages.forEach(p=>p.forEach(i=>{if(i.text)have.add(hlNorm(i.text))}));
