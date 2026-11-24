@@ -129,6 +129,19 @@ textarea{font:inherit;font-size:14px;width:100%;color:var(--fg);background:var(-
 .rs{position:absolute;right:-8px;bottom:-8px;width:16px;height:16px;border-radius:50%;background:var(--acc);display:none;cursor:nwse-resize;border:2px solid #fff}
 .rot{position:absolute;left:-9px;bottom:-9px;width:18px;height:18px;border-radius:50%;background:var(--acc);color:#fff;border:2px solid #fff;display:none;cursor:grab;font-size:11px;line-height:14px;text-align:center;touch-action:none}
 .sel .rs,.sel .rot{display:block}
+
+#hlOv{position:fixed;inset:0;z-index:100;background:rgba(20,10,40,.55);display:flex;align-items:center;justify-content:center;padding:12px}
+.hlBox{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:14px;width:min(680px,100%);max-height:calc(100% - 8px);display:flex;flex-direction:column;padding:16px;gap:10px;box-shadow:0 12px 40px rgba(20,10,40,.4)}
+.hlBox h3{margin:0;font-size:18px}
+.hlTop{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.hlTop select{flex:1 1 220px;min-width:0}
+.hlList{overflow:auto;flex:1 1 auto;min-height:120px;border:1px solid var(--line);border-radius:10px}
+.hlRow{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer;font-size:14px;line-height:1.4}
+.hlRow:last-child{border-bottom:0}
+.hlDot{flex:0 0 12px;height:12px;border-radius:50%;margin-top:4px;border:1px solid var(--line)}
+.hlTx{flex:1;min-width:0;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.hlNt{display:block;opacity:.75;margin-top:3px}
+.hlTx em{opacity:.6}
+.hlFoot{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}.hlFoot span{margin-right:auto;font-size:13px;opacity:.8}
 </style></head>
 <body>
 <header><a id="back" href="index.html">← Back to index</a><h1 id="bk">pahina ni yue</h1></header>
@@ -187,8 +200,9 @@ textarea{font:inherit;font-size:14px;width:100%;color:var(--fg);background:var(-
 <div id="pager"><div id="tabs"></div><button id="pAdd">+ Page</button><button id="pDel">Delete page</button><span id="selInfo"></span></div>
 <div id="wrap"><div id="frame"><div id="page"></div></div></div>
 <div class="bar bottom" role="toolbar" aria-label="Save and export">
-  <div class="dd up"><button class="ddb" id="saveBtn" title="A dot means changes since your last .md download" aria-haspopup="menu">Save &amp; export ▾</button><div class="dd-menu" role="menu"><button id="xImg">Export image (this page)</button><button id="xPdf">Export PDF (all pages)</button><button id="xMd">Download .md</button><button id="lMd">Load .md</button></div></div>
+  <div class="dd up"><button class="ddb" id="saveBtn" title="A dot means changes since your last .md download" aria-haspopup="menu">Save &amp; export ▾</button><div class="dd-menu" role="menu"><button id="xImg">Export image (this page)</button><button id="xPdf">Export PDF (all pages)</button><button id="xMd">Download .md</button><button id="lMd">Load .md</button><button id="iHl" title="Bring in highlights and notes from Kindle, Readest or Google Play Books">Import highlights…</button></div></div>
   <input type="file" id="file" accept=".md,.markdown,text/markdown,text/plain">
+  <input type="file" id="hlFile" accept=".html,.htm,.txt,.md,.markdown,.json,text/html,text/plain,application/json" hidden>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -586,4 +600,114 @@ $("#bg").value=S.bg;$("#paper").value=S.paper;$("#font").value=S.font;$("#snap")
 head();marks();paint();paintCsw();render();syncCover();hist();
 if(document.fonts){document.fonts.ready.then(()=>{fitSpine();fitBlurb(1)});document.fonts.addEventListener&&document.fonts.addEventListener("loadingdone",()=>{fitSpine();fitBlurb(1)})}
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
+
+/* ---------- Import highlights (Kindle HTML / My Clippings.txt, Readest, Play Books) ---------- */
+const HLC={yellow:"#fff3a3",blue:"#cde4fa",pink:"#f8d0e4",orange:"#ffd6cc",green:"#cdeccf",purple:"#e5d8f8"};
+const hlNorm=t=>String(t||"").replace(/\s+/g," ").trim();
+function hlKindle(doc){
+ if(!doc.querySelector(".noteHeading"))return null;
+ const title=hlNorm((doc.querySelector(".bookTitle")||{}).textContent),author=hlNorm((doc.querySelector(".authors")||{}).textContent);
+ const out=[];let ch="",last=null,cur=null;
+ for(const e of doc.querySelectorAll(".sectionHeading,.noteHeading,.noteText")){
+  if(e.classList.contains("sectionHeading")){ch=hlNorm(e.textContent);continue}
+  if(e.classList.contains("noteHeading")){
+   const h=hlNorm(e.textContent),sp=e.querySelector("[class*=highlight_]"),c=sp?(String(sp.className).match(/highlight_(\w+)/)||[])[1]:"";
+   cur={kind:/^note/i.test(h)?"note":/^bookmark/i.test(h)?"skip":"hl",color:HLC[c]||HLC.yellow,ch};continue}
+  if(!cur)continue;
+  const t=e.textContent.replace(/\u00a0/g," ").trim(),c=cur;cur=null;
+  if(!t||c.kind=="skip")continue;
+  if(c.kind=="note"){if(last&&!last.note){last.note=t;last=null}else out.push({kind:"note",text:t,ch:c.ch})}
+  else{const o={kind:"hl",text:t,color:c.color,ch:c.ch};out.push(o);last=o}}
+ return[{title,author,entries:out}]}
+function hlClip(txt){
+ const books={},order=[];
+ txt.replace(/^\uFEFF/,"").replace(/\r/g,"").split(/\n={5,}[ \t]*\n?/).forEach(b=>{
+  const L=b.replace(/^\s+/,"").split("\n");if(L.length<3)return;
+  const head=L[0].trim(),meta=L[1]||"";if(!/^-\s*your\s/i.test(meta))return;
+  const kind=/highlight/i.test(meta)?"hl":/note/i.test(meta)?"note":"skip";if(kind=="skip")return;
+  const text=L.slice(2).join("\n").trim();if(!text)return;
+  const m=head.match(/^(.*?)\s*\(([^()]*)\)\s*$/),title=m?m[1]:head,author=m?m[2]:"";
+  const k=title+"|"+author;if(!books[k]){books[k]={title,author,entries:[]};order.push(k)}
+  const lm=meta.match(/location\s+(\d+)(?:\s*-\s*(\d+))?/i),lo=lm?+lm[1]:0,hi=lm&&lm[2]?+lm[2]:lo,E=books[k].entries,pv=E[E.length-1];
+  if(kind=="note"&&pv&&pv.kind=="hl"&&!pv.note&&lo>=pv.lo&&lo<=pv.hi+1)pv.note=text;
+  else E.push({kind,text,color:HLC.yellow,ch:"",lo,hi})});
+ const r=order.map(k=>books[k]).filter(b=>b.entries.length);return r.length?r:null}
+function hlGenericBlocks(blocks,name){
+ const entries=[];let ch="",title="",q=blocks.some(b=>/^>/.test(b));
+ const clean=b=>b.replace(/^>\s?/gm,"").trim();
+ blocks.forEach(b=>{
+  if(/^#+\s/.test(b)){const h=b.replace(/^#+\s*/,"").trim();if(!title&&/^#\s/.test(b))title=h;else ch=h;return}
+  if(/^(---|\*\*\*|___)$/.test(b)||/^(title|author|exported|export date|date)\s*[:：]/i.test(b))return;
+  if(q){if(/^>/.test(b))entries.push({kind:"hl",text:clean(b),color:HLC.yellow,ch});
+        else{const pv=entries[entries.length-1];if(pv&&pv.kind=="hl"&&!pv.note&&!/^[-*\[]/.test(b))pv.note=b.trim()}}
+  else entries.push({kind:"hl",text:b.trim(),color:HLC.yellow,ch})});
+ return entries.length?[{title:title||name.replace(/\.[^.]+$/,""),author:"",entries}]:null}
+function hlGeneric(raw,name){
+ const t=raw.replace(/^\uFEFF/,"").replace(/\r/g,"");
+ try{const j=JSON.parse(t),entries=[];
+  const walk=o=>{if(Array.isArray(o))o.forEach(walk);else if(o&&typeof o=="object"){
+   const tx=o.text||o.excerpt||o.quote||o.highlight,nt=o.note||o.notes;
+   if(typeof tx=="string"&&tx.trim())entries.push({kind:"hl",text:tx.trim(),note:typeof nt=="string"?nt.trim():"",color:HLC[String(o.color||o.style||"").toLowerCase()]||HLC.yellow,ch:String(o.chapter||o.chapterTitle||o.section||"")});
+   else if(typeof nt=="string"&&nt.trim()&&!tx)entries.push({kind:"note",text:nt.trim(),ch:""});
+   else Object.values(o).forEach(walk)}};
+  walk(j);if(entries.length)return[{title:(j&&typeof j.title=="string"&&j.title)||name.replace(/\.[^.]+$/,""),author:"",entries}];}catch(_){}
+ return hlGenericBlocks(t.split(/\n\s*\n/).map(b=>b.trim()).filter(Boolean),name)}
+function hlHtmlGeneric(doc,name){
+ const bl=[...doc.body.querySelectorAll("p,li,blockquote,div,h1,h2,h3")].filter(e=>!e.querySelector("p,li,blockquote,div,h1,h2,h3")).map(e=>{const t=e.textContent.replace(/\u00a0/g," ").trim();return /^H[1-3]$/.test(e.tagName)&&t?"## "+t:t}).filter(Boolean);
+ return hlGenericBlocks(bl,name)}
+function hlPlace(es){
+ psPad();
+ const st=S.pi>=2?pageStyle():null,fresh=S.pi>=2&&S.pages[S.pi].length==0;
+ let next=fresh?S.pi+1:Math.max(S.pi+1,2),cp=fresh?S.pi:-1,first=cp,y=50,lastCh="";
+ const H=(t,sz,w)=>{const cpl=Math.max(6,Math.floor(w/(sz*.62)));let n=0;t.split("\n").forEach(p=>{n+=Math.max(1,Math.ceil(p.length/cpl))});return Math.ceil(n*sz*1.45)+14};
+ const put2=(it,h)=>{
+  if(cp<0||(y+h>1050&&S.pages[cp].length)){S.pages.splice(next,0,[]);S.ps.splice(next,0,st);cp=next++;y=50;if(first<0)first=cp}
+  const a=S.pages[cp];it.id=Math.max(0,...a.map(i=>i.id))+1;it.y=y;a.push(it);y+=h+14};
+ const note=(t,x)=>put2({type:"note",x,w:420,rot:0,size:16,color:"#f8d0e4",dark:0,text:t},H(t,16,380)+30);
+ es.forEach(e=>{
+  if(e.ch&&e.ch!=lastCh){lastCh=e.ch;put2({type:"text",x:50,w:720,rot:0,size:22,text:e.ch,hl:null},H(e.ch,22,720))}
+  if(e.kind=="note"){note(e.text,50);return}
+  let sz=18;while(sz>12&&H(e.text,sz,720)>1000)sz-=2;
+  put2({type:"text",x:50,w:720,rot:0,size:sz,text:e.text,hl:e.color||HLC.yellow},H(e.text,sz,720));
+  if(e.note)note(e.note,90)});
+ if(first>=0)go(first)}
+function hlDialog(books){
+ const have=new Set();S.pages.forEach(p=>p.forEach(i=>{if(i.text)have.add(hlNorm(i.text))}));
+ books.forEach(b=>b.entries.forEach(e=>{e.dup=have.has(hlNorm(e.text));e.on=!e.dup}));
+ const ov=document.createElement("div");ov.id="hlOv";
+ ov.innerHTML='<div class="hlBox" role="dialog" aria-modal="true" aria-label="Import highlights"><h3>Import highlights</h3><div class="hlTop"><select id="hlBook" aria-label="Book"></select><label><input type="checkbox" id="hlAll"> Select all</label></div><div class="hlList" id="hlList"></div><div class="hlFoot"><span id="hlCnt"></span><button id="hlNo">Cancel</button><button class="go" id="hlGo">Import</button></div></div>';
+ document.body.append(ov);
+ const q=x=>ov.querySelector(x),sel=q("#hlBook"),list=q("#hlList");
+ books.forEach((b,i)=>{const o=document.createElement("option");o.value=i;o.textContent=(b.title||"Untitled")+(b.author?" – "+b.author:"")+" ("+b.entries.length+")";sel.append(o)});
+ sel.hidden=books.length<2;
+ const B=()=>books[+sel.value||0];
+ const cnt=()=>{const es=B().entries,n=es.filter(e=>e.on).length;q("#hlCnt").textContent=n+" of "+es.length+" selected";q("#hlGo").disabled=!n;q("#hlAll").checked=n==es.length};
+ const draw=()=>{list.textContent="";B().entries.forEach(e=>{
+  const r=document.createElement("label");r.className="hlRow";
+  const c=document.createElement("input");c.type="checkbox";c.checked=e.on;c.onchange=()=>{e.on=c.checked;cnt()};
+  const d=document.createElement("span");d.className="hlDot";d.style.background=e.kind=="note"?"#f8d0e4":(e.color||HLC.yellow);
+  const t=document.createElement("span");t.className="hlTx";t.textContent=e.text;
+  if(e.note){const n=document.createElement("span");n.className="hlNt";n.textContent="✎ "+e.note;t.append(n)}
+  if(e.dup){const g=document.createElement("em");g.textContent=" (already on the board)";t.append(g)}
+  r.append(c,d,t);list.append(r)});cnt()};
+ const close=()=>{ov.remove();document.removeEventListener("keydown",key)};
+ const key=e=>{if(e.key=="Escape")close()};
+ document.addEventListener("keydown",key);
+ ov.onclick=e=>{if(e.target==ov)close()};
+ sel.onchange=draw;
+ q("#hlAll").onchange=e=>{B().entries.forEach(x=>x.on=e.target.checked);draw()};
+ q("#hlNo").onclick=close;
+ q("#hlGo").onclick=()=>{const es=B().entries.filter(e=>e.on);close();hlPlace(es)};
+ draw();q("#hlGo").focus()}
+$("#iHl").onclick=()=>$("#hlFile").click();
+$("#hlFile").onchange=async e=>{
+ const f=e.target.files[0];e.target.value="";if(!f)return;
+ try{
+  const raw=await f.text();let books=null;
+  if(/\.html?$/i.test(f.name)||/^\s*<(!doctype|html)/i.test(raw)){const doc=new DOMParser().parseFromString(raw,"text/html");books=hlKindle(doc)||hlHtmlGeneric(doc,f.name)}
+  else books=hlClip(raw)||hlGeneric(raw,f.name);
+  books=(books||[]).filter(b=>b.entries.length);
+  if(!books.length){alert("I couldn’t find any highlights in that file.");return}
+  hlDialog(books)
+ }catch(err){alert("I couldn’t read that file.")}};
 </script></body></html>
