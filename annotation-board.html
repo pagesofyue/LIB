@@ -200,9 +200,9 @@ textarea{font:inherit;font-size:14px;width:100%;color:var(--fg);background:var(-
 <div id="pager"><div id="tabs"></div><button id="pAdd">+ Page</button><button id="pDel">Delete page</button><span id="selInfo"></span></div>
 <div id="wrap"><div id="frame"><div id="page"></div></div></div>
 <div class="bar bottom" role="toolbar" aria-label="Save and export">
-  <div class="dd up"><button class="ddb" id="saveBtn" title="A dot means changes since your last .md download" aria-haspopup="menu">Save &amp; export ▾</button><div class="dd-menu" role="menu"><button id="xImg">Export image (this page)</button><button id="xPdf">Export PDF (all pages)</button><button id="xMd">Download .md</button><button id="lMd">Load .md</button><button id="iHl" title="Bring in highlights and notes from Kindle, Readest or Google Play Books">Import highlights…</button></div></div>
+  <div class="dd up"><button class="ddb" id="saveBtn" title="A dot means changes since your last .md download" aria-haspopup="menu">Save &amp; export ▾</button><div class="dd-menu" role="menu"><button id="xImg">Export image (this page)</button><button id="xPdf">Export PDF (all pages)</button><button id="xMd">Download .md</button><button id="lMd">Load .md</button><button id="iHl" title="Bring in highlights and notes from Kindle (HTML, My Clippings.txt or PDF), Readest or Google Play Books">Import highlights…</button></div></div>
   <input type="file" id="file" accept=".md,.markdown,text/markdown,text/plain">
-  <input type="file" id="hlFile" accept=".html,.htm,.txt,.md,.markdown,.json,text/html,text/plain,application/json" hidden>
+  <input type="file" id="hlFile" accept=".html,.htm,.txt,.md,.markdown,.json,.pdf,text/html,text/plain,application/json,application/pdf" hidden>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -655,6 +655,60 @@ function hlGeneric(raw,name){
 function hlHtmlGeneric(doc,name){
  const bl=[...doc.body.querySelectorAll("p,li,blockquote,div,h1,h2,h3")].filter(e=>!e.querySelector("p,li,blockquote,div,h1,h2,h3")).map(e=>{const t=e.textContent.replace(/\u00a0/g," ").trim();return /^H[1-3]$/.test(e.tagName)&&t?"## "+t:t}).filter(Boolean);
  return hlGenericBlocks(bl,name)}
+
+/* ---- Kindle PDF export (notes & highlights) ---- */
+const loadJs=src=>new Promise((ok,no)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=()=>no(new Error("load failed"));document.head.append(s)});
+async function pdfLib(){
+ if(window.pdfjsLib&&window.pdfjsWorker)return;
+ const B="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+ if(!window.pdfjsLib)await loadJs(B+"pdf.min.js");
+ if(!window.pdfjsWorker)await loadJs(B+"pdf.worker.min.js");
+ window.pdfjsLib.GlobalWorkerOptions.workerSrc=B+"pdf.worker.min.js"}
+async function hlPdfLines(f){
+ await pdfLib();
+ const pdf=await pdfjsLib.getDocument({data:new Uint8Array(await f.arrayBuffer()),isEvalSupported:false}).promise,all=[];
+ for(let n=1;n<=pdf.numPages;n++){
+  const tc=await(await pdf.getPage(n)).getTextContent(),rows=[];
+  tc.items.forEach(it=>{if(!it.str)return;const y=it.transform[5],h=it.height||10;
+   let r=rows.find(r=>Math.abs(r.y-y)<h*.4);if(!r){r={y,h,its:[]};rows.push(r)}r.its.push({x:it.transform[4],w:it.width||0,s:it.str,h})});
+  rows.sort((a,b)=>b.y-a.y);let py=null;
+  rows.forEach(r=>{r.its.sort((a,b)=>a.x-b.x);let t="",ex=null;
+   r.its.forEach(i=>{if(ex!==null&&i.x-ex>i.h*.15&&!/\s$/.test(t)&&!/^\s/.test(i.s))t+=" ";t+=i.s;ex=i.x+i.w});
+   t=hlNorm(t);if(!t)return;
+   if(py!==null&&py-r.y>r.h*1.9)all.push({t:"",pg:n});
+   all.push({t,pg:n});py=r.y});
+  py=null}
+ const pgs={};all.forEach(l=>{if(l.t){(pgs[l.t]=pgs[l.t]||new Set()).add(l.pg)}});
+ return all.filter(l=>!l.t||!(/^\d+$/.test(l.t)||/^page\s+\d+(\s+of\s+\d+)?$/i.test(l.t)||(pgs[l.t].size>=3&&l.t.length<80&&!hlPdfHead(l.t)))).map(l=>l.t)}
+function hlPdfHead(l){
+ if(!l||l.length>140)return null;
+ const m=l.match(/^(?:(yellow|blue|pink|orange|green|purple)\s+)?(highlight|note|bookmark)s?\b(.*)$/i);if(!m)return null;
+ let r=m[3].trim(),c=(m[1]||"").toLowerCase();
+ const cm=r.match(/^[(\[]\s*([a-z]+)\s*[)\]]/i);
+ if(cm){if(HLC[cm[1].toLowerCase()])c=c||cm[1].toLowerCase();r=r.slice(cm[0].length).trim()}
+ if(r&&!(/^[-–—|·:,.]/.test(r)&&/(page|location|loc\b|>|chapter)/i.test(r)))return null;
+ const cx=r.match(/[-–—|·:]\s*(.+?)\s*>\s*(?:page|location)/i);
+ return{kind:m[2].toLowerCase()=="highlight"?"hl":m[2].toLowerCase()=="note"?"note":"skip",color:HLC[c]||HLC.yellow,ch:cx?hlNorm(cx[1]):""}}
+function hlPdfParse(L,name){
+ const out=[],pre=[];let cur=null,buf=[],last=null,ch="";
+ const flush=()=>{
+  if(!cur)return;const c=cur;cur=null;
+  let paras=buf.join("\n").split(/\n{2,}|\n(?=\n)/).map(hlNorm).filter(Boolean);buf=[];
+  if(paras.length>1){const e=paras[paras.length-1];if(e.length<80&&!/[.!?…"”’')\]]$/.test(e)){ch=e;paras.pop()}}
+  const t=hlNorm(paras.join(" "));
+  if(!t||c.kind=="skip")return;
+  if(c.kind=="note"){if(last&&!last.note){last.note=t;last=null}else out.push({kind:"note",text:t,ch:c.ch||ch})}
+  else{const o={kind:"hl",text:t,color:c.color,ch:c.ch||ch};out.push(o);last=o}};
+ L.forEach(l=>{const h=hlPdfHead(l);if(h){flush();cur=h;return}
+  if(cur)buf.push(l);else if(l)pre.push(l)});
+ flush();
+ if(!out.length){
+  const bl=[];let b=[];L.forEach(l=>{if(l)b.push(l);else if(b.length){bl.push(b.join(" "));b=[]}});if(b.length)bl.push(b.join(" "));
+  return hlGenericBlocks(bl,name)}
+ const meta=pre.filter(x=>!/^(citation|notes?\s*(and|&)\s*highlights?|kindle|your\s+(notes|highlights)|exported|annotations)/i.test(x));
+ const title=meta[0]||name.replace(/\.[^.]+$/,""),au=meta[1]&&meta[1].length<80?meta[1].replace(/^by\s+/i,""):"";
+ return[{title,author:au,entries:out}]}
+async function hlPdf(f){return hlPdfParse(await hlPdfLines(f),f.name)}
 function hlPlace(es){
  psPad();
  const st=S.pi>=2?pageStyle():null,fresh=S.pi>=2&&S.pages[S.pi].length==0;
@@ -703,11 +757,13 @@ $("#iHl").onclick=()=>$("#hlFile").click();
 $("#hlFile").onchange=async e=>{
  const f=e.target.files[0];e.target.value="";if(!f)return;
  try{
-  const raw=await f.text();let books=null;
+  let books=null;
+  if(/\.pdf$/i.test(f.name)||f.type=="application/pdf"){books=await hlPdf(f)}
+  else{const raw=await f.text();
   if(/\.html?$/i.test(f.name)||/^\s*<(!doctype|html)/i.test(raw)){const doc=new DOMParser().parseFromString(raw,"text/html");books=hlKindle(doc)||hlHtmlGeneric(doc,f.name)}
-  else books=hlClip(raw)||hlGeneric(raw,f.name);
+  else books=hlClip(raw)||hlGeneric(raw,f.name)}
   books=(books||[]).filter(b=>b.entries.length);
   if(!books.length){alert("I couldn’t find any highlights in that file.");return}
   hlDialog(books)
- }catch(err){alert("I couldn’t read that file.")}};
+ }catch(err){alert(/\.pdf$/i.test(f.name)?"I couldn’t read that PDF. If it’s a scanned image, it has no text to import. "+(err&&err.message&&/load/i.test(err.message)?"The PDF reader didn’t load; check your connection.":""):"I couldn’t read that file.")}};
 </script></body></html>
