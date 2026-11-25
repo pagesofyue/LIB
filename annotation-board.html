@@ -89,10 +89,10 @@ textarea{font:inherit;font-size:14px;width:100%;color:var(--fg);background:var(-
 .inf{position:absolute;inset:0}
 .ic{position:absolute;left:60px;top:60px;width:250px;height:375px;overflow:hidden;background:#e6dff0;color:#3f2d66;box-shadow:3px 6px 14px rgba(40,20,70,.3);display:flex;align-items:center;justify-content:center;text-align:center;padding:14px;font:700 26px 'Playfair Display',serif}
 .ic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
-.im{position:absolute;left:340px;top:60px;right:60px;display:flex;flex-direction:column;gap:10px}
-.im{max-height:390px;overflow:hidden}.im .mi{font-size:20px}
-.im h2{font:700 44px/1.1 'Playfair Display',serif;margin:0}
-.im .au{font-size:26px}.im .hd{font-size:19px;opacity:.75}.im .se{font-size:20px}
+.im{position:absolute;left:340px;top:60px;right:60px;height:375px;overflow:hidden;display:flex;flex-direction:column;gap:calc(10px*var(--k,1))}
+.im .mi{font-size:calc(20px*var(--k,1)*var(--kt,1))}
+.im h2{font:700 44px/1.1 'Playfair Display',serif;margin:0;white-space:nowrap}
+.im .au{font-size:calc(26px*var(--k,1))}.im .hd{font-size:calc(19px*var(--k,1));opacity:.75}.im .se{font-size:calc(20px*var(--k,1))}.im .rt{font-size:calc(38px*var(--k,1))}.im .rn{font-size:calc(18px*var(--k,1))}
 .rt{position:relative;display:inline-block;color:#c9c1d6;font-size:38px;line-height:1;letter-spacing:2px;white-space:nowrap}
 .rt i{position:absolute;left:0;top:0;width:var(--p);overflow:hidden;white-space:nowrap;color:#f2b01e;font-style:normal}
 .rn{font-size:18px;opacity:.75;margin-left:10px;letter-spacing:0;display:inline-block}
@@ -361,7 +361,20 @@ function buildInfo(){
  if(f.source)im.append(mi("Source",f.source=="ARC"&&f.arc?"ARC · "+f.arc:f.source));
  const q=div("iq");(f.links||[]).filter(x=>x.u&&x.u.trim()).slice(0,8).forEach(x=>{const t=div("qt"),u=normUrl(x.u.trim());t.append(qrCanvas(u),mk2("ql",x.l||u.replace(/^https?:\/\/(www\.)?/,"").split("/")[0]));q.append(t)});
  L.append(ic,im,mk2("ib",f.blurb||""),q);return L}
+function fitInfoText(){
+ const im=page.querySelector(".inf .im");if(!im||im.clientHeight<=0)return;
+ const h2=im.querySelector("h2"),fits=()=>im.scrollHeight<=im.clientHeight+1;
+ let T=44;
+ if(h2){h2.style.fontSize="44px";if(h2.scrollWidth>h2.clientWidth+1){let lo=8,hi=44;while(hi-lo>.25){const m=(lo+hi)/2;h2.style.fontSize=m+"px";if(h2.scrollWidth<=h2.clientWidth+1)lo=m;else hi=m}T=lo}}
+ const apply=(k,kt)=>{im.style.setProperty("--k",k);im.style.setProperty("--kt",kt);if(h2)h2.style.fontSize=(T*k)+"px"};
+ apply(1,1);if(fits())return;
+ let lo=.6,hi=1;apply(1,lo);
+ if(fits()){while(hi-lo>.01){const m=(lo+hi)/2;apply(1,m);if(fits())lo=m;else hi=m}apply(1,lo);return}
+ lo=.3;hi=1;apply(lo,.6);
+ while(hi-lo>.01){const m=(lo+hi)/2;apply(m,.6);if(fits())lo=m;else hi=m}
+ apply(lo,.6)}
 function fitBlurb(re){
+ fitInfoText();
  const b=page.querySelector(".inf .ib");if(!b)return;
  if(!re&&document.fonts&&b.textContent)document.fonts.ready.then(()=>{if(page.contains(b))fitBlurb(1)}).catch(()=>{});
  const inf=b.parentNode,q=inf.querySelector(".iq"),IH=inf.clientHeight;if(IH<=0)return;
