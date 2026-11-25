@@ -5794,7 +5794,24 @@ function annotationHref(b){
   if (b.author) q += '&author=' + encodeURIComponent(b.author);
   if (b.series) q += '&series=' + encodeURIComponent(b.series);
   if (b.seriesNumber) q += '&idx=' + encodeURIComponent(b.seriesNumber);
-  if (typeof b.cover === 'string' && /^https?:\/\//i.test(b.cover) && b.cover.length < 1500) q += '&cover=' + encodeURIComponent(b.cover);
+  var insts = [];
+  try { insts = formatInstancesOf(b) || []; } catch(e) {}
+  var coverUrl = [b.cover].concat(insts.map(function(f){ return f && f.cover; })).find(function(c){
+    return typeof c === 'string' && /^https?:\/\//i.test(c) && c.length < 1500;
+  });
+  if (coverUrl) q += '&cover=' + encodeURIComponent(coverUrl);
+  if (b.genre) q += '&genre=' + encodeURIComponent(b.genre);
+  if (b.tropes && b.tropes.length) q += '&tropes=' + encodeURIComponent(b.tropes.join(', ').slice(0, 600));
+  var arcInst = insts.find(function(f){ return f && f.isARC; });
+  var srcName = '';
+  if (arcInst || b.isARC) {
+    srcName = 'ARC';
+    var arcFrom = (arcInst && arcInst.arcSource) || b.arcSource || '';
+    if (arcFrom) q += '&arc=' + encodeURIComponent(arcFrom);
+  } else if (b.shelf === 'amazon') srcName = 'Purchased';
+  else if (insts.some(function(f){ return f && f.ownership === 'Borrowed'; })) srcName = 'Borrowed';
+  else if (insts.some(function(f){ return f && f.ownership === 'Owned'; })) srcName = 'Purchased';
+  if (srcName) q += '&source=' + encodeURIComponent(srcName);
   var hi = authorHandleInfo(b.author || '');
   if(hi) q += '&handle=' + encodeURIComponent(hi.handle);
   if(b.rating > 0) q += '&rating=' + encodeURIComponent(b.rating);
