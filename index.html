@@ -813,6 +813,9 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .card-id-badge{font-family:var(--font-stamp);font-size:11px;font-weight:400;color:var(--muted);opacity:0.75;letter-spacing:0.06em;}
 .cover-thumb{box-shadow:0 6px 14px rgba(59,42,85,0.28);}
 .post-image-btn{margin-right:auto;text-decoration:none;}
+.sort-check-row.kindle-only{display:none;}body.shelf-kindle .sort-check-row.kindle-only{display:flex;}
+.batch-head{grid-column:1/-1;font-family:var(--font-mono);font-size:12px;letter-spacing:.04em;color:var(--muted);border-bottom:1px solid var(--line-strong);padding:10px 2px 6px;margin-top:6px;}
+.batch-head:first-child{margin-top:0;}
 .card-pages{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin:3px 0 0;}
 body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .arcHint,body.shelf-kindle #providerFilter,body.shelf-kindle #statDueSoon{display:none !important;}
 #kindleExtras{display:none;}
@@ -929,6 +932,8 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
         <p class="sort-dropdown-hint">Check up to 2. The order you check them sets priority.</p>
         <label class="sort-check-row"><input type="checkbox" data-sort-key="due"><span class="sort-badge"></span>Due Soon</label>
         <label class="sort-check-row"><input type="checkbox" data-sort-key="pages"><span class="sort-badge"></span>Fewest Pages</label>
+        <label class="sort-check-row kindle-only"><input type="checkbox" data-sort-key="batch"><span class="sort-badge"></span>Batch: Oldest First</label>
+        <label class="sort-check-row kindle-only"><input type="checkbox" data-sort-key="batchNew"><span class="sort-badge"></span>Batch: Newest First</label>
         <label class="sort-check-row"><input type="checkbox" data-sort-key="added"><span class="sort-badge"></span>Recently Added</label>
         <label class="sort-check-row"><input type="checkbox" data-sort-key="needsReview"><span class="sort-badge"></span>Needs Review</label>
         <label class="sort-check-row"><input type="checkbox" data-sort-key="rating"><span class="sort-badge"></span>Rating: Highest to Lowest</label>
@@ -1638,8 +1643,12 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
   var mainShelf = [];
   var amazonShelf = [];
   function tagShelf(b){ if(activeShelf === 'amazon') b.shelf = 'amazon'; return b; }
+  var sortByShelf = {main: ['due'], amazon: ['batch', 'pages']};
   function setShelf(target){
     if(target === activeShelf) return false;
+    sortByShelf[activeShelf] = activeSortCriteria;
+    activeSortCriteria = sortByShelf[target] || ['due'];
+    if(typeof updateSortDropdownUI === 'function') updateSortDropdownUI();
     if(activeShelf === 'amazon') amazonShelf = books; else mainShelf = books;
     activeShelf = target;
     books = (target === 'amazon') ? amazonShelf : mainShelf;
@@ -2439,6 +2448,7 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
   function comparePages(a, b){
     var pa = a.totalPages || Infinity;
     var pb = b.totalPages || Infinity;
+    if(pa === pb) return 0;
     return pa - pb;
   }
 
@@ -2456,9 +2466,26 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
     return statusOrderDate(b) - statusOrderDate(a);
   }
 
+  // Kindle batches are grouped by the date the books were bought.
+  // Books with no batch date always go last.
+  function compareBatch(dir){
+    return function(a, b){
+      var x = a.batchDate || '', y = b.batchDate || '';
+      if(!x && !y) return 0;
+      if(!x) return 1;
+      if(!y) return -1;
+      return x < y ? -dir : (x > y ? dir : 0);
+    };
+  }
+  function batchSortActive(){
+    return activeShelf === 'amazon' && (activeSortCriteria.indexOf('batch') !== -1 || activeSortCriteria.indexOf('batchNew') !== -1);
+  }
+
   var SORT_CRITERIA = {
     due: {label: 'Due Soon', cmp: compareDue},
     pages: {label: 'Fewest Pages', cmp: comparePages},
+    batch: {label: 'Batch: Oldest First', cmp: compareBatch(1)},
+    batchNew: {label: 'Batch: Newest First', cmp: compareBatch(-1)},
     added: {label: 'Recently Added', cmp: function(a, b){ return (b.createdAt || 0) - (a.createdAt || 0); }},
     needsReview: {label: 'Needs Review', cmp: function(a, b){
       var ra = a.review ? 1 : 0, rb = b.review ? 1 : 0;
@@ -2532,7 +2559,7 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
 
     // Cards are always grouped in a fixed order on top of whichever sort
     // is selected above — see statusGroupWeight below for the exact order.
-    filtered.sort(function(a,b){ return statusGroupWeight(a) - statusGroupWeight(b); });
+    if(!batchSortActive()) filtered.sort(function(a,b){ return statusGroupWeight(a) - statusGroupWeight(b); });
 
     // Books moved over from the TBR page stay pinned at the very top (newest
     // first) until "Accept migration" is clicked in their detail panel.
@@ -2647,7 +2674,12 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
 
     var kindleHtml = '';
     if(activeShelf === 'amazon'){
-      if(b.amzId || b.batchDate) kindleHtml += '<p class="card-pages">' + escapeHtml(b.amzId || '') + ((b.amzId && b.batchDate) ? ' · ' : '') + (b.batchDate ? 'Batch ' + escapeHtml(fmtShort(b.batchDate)) : '') + '</p>';
+      var kParts = [];
+      if(b.amzId) kParts.push(escapeHtml(b.amzId));
+      if(b.batchDate) kParts.push('Batch ' + escapeHtml(fmtShort(b.batchDate)));
+      var kPages = af.totalPages || b.totalPages;
+      if(kPages) kParts.push(Number(kPages).toLocaleString() + ' pages');
+      if(kParts.length) kindleHtml += '<p class="card-pages">' + kParts.join(' · ') + '</p>';
       if(b.amazonLink) kindleHtml += '<a class="arc-link" href="' + escapeHtml(b.amazonLink) + '" target="_blank" rel="noopener">Amazon ↗</a>';
     }
 
@@ -2662,7 +2694,7 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
     }
 
     var cardPageCount = af.totalPages || b.totalPages;
-    var pagesHtml = cardPageCount ? '<p class="card-pages">' + Number(cardPageCount).toLocaleString() + ' ' + (af.type === 'Audiobook' ? 'chapters' : 'pages') + '</p>' : '';
+    var pagesHtml = (cardPageCount && activeShelf !== 'amazon') ? '<p class="card-pages">' + Number(cardPageCount).toLocaleString() + ' ' + (af.type === 'Audiobook' ? 'chapters' : 'pages') + '</p>' : '';
 
     var seriesHtml = b.series ? '<p class="series series-line">' + escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '') + '</p>' : '';
 
@@ -2886,7 +2918,21 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
       var pageStart = (currentPageNum - 1) * PAGE_SIZE;
       var pageItems = filtered.slice(pageStart, pageStart + PAGE_SIZE);
 
-      pageItems.forEach(function(b){ grid.appendChild(bookCard(b)); });
+      var groupByBatch = batchSortActive(), lastBatchKey = null;
+      pageItems.forEach(function(b){
+        if(groupByBatch){
+          var bKey = b.batchDate || '';
+          if(bKey !== lastBatchKey){
+            lastBatchKey = bKey;
+            var bCount = filtered.filter(function(x){ return (x.batchDate || '') === bKey; }).length;
+            var head = document.createElement('div');
+            head.className = 'batch-head';
+            head.textContent = (bKey ? 'Batch · ' + new Date(bKey + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : 'No batch date') + ' · ' + bCount + ' book' + (bCount === 1 ? '' : 's');
+            grid.appendChild(head);
+          }
+        }
+        grid.appendChild(bookCard(b));
+      });
       shrinkSeriesLines();
 
       if(totalPages > 1){
