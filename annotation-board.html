@@ -209,7 +209,7 @@ textarea{font:inherit;font-size:14px;width:100%;color:var(--fg);background:var(-
 <div id="pager"><div id="tabs"></div><button id="pAdd">+ Page</button><button id="pDel">Delete page</button><span id="selInfo"></span></div>
 <div id="wrap"><div id="frame"><div id="page"></div></div></div>
 <div class="bar bottom" role="toolbar" aria-label="Save and export">
-  <div class="dd up"><button class="ddb" id="saveBtn" title="A dot means changes since your last .md download" aria-haspopup="menu">Save &amp; export ▾</button><div class="dd-menu" role="menu"><button id="xImg">Export image (this page)</button><button id="xMini" title="Back + spine + front, 5.6 × 3.81 cm, 600 dpi PNG">Download Mini Book Cover</button><button id="xWeb" title="Front cover only, 200 × 300 px PNG">Download Website Cover</button><button id="xPdf">Export PDF (all pages)</button><button id="xMd">Download .md</button><button id="lMd">Load .md</button><button id="iHl" title="Bring in highlights and notes from Kindle (HTML, My Clippings.txt or PDF), Readest or Google Play Books">Import highlights…</button></div></div>
+  <div class="dd up"><button class="ddb" id="saveBtn" title="A dot means changes since your last .md download" aria-haspopup="menu">Save &amp; export ▾</button><div class="dd-menu" role="menu"><button id="xImg">Export image (this page)</button><button id="xMini" title="Back + spine + front, 5.6 × 3.81 cm, 600 dpi PNG">Download Mini Book Cover</button><button id="xWeb" title="Front cover only, 200 × 300 px PNG">Download Website Cover</button><button id="xPdf">Export PDF (all pages)</button><button id="xPrint" title="Cover = A5 landscape, other pages = A5 portrait, margins none. Choose Save as PDF to get an A5-only PDF.">Print all pages A5 (no margins)</button><button id="xMd">Download .md</button><button id="lMd">Load .md</button><button id="iHl" title="Bring in highlights and notes from Kindle (HTML, My Clippings.txt or PDF), Readest or Google Play Books">Import highlights…</button></div></div>
   <input type="file" id="file" accept=".md,.markdown,text/markdown,text/plain">
   <input type="file" id="hlFile" accept=".html,.htm,.txt,.md,.markdown,.json,.pdf,text/html,text/plain,application/json,application/pdf" hidden>
 </div>
@@ -594,11 +594,11 @@ async function ready(){
  await Promise.all([...page.querySelectorAll("img")].map(i=>i.complete?(i.decode?i.decode().catch(()=>{}):0):new Promise(r=>{i.onload=i.onerror=r})));
  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
 }
-async function snap(){
+async function snap(sc=2){
  if(!window.html2canvas)throw new Error("Export library didn’t load. Check your connection and try again.");
  select(null);document.activeElement.blur();await ready();
  const old=page.style.transform,[W,Hh]=dims(S.pi);page.style.transform="none";
- try{return await html2canvas(page,{scale:2,useCORS:true,backgroundColor:PAPERS[pageStyle().paper][1],width:W,height:Hh,windowWidth:Math.max(W,innerWidth),windowHeight:Hh,scrollX:0,scrollY:0,
+ try{return await html2canvas(page,{scale:sc,useCORS:true,backgroundColor:PAPERS[pageStyle().paper][1],width:W,height:Hh,windowWidth:Math.max(W,innerWidth),windowHeight:Hh,scrollX:0,scrollY:0,
   /* render the page alone at (0,0) of the cloned document so scroll position / toolbars above it can never shift the capture */
   onclone:d=>{const p=d.getElementById("page");d.body.replaceChildren(p);d.body.style.margin="0";d.documentElement.style.padding="0";
    Object.assign(p.style,{position:"absolute",left:"0px",top:"0px",transform:"none",borderRadius:"0",boxShadow:"none"})}})}
@@ -635,18 +635,30 @@ $("#xWeb").onclick=e=>run(e.target,async()=>{
  dl(await toBlob(o),slug()+"-website-cover-200x300.png")});
 $("#xPdf").onclick=e=>run(e.target,async()=>{
  if(!window.jspdf)throw new Error("PDF library didn’t load. Check your connection and try again.");
- /* real millimetres: cover spread = CW×PH px @96dpi, every other page = exactly A5 148×210 mm, image stretched edge to edge */
- const PX=25.4/96,A5W=148,A5H=210,cw=CW*PX,ch=PH*PX,keep=S.pi;
- const pdf=new window.jspdf.jsPDF({unit:"mm",format:[cw,ch],orientation:"landscape",compress:true});
+ /* every page is A5 (148 × 210 mm): the cover spread is A5 landscape (210 × 148), the rest A5 portrait; images fill the page edge to edge */
+ const keep=S.pi;
+ const pdf=new window.jspdf.jsPDF({unit:"mm",format:[210,148],orientation:"landscape",compress:true});
  try{pdf.viewerPreferences({PrintScaling:"None",FitWindow:true})}catch(_){}
- pdf.setProperties({title:bookName()||"Annotation board",subject:"Page 1 = cover spread. Pages 2+ = A5 (148 × 210 mm). Print pages 2+ on A5 at 100% / Actual size."});
+ pdf.setProperties({title:bookName()||"Annotation board",subject:"All pages A5 (148 × 210 mm): cover spread landscape, other pages portrait. Print at 100% / Actual size."});
  try{for(let k=0;k<S.pages.length;k++){
   S.pi=k;render();await new Promise(r=>setTimeout(r,300));
   const c=await snap();
-  if(k){pdf.addPage([A5W,A5H],"portrait");pdf.addImage(c.toDataURL("image/jpeg",.95),"JPEG",0,0,A5W,A5H)}
-  else pdf.addImage(c.toDataURL("image/jpeg",.95),"JPEG",0,0,cw,ch)}}
+  if(k){pdf.addPage([148,210],"portrait");pdf.addImage(c.toDataURL("image/jpeg",.95),"JPEG",0,0,148,210)}
+  else pdf.addImage(c.toDataURL("image/jpeg",.95),"JPEG",0,0,210,148)}}
  finally{S.pi=keep;render()}
  pdf.save(slug()+".pdf")});
+/* Print straight from the browser (no PDF viewer in between): @page fixes paper = A5 and margin = 0, so Chrome pre-selects A5 / Margins: None */
+function printHTML(imgs,title){
+ return'<!doctype html><html><head><meta charset="utf-8"><title>'+String(title).replace(/[<&]/g,"")+'</title><style>@page{size:148mm 210mm;margin:0}@page cvr{size:210mm 148mm;margin:0}*{margin:0;padding:0;box-sizing:border-box}html,body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}.pg{width:148mm;height:210mm;overflow:hidden;break-after:page;page-break-after:always}.pg.cv{page:cvr;width:210mm;height:148mm}.pg:last-child{break-after:auto;page-break-after:auto}.pg img{display:block;width:100%;height:100%}</style></head><body>'+imgs.map((u,i)=>'<div class="pg'+(i?'':' cv')+'"><img src="'+u+'"></div>').join("")+'</body></html>'}
+$("#xPrint").onclick=e=>run(e.target,async()=>{
+ const keep=S.pi,imgs=[];
+ try{for(let k=0;k<S.pages.length;k++){S.pi=k;render();await new Promise(r=>setTimeout(r,300));const c=await snap(k?3:2);imgs.push(c.toDataURL("image/jpeg",.95))}}
+ finally{S.pi=keep;render()}
+ const f=document.createElement("iframe");f.id="printFrame";f.style.cssText="position:fixed;right:0;bottom:0;width:0;height:0;border:0";document.body.append(f);
+ const d=f.contentDocument;d.open();d.write(printHTML(imgs,bookName()||"Annotation board"));d.close();
+ await Promise.all([...d.images].map(i=>i.decode?i.decode().catch(()=>{}):0));
+ f.contentWindow.focus();f.contentWindow.print();
+ setTimeout(()=>f.remove(),120000)});
 function toMd(){
  const n=bookName()||"My book";
  let s=`---\nmarginalia: 1\nbook: ${n}\nbg: ${S.bg}\npaper: ${S.paper}\npapers: ${JSON.stringify(S.cp||[])}\nfont: ${S.font}\nsnap: ${S.snap?1:0}\ncover: ${JSON.stringify(S.cover)}\ninfo: ${JSON.stringify(S.info)}\n---\n\n# ${n}\n\n`;
