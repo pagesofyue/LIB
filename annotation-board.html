@@ -598,7 +598,10 @@ async function snap(){
  if(!window.html2canvas)throw new Error("Export library didn’t load. Check your connection and try again.");
  select(null);document.activeElement.blur();await ready();
  const old=page.style.transform,[W,Hh]=dims(S.pi);page.style.transform="none";
- try{return await html2canvas(page,{scale:2,useCORS:true,backgroundColor:PAPERS[pageStyle().paper][1],windowWidth:Math.max(W,innerWidth),windowHeight:Hh+100,scrollX:0,scrollY:-scrollY})}
+ try{return await html2canvas(page,{scale:2,useCORS:true,backgroundColor:PAPERS[pageStyle().paper][1],width:W,height:Hh,windowWidth:Math.max(W,innerWidth),windowHeight:Hh,scrollX:0,scrollY:0,
+  /* render the page alone at (0,0) of the cloned document so scroll position / toolbars above it can never shift the capture */
+  onclone:d=>{const p=d.getElementById("page");d.body.replaceChildren(p);d.body.style.margin="0";d.documentElement.style.padding="0";
+   Object.assign(p.style,{position:"absolute",left:"0px",top:"0px",transform:"none",borderRadius:"0",boxShadow:"none"})}})}
  finally{page.style.transform=old}
 }
 async function run(btn,fn){const x=btn.textContent;btn.disabled=true;btn.textContent="Working…";try{await fn()}catch(e){alert(e.message||"Export failed.")}btn.disabled=false;btn.textContent=x}
@@ -632,13 +635,16 @@ $("#xWeb").onclick=e=>run(e.target,async()=>{
  dl(await toBlob(o),slug()+"-website-cover-200x300.png")});
 $("#xPdf").onclick=e=>run(e.target,async()=>{
  if(!window.jspdf)throw new Error("PDF library didn’t load. Check your connection and try again.");
- const [w0,h0]=dims(0),pdf=new window.jspdf.jsPDF({unit:"px",format:[w0,h0],orientation:"landscape",hotfixes:["px_scaling"]}),keep=S.pi;
+ /* real millimetres: cover spread = CW×PH px @96dpi, every other page = exactly A5 148×210 mm, image stretched edge to edge */
+ const PX=25.4/96,A5W=148,A5H=210,cw=CW*PX,ch=PH*PX,keep=S.pi;
+ const pdf=new window.jspdf.jsPDF({unit:"mm",format:[cw,ch],orientation:"landscape",compress:true});
  try{pdf.viewerPreferences({PrintScaling:"None",FitWindow:true})}catch(_){}
- pdf.setProperties({title:bookName()||"Annotation board",subject:"Cover spread + A5 pages (148 × 210 mm). Print at 100% / Actual size."});
+ pdf.setProperties({title:bookName()||"Annotation board",subject:"Page 1 = cover spread. Pages 2+ = A5 (148 × 210 mm). Print pages 2+ on A5 at 100% / Actual size."});
  try{for(let k=0;k<S.pages.length;k++){
   S.pi=k;render();await new Promise(r=>setTimeout(r,300));
-  const c=await snap(),[w,h]=dims(k),[pw,ph]=k?[559.37,793.7]:[w,h];if(k)pdf.addPage([pw,ph],"p");
-  pdf.addImage(c.toDataURL("image/jpeg",.95),"JPEG",0,0,pw,ph)}}
+  const c=await snap();
+  if(k){pdf.addPage([A5W,A5H],"portrait");pdf.addImage(c.toDataURL("image/jpeg",.95),"JPEG",0,0,A5W,A5H)}
+  else pdf.addImage(c.toDataURL("image/jpeg",.95),"JPEG",0,0,cw,ch)}}
  finally{S.pi=keep;render()}
  pdf.save(slug()+".pdf")});
 function toMd(){
