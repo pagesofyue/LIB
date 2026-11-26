@@ -587,6 +587,11 @@ addEventListener("keydown",e=>{const a=document.activeElement,typing=a&&(a.isCon
 
 // ---- export / import ----
 const slug=()=>(bookName()||"pahina-ni-yue").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"pahina-ni-yue";
+/* default export name: Title (Series, #Index)- pahina ni yue[ (extra)].ext */
+function exName(ext,extra){const c=S.cover||{},t=(c.title||bookName()||"").trim(),se=(c.series||"").trim(),ix=String(c.idx||"").trim();
+ let b=t||"Annotation board";if(se)b+=" ("+se+(ix?", #"+ix.replace(/^#/,""):"")+")";
+ b+="- pahina ni yue"+(extra?" ("+extra+")":"");
+ return b.replace(/[\\\/:*?"<>|\u0000-\u001f]+/g," ").replace(/\s+/g," ").trim()+"."+ext}
 const dims=k=>k==0?[CW,PH]:[820,PGH];
 function dl(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
 async function ready(){
@@ -605,7 +610,7 @@ async function snap(sc=2){
  finally{page.style.transform=old}
 }
 async function run(btn,fn){const x=btn.textContent;btn.disabled=true;btn.textContent="Working…";try{await fn()}catch(e){alert(e.message||"Export failed.")}btn.disabled=false;btn.textContent=x}
-$("#xImg").onclick=e=>run(e.target,async()=>{const c=await snap();await new Promise(r=>c.toBlob(b=>{dl(b,slug()+(S.pi?"-p"+S.pi:"-cover")+".png");r()},"image/png"))});
+$("#xImg").onclick=e=>run(e.target,async()=>{const c=await snap();await new Promise(r=>c.toBlob(b=>{dl(b,exName("png",S.pi?"page "+S.pi:"cover"));r()},"image/png"))});
 // ---- cover downloads: mini book spread + website cover ----
 const crcT=(()=>{const t=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xedb88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
 const crc32=b=>{let c=0xffffffff;for(let i=0;i<b.length;i++)c=crcT[(c^b[i])&255]^(c>>>8);return(c^0xffffffff)>>>0};
@@ -625,28 +630,28 @@ $("#xMini").onclick=e=>run(e.target,async()=>{
  g.drawImage(c,854*k,0,730*k,c.height,pw+sw,0,pw,h);
  g.drawImage(c,730*k,0,124*k,c.height,pw,0,sw,h);
  const w2=124*k*(h/c.height);g.drawImage(c,730*k,0,124*k,c.height,pw+(sw-w2)/2,0,w2,h);
- dl(await pngDpi(await toBlob(o),600),slug()+"-mini-book-cover.png")});
+ dl(await pngDpi(await toBlob(o),600),exName("png","mini book cover"))});
 $("#xWeb").onclick=e=>run(e.target,async()=>{
  const c=await coverSnap(),k=c.width/CW;let cv=document.createElement("canvas");cv.width=Math.round(730*k);cv.height=c.height;
  let g=cv.getContext("2d");g.imageSmoothingQuality="high";g.drawImage(c,854*k,0,730*k,c.height,0,0,cv.width,cv.height);
  while(cv.width>400||cv.height>600){const n=document.createElement("canvas");n.width=Math.max(200,Math.round(cv.width/2));n.height=Math.max(300,Math.round(cv.height/2));
   g=n.getContext("2d");g.imageSmoothingQuality="high";g.drawImage(cv,0,0,n.width,n.height);cv=n}
  const o=document.createElement("canvas");o.width=200;o.height=300;g=o.getContext("2d");g.imageSmoothingQuality="high";g.drawImage(cv,0,0,200,300);
- dl(await toBlob(o),slug()+"-website-cover-200x300.png")});
+ dl(await toBlob(o),exName("png","website cover 200x300"))});
 $("#xPdf").onclick=e=>run(e.target,async()=>{
  if(!window.jspdf)throw new Error("PDF library didn’t load. Check your connection and try again.");
  /* every page is A5 (148 × 210 mm): the cover spread is A5 landscape (210 × 148), the rest A5 portrait; images fill the page edge to edge */
  const keep=S.pi;
  const pdf=new window.jspdf.jsPDF({unit:"mm",format:[210,148],orientation:"landscape",compress:true});
  try{pdf.viewerPreferences({PrintScaling:"None",FitWindow:true})}catch(_){}
- pdf.setProperties({title:bookName()||"Annotation board",subject:"All pages A5 (148 × 210 mm): cover spread landscape, other pages portrait. Print at 100% / Actual size."});
+ pdf.setProperties({title:exName("pdf").replace(/\.pdf$/,""),subject:"All pages A5 (148 × 210 mm): cover spread landscape, other pages portrait. Print at 100% / Actual size."});
  try{for(let k=0;k<S.pages.length;k++){
   S.pi=k;render();await new Promise(r=>setTimeout(r,300));
   const c=await snap();
   if(k){pdf.addPage([148,210],"portrait");pdf.addImage(c.toDataURL("image/jpeg",.95),"JPEG",0,0,148,210)}
   else pdf.addImage(c.toDataURL("image/jpeg",.95),"JPEG",0,0,210,148)}}
  finally{S.pi=keep;render()}
- pdf.save(slug()+".pdf")});
+ pdf.save(exName("pdf"))});
 /* Print straight from the browser (no PDF viewer in between): @page fixes paper = A5 and margin = 0, so Chrome pre-selects A5 / Margins: None */
 function printHTML(imgs,title){
  return'<!doctype html><html><head><meta charset="utf-8"><title>'+String(title).replace(/[<&]/g,"")+'</title><style>@page{size:148mm 210mm;margin:0}@page cvr{size:210mm 148mm;margin:0}*{margin:0;padding:0;box-sizing:border-box}html,body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}.pg{width:148mm;height:210mm;overflow:hidden;break-after:page;page-break-after:always}.pg.cv{page:cvr;width:210mm;height:148mm}.pg:last-child{break-after:auto;page-break-after:auto}.pg img{display:block;width:100%;height:100%}</style></head><body>'+imgs.map((u,i)=>'<div class="pg'+(i?'':' cv')+'"><img src="'+u+'"></div>').join("")+'</body></html>'}
@@ -655,7 +660,7 @@ $("#xPrint").onclick=e=>run(e.target,async()=>{
  try{for(let k=0;k<S.pages.length;k++){S.pi=k;render();await new Promise(r=>setTimeout(r,300));const c=await snap(k?3:2);imgs.push(c.toDataURL("image/jpeg",.95))}}
  finally{S.pi=keep;render()}
  const f=document.createElement("iframe");f.id="printFrame";f.style.cssText="position:fixed;right:0;bottom:0;width:0;height:0;border:0";document.body.append(f);
- const d=f.contentDocument;d.open();d.write(printHTML(imgs,bookName()||"Annotation board"));d.close();
+ const d=f.contentDocument;d.open();d.write(printHTML(imgs,exName("pdf").replace(/\.pdf$/,"")));d.close();
  await Promise.all([...d.images].map(i=>i.decode?i.decode().catch(()=>{}):0));
  f.contentWindow.focus();f.contentWindow.print();
  setTimeout(()=>f.remove(),120000)});
@@ -664,7 +669,7 @@ function toMd(){
  let s=`---\nmarginalia: 1\nbook: ${n}\nbg: ${S.bg}\npaper: ${S.paper}\npapers: ${JSON.stringify(S.cp||[])}\nfont: ${S.font}\nsnap: ${S.snap?1:0}\ncover: ${JSON.stringify(S.cover)}\ninfo: ${JSON.stringify(S.info)}\n---\n\n# ${n}\n\n`;
  S.pages.forEach((pg,k)=>{s+=`<!--page-->\n## ${k==0?"Cover":k==1?"Info":"Page "+(k-1)}\n\n`;if(S.ps&&S.ps[k])s+=`<!--style ${JSON.stringify(S.ps[k])}-->\n\n`;pg.forEach(i=>{const {id,text,...meta}=i;s+=`<!--item ${JSON.stringify(meta)}-->\n${text||""}\n\n`})});
  return s}
-$("#xMd").onclick=()=>{dl(new Blob([toMd()],{type:"text/markdown"}),slug()+".md");dirtyMd=false;$("#saveBtn").textContent="Save & export ▾"};
+$("#xMd").onclick=()=>{dl(new Blob([toMd()],{type:"text/markdown"}),exName("md",(d=>String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0")+String(d.getFullYear()).slice(-2))(new Date())));dirtyMd=false;$("#saveBtn").textContent="Save & export ▾"};
 $("#lMd").onclick=()=>$("#file").click();
 $("#file").onchange=async e=>{
  const f=e.target.files[0];e.target.value="";if(!f)return;
