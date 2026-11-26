@@ -227,7 +227,7 @@ const FONTS=[["Typewriter",[["Special Elite","'Special Elite',monospace"],["Cour
 ["Classic",[["Times New Roman","'Times New Roman',Times,serif"],["Georgia","Georgia,serif"],["Playfair Display","'Playfair Display',serif"],["Arial","Arial,Helvetica,sans-serif"],["Verdana","Verdana,Geneva,sans-serif"],["Courier New","'Courier New',monospace"]]]];
 const FMAP={};FONTS.forEach(g=>g[1].forEach(f=>FMAP[f[0]]=f[1]));
 const EMO=["⭐","✨","❤️","💔","😍","😭","🥺","🤯","🔥","📌","📎","🔖","☕","🌸","📚","🎆"];
-const NOTXT=["image","sticker","tape","arrow","rating"],CW=1584,PH=1100;
+const NOTXT=["image","sticker","tape","arrow","rating"],CW=1584,PH=1100,PGH=1164; /* cover stays 1100 tall; inner pages are A5 (148×210 mm) at 820 px wide */
 const ARROWS={a:'<svg viewBox="0 0 140 60" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 46C34 8 88 4 128 36"/><path d="M104 24l24 12-26 10"/></svg>',
  s:'<svg viewBox="0 0 140 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12c10-12 14 12 24 0s14 12 24 0 14 12 24 0 14 12 24 0 14 12 24 0"/></svg>'};
 const TAPE=(p,c)=>[c,`repeating-linear-gradient(45deg,${c} 0 8px,rgba(255,255,255,.55) 8px 16px)`,`radial-gradient(rgba(255,255,255,.75) 2px,transparent 2.6px) 0 0/12px 12px,${c}`,`linear-gradient(90deg,rgba(255,255,255,.5) 50%,transparent 50%) 0 0/20px 20px,${c}`][p];
@@ -385,8 +385,8 @@ function fitBlurb(re){
  let lo=5;while(hi-lo>.25){const m=(lo+hi)/2;if(fits(m))lo=m;else hi=m}
  b.style.fontSize=lo+"px"}
 const refreshInfo=()=>{const o=page.querySelector(".inf");if(o){o.replaceWith(buildInfo());fitBlurb()}};
-function render(){const cv=S.pi==0,inf=S.pi==1;page.innerHTML="";paint();page.style.width=(cv?CW:820)+"px";$("#wrap").classList.toggle("wide",cv);$("#cvbar").hidden=!cv;$("#ifbar").hidden=!inf;if(cv)page.append(buildCover());if(inf)page.append(buildInfo());cur().forEach(mk);fit();if(cv)fitSpine();if(inf)fitBlurb();pager();syncCtl()}
-function fit(){const W=S.pi==0?CW:820,w=$("#wrap").clientWidth-20;scale=Math.min(1,w/W);page.style.transform=`scale(${scale})`;$("#frame").style.height=PH*scale+"px"}
+function render(){const cv=S.pi==0,inf=S.pi==1;page.innerHTML="";paint();page.style.width=(cv?CW:820)+"px";page.style.height=(cv?PH:PGH)+"px";$("#wrap").classList.toggle("wide",cv);$("#cvbar").hidden=!cv;$("#ifbar").hidden=!inf;if(cv)page.append(buildCover());if(inf)page.append(buildInfo());cur().forEach(mk);fit();if(cv)fitSpine();if(inf)fitBlurb();pager();syncCtl()}
+function fit(){const W=S.pi==0?CW:820,w=$("#wrap").clientWidth-20;scale=Math.min(1,w/W);page.style.transform=`scale(${scale})`;$("#frame").style.height=(S.pi==0?PH:PGH)*scale+"px"}
 addEventListener("resize",fit);
 function pager(){const tb=$("#tabs");tb.innerHTML="";S.pages.forEach((_,k)=>{const b=document.createElement("button");b.className="tab"+(k==S.pi?" on":"");b.textContent=k==0?"📖 Cover":k==1?"📋 Info":String(k-1);b.style.setProperty("--tc",COLORS[k%6][0]);b.onclick=()=>go(k);tb.append(b)});$("#pDel").disabled=S.pi<2}
 function go(i){select(null);S.pi=i;render();save()}
@@ -587,7 +587,7 @@ addEventListener("keydown",e=>{const a=document.activeElement,typing=a&&(a.isCon
 
 // ---- export / import ----
 const slug=()=>(bookName()||"pahina-ni-yue").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"pahina-ni-yue";
-const dims=k=>k==0?[CW,PH]:[820,PH];
+const dims=k=>k==0?[CW,PH]:[820,PGH];
 function dl(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
 async function ready(){
  if(document.fonts&&document.fonts.ready)await document.fonts.ready;
@@ -633,10 +633,12 @@ $("#xWeb").onclick=e=>run(e.target,async()=>{
 $("#xPdf").onclick=e=>run(e.target,async()=>{
  if(!window.jspdf)throw new Error("PDF library didn’t load. Check your connection and try again.");
  const [w0,h0]=dims(0),pdf=new window.jspdf.jsPDF({unit:"px",format:[w0,h0],orientation:"landscape",hotfixes:["px_scaling"]}),keep=S.pi;
+ try{pdf.viewerPreferences({PrintScaling:"None",FitWindow:true})}catch(_){}
+ pdf.setProperties({title:bookName()||"Annotation board",subject:"Cover spread + A5 pages (148 × 210 mm). Print at 100% / Actual size."});
  try{for(let k=0;k<S.pages.length;k++){
   S.pi=k;render();await new Promise(r=>setTimeout(r,300));
-  const c=await snap(),[w,h]=dims(k);if(k)pdf.addPage([w,h],w>h?"l":"p");
-  pdf.addImage(c.toDataURL("image/jpeg",.95),"JPEG",0,0,w,h)}}
+  const c=await snap(),[w,h]=dims(k),[pw,ph]=k?[559.37,793.7]:[w,h];if(k)pdf.addPage([pw,ph],"p");
+  pdf.addImage(c.toDataURL("image/jpeg",.95),"JPEG",0,0,pw,ph)}}
  finally{S.pi=keep;render()}
  pdf.save(slug()+".pdf")});
 function toMd(){
@@ -789,7 +791,7 @@ function hlPlace(es){
  const H=(t,sz,w)=>{const cpl=Math.max(6,Math.floor(w/(sz*.62)));let k=0;String(t).split("\n").forEach(p=>{k+=Math.max(1,Math.ceil(p.length/cpl))});return Math.ceil(k*sz*1.45)+14};
  const put2=(it,h,full)=>{
   let c=full?-1:(cy[0]<=cy[1]?0:1),y=full?Math.max(cy[0],cy[1]):cy[c];
-  if(cp<0||(y+h>1050&&S.pages[cp].length)){S.pages.splice(next,0,[]);S.ps.splice(next,0,st);cp=next++;cy=[50,50];y=50;c=full?-1:0;if(first<0)first=cp}
+  if(cp<0||(y+h>PGH-50&&S.pages[cp].length)){S.pages.splice(next,0,[]);S.ps.splice(next,0,st);cp=next++;cy=[50,50];y=50;c=full?-1:0;if(first<0)first=cp}
   const a=S.pages[cp];it.id=Math.max(0,...a.map(i=>i.id))+1;it.y=y;if(!full)it.x=c?430:50;a.push(it);
   if(full)cy=[y+h+20,y+h+20];else cy[c]=y+h+20};
  const rot=()=>[-1,1,.6,-.6][n++%4];
