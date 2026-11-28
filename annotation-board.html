@@ -14,6 +14,8 @@ header{padding:16px 16px 4px;max-width:900px;margin:0 auto}
 h1{font-family:'Special Elite',monospace;font-weight:400;font-size:26px;margin:0}
 #back{display:inline-block;margin-bottom:8px;color:var(--acc);font-weight:700;text-decoration:none;font-size:14px}
 #back:hover{text-decoration:underline}
+#cloud{float:right;margin-top:2px;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:999px;padding:4px 11px;font:600 12px system-ui,-apple-system,Segoe UI,sans-serif;cursor:pointer;opacity:.9}
+#cloud[data-s="ok"]{color:var(--acc);border-color:var(--acc)}#cloud[data-s="err"]{color:#c0504d;border-color:#c0504d}#cloud[data-s="busy"]{opacity:.65}
 .bar{max-width:900px;margin:10px auto;padding:10px;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px}
 .grp{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .sep{width:1px;align-self:stretch;background:var(--line)}
@@ -148,7 +150,7 @@ textarea{font:inherit;font-size:14px;width:100%;color:var(--fg);background:var(-
 .hlFoot{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}.hlFoot span{margin-right:auto;font-size:13px;opacity:.8}
 </style></head>
 <body>
-<header><a id="back" href="index.html">← Back to index</a><h1 id="bk">pahina ni yue</h1></header>
+<header><button id="cloud" type="button" data-s="busy" title="Cloud sync">☁ Connecting…</button><a id="back" href="index.html">← Back to index</a><h1 id="bk">pahina ni yue</h1></header>
 
 <div class="bar" role="toolbar">
   <div class="grp">
@@ -263,13 +265,13 @@ function head(){$("#bk").textContent=bookName()||"pahina ni yue";document.title=
 const cur=()=>S.pages[S.pi],nid=()=>Math.max(0,...cur().map(i=>i.id))+1,get=id=>cur().find(i=>i.id==id),el=id=>page.querySelector(`[data-id="${id}"]`);
 
 // ---- history + saving ----
-const H={a:[],i:-1,busy:false},SRC=new Map(),SRCI=[];let t,warned=0,pending=false,dirtyMd=false;
+const H={a:[],i:-1,busy:false},SRC=new Map(),SRCI=[];let t,warned=0,pending=false,dirtyMd=false,touched=false;
 const shot=()=>JSON.stringify({p:S.pages,c:S.cover,i:S.info,s:S.ps||[],pi:S.pi},(k,v)=>{if((k=="src"||k=="spineImg")&&typeof v=="string"&&v.length>200){let n=SRC.get(v);if(n==null){n=SRCI.length;SRCI.push(v);SRC.set(v,n)}return"@@"+n}return v});
 const unshot=j=>JSON.parse(j,(k,v)=>typeof v=="string"&&v.startsWith("@@")?SRCI[+v.slice(2)]:v);
 function hist(){if(H.busy)return;const j=shot();if(H.a[H.i]===j)return;H.a=H.a.slice(0,H.i+1);H.a.push(j);if(H.a.length>60)H.a.shift();H.i=H.a.length-1;uiHist()}
 function uiHist(){$("#undo").disabled=H.i<=0;$("#redo").disabled=H.i>=H.a.length-1}
-function persist(){pending=false;hist();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){if(!warned){warned=1;alert("This browser’s storage is full, so recent changes aren’t saved. Download the .md now to keep your work.")}}}
-function save(){pending=true;if(!dirtyMd){dirtyMd=true;$("#saveBtn").textContent="Save & export ● ▾"}clearTimeout(t);t=setTimeout(persist,300)}
+function persist(){pending=false;hist();S._ts=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){if(!warned){warned=1;alert("This browser’s storage is full, so recent changes aren’t saved on this device. They will still go to the cloud if you’re signed in; download the .md to be safe.")}}window.__sync&&window.__sync.queue()}
+function save(){touched=true;pending=true;if(!dirtyMd){dirtyMd=true;$("#saveBtn").textContent="Save & export ● ▾"}clearTimeout(t);t=setTimeout(persist,300)}
 function jump(i){if(pending){clearTimeout(t);persist()}if(i<0||i>=H.a.length)return;H.i=i;H.busy=true;const o=unshot(H.a[i]);S.pages=o.p;S.cover=o.c;S.info=o.i||S.info;S.ps=o.s||[];S.pi=Math.min(o.pi,o.p.length-1);sel=null;adj=false;render();syncCover();persist();H.busy=false;uiHist()}
 const undo=()=>{if(pending){clearTimeout(t);persist()}jump(H.i-1)},redo=()=>jump(H.i+1);
 $("#undo").onclick=undo;$("#redo").onclick=redo;
@@ -871,4 +873,73 @@ $("#hlFile").onchange=async e=>{
   if(!books.length){alert("I couldn’t find any highlights in that file.");return}
   hlDialog(books)
  }catch(err){alert(/\.pdf$/i.test(f.name)?"I couldn’t read that PDF. If it’s a scanned image, it has no text to import. "+(err&&err.message&&/load/i.test(err.message)?"The PDF reader didn’t load; check your connection.":""):"I couldn’t read that file.")}};
+window.__bd={get KEY(){return KEY},get S(){return S},get fresh(){return fresh},get touched(){return touched},BOOK,flush(){if(pending){clearTimeout(t);persist()}}};
+</script>
+<script type="module">
+/* ---- Cloud sync: same Firebase project + Google sign-in as index.html ----
+   Each book's board lives at users/{uid}/annotations/{id}  (small summary doc for listing)
+   with the full board split into pieces at users/{uid}/annotations/{id}/parts/* (Firestore docs max out at 1 MB). */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, writeBatch, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+const app=initializeApp({apiKey:"AIzaSyCFhXW0y0lEpgpE1bPzM1D7-X5-e3VTEzU",authDomain:"lunaria-app-21a35.firebaseapp.com",projectId:"lunaria-app-21a35",storageBucket:"lunaria-app-21a35.firebasestorage.app",messagingSenderId:"29627980624",appId:"1:29627980624:web:f41033674613f5c3c46a55",measurementId:"G-L1682GCGL4"});
+const auth=getAuth(app),db=getFirestore(app),B=window.__bd,btn=document.getElementById("cloud"),CH=300000;
+let uid=null,ready=false,busy=false,again=false,qt=null;
+const sid=()=>"b-"+(B.BOOK?btoa(unescape(encodeURIComponent(B.BOOK))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""):"untitled");
+const headRef=()=>doc(db,"users",uid,"annotations",sid()),partsRef=()=>collection(db,"users",uid,"annotations",sid(),"parts");
+function ui(s,msg,tip){btn.dataset.s=s;btn.textContent=msg;btn.title=tip||"Cloud sync"}
+function fail(e){console.error("cloud sync:",e);const d=e&&e.code==="permission-denied";ui("err","⚠ Not synced · retry",d?"Firestore refused the write. Add a rule allowing users/{uid}/annotations/** (see notes), then tap to retry.":"Tap to retry. Your notes are still saved on this device.")}
+/* split without cutting an emoji (surrogate pair) in half */
+function cut(str){const a=[];let p=0;while(p<str.length){let e=Math.min(str.length,p+CH);if(e<str.length){const c=str.charCodeAt(e-1);if(c>=0xD800&&c<=0xDBFF)e--}a.push(str.slice(p,e));p=e}return a.length?a:[""]}
+async function pull(h){
+ const snap=await getDocs(query(partsRef(),where("v","==",h.ts)));
+ const a=snap.docs.map(d=>d.data()).sort((x,y)=>x.i-y.i);
+ if(a.length!==h.chunks)throw new Error("cloud copy incomplete");
+ return a.map(x=>x.d).join("")}
+async function push(){
+ if(!uid||!ready)return;
+ if(busy){again=true;return}
+ busy=true;clearTimeout(qt);qt=null;ui("busy","☁ Syncing…");
+ try{
+  B.flush();
+  const S=B.S;
+  if(!S._ts){S._ts=Date.now();try{localStorage.setItem(B.KEY,JSON.stringify(S))}catch(e){}}
+  const ts=S._ts,json=JSON.stringify(S),a=cut(json);
+  /* 1) upload the new pieces (tagged with this version), 2) flip the summary doc to point at them, 3) delete older pieces */
+  for(let s=0;s<a.length;s+=8){const b=writeBatch(db);for(let i=s;i<Math.min(a.length,s+8);i++)b.set(doc(partsRef(),ts+"-"+String(i).padStart(4,"0")),{v:ts,i,d:a[i]});await b.commit()}
+  const c=S.cover||{},fr=typeof c.front==="string"&&/^https?:\/\//i.test(c.front)&&c.front.length<1500?c.front:"";
+  await setDoc(headRef(),{book:B.BOOK||"",title:c.title||B.BOOK||"",author:c.author||"",series:c.series||"",idx:c.idx||"",cover:fr,ts,chunks:a.length,pages:S.pages.length,notes:S.pages.reduce((n,p)=>n+p.length,0),bytes:json.length,updatedAt:serverTimestamp()});
+  const old=await getDocs(query(partsRef(),where("v","!=",ts)));
+  for(let s=0;s<old.docs.length;s+=400){const b=writeBatch(db);old.docs.slice(s,s+400).forEach(d=>b.delete(d.ref));await b.commit()}
+  ui("ok","☁ Saved to cloud","Last saved "+new Date().toLocaleTimeString()+" · tap to re-check")
+ }catch(e){fail(e)}
+ busy=false;
+ if(again){again=false;queue()}}
+function queue(){if(!uid||!ready)return;ui("busy","☁ Saving…");clearTimeout(qt);qt=setTimeout(push,2500)}
+window.__sync={queue};
+async function sync(){
+ if(!uid)return;
+ ready=false;ui("busy","☁ Syncing…");
+ try{
+  const hs=await getDoc(headRef()),S=B.S,lt=S._ts||0,hasLocal=!B.fresh||B.touched;
+  if(!hs.exists()){ready=true;if(hasLocal)await push();else ui("ok","☁ Cloud ready","Notes you add here will save to the cloud automatically");return}
+  const h=hs.data();
+  if(h.ts>lt){
+   let take=true;
+   if(hasLocal&&(B.touched||lt===0))take=confirm("This book already has notes saved in the cloud ("+new Date(h.ts).toLocaleString()+") that differ from this device’s copy.\n\nOK = use the cloud version\nCancel = keep this device’s version and upload it");
+   if(take){
+    const json=await pull(h);
+    try{localStorage.setItem(B.KEY,json)}catch(e){throw new Error("browser storage is full, can’t load the cloud copy here")}
+    location.reload();return}
+   S._ts=Math.max(Date.now(),h.ts+1);try{localStorage.setItem(B.KEY,JSON.stringify(S))}catch(e){}
+   ready=true;await push();return}
+  ready=true;
+  if(h.ts<lt)await push();else ui("ok","☁ Saved to cloud","Up to date")
+ }catch(e){ready=false;fail(e)}}
+btn.onclick=async()=>{
+ if(!uid){try{await signInWithPopup(auth,new GoogleAuthProvider())}catch(e){ui("out","☁ Sign in to sync","Sign-in was cancelled or blocked")}return}
+ sync()};
+onAuthStateChanged(auth,u=>{uid=u?u.uid:null;ready=false;if(u)sync();else ui("out","☁ Sign in to sync","Sign in with the same Google account as your library to save notes to the cloud")});
+const flushNow=()=>{if(document.visibilityState==="hidden"&&uid&&ready&&qt)push()};
+document.addEventListener("visibilitychange",flushNow);addEventListener("pagehide",flushNow);
 </script></body></html>
