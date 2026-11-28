@@ -239,7 +239,6 @@ body[data-theme="velaris"] .header p{color:#D2C6F1;text-shadow:0 1px 6px rgba(8,
 body[data-theme="velaris"] .tab{color:#E1D8F7;border-color:rgba(239,231,255,0.4);background:rgba(18,12,40,0.32);}
 body[data-theme="velaris"] .tab:hover{border-color:rgba(239,231,255,0.7);}
 body[data-theme="velaris"] .reader-intro h2,
-body[data-theme="velaris"] .cal-header h2,
 body[data-theme="velaris"] .shelf-heading{color:#EFE7FF;text-shadow:0 2px 8px rgba(8,4,26,0.6);}
 body[data-theme="velaris"] .reader-intro p{color:#D2C6F1;text-shadow:0 1px 6px rgba(8,4,26,0.55);}
 .app{max-width:1080px;margin:0 auto;padding:28px 20px 80px;
@@ -331,18 +330,6 @@ body[data-theme="velaris"] .reader-intro p{color:#D2C6F1;text-shadow:0 1px 6px r
 .tbr-pile-item .spine-review-badge{top:50%;transform:translateY(-50%);right:6px;}
 .pile-text-badge{width:auto;height:auto;border-radius:9px;padding:1px 6px;line-height:1.5;background:#3B2A55;color:#F3ECFA;font-size:9px;letter-spacing:0.03em;}
 
-.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
-.cal-header h2{font-family:var(--font-display);font-size:20px;margin:0;}
-.cal-nav-btn{background:var(--card);border:1px solid var(--line-strong);border-radius:7px;padding:6px 12px;cursor:pointer;font-size:14px;color:var(--ink);}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
-.cal-dow{text-align:center;font-size:11px;color:var(--muted);font-family:var(--font-mono);padding-bottom:4px;}
-.cal-cell{min-height:74px;border:1px solid var(--line);border-radius:8px;padding:5px;background:var(--card);font-size:11px;}
-.cal-cell.empty-cell{background:transparent;border:none;}
-.cal-cell.today{border-color:var(--accent);border-width:2px;}
-.cal-date-num{font-family:var(--font-mono);color:var(--muted);font-size:10.5px;margin-bottom:3px;}
-.cal-item{background:var(--accent);color:var(--card);border-radius:5px;padding:2px 5px;margin-top:2px;font-size:10px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;}
-.cal-item.overdue{background:var(--dnf-deep);}
-.cal-empty-note{color:var(--muted);font-size:13px;text-align:center;padding:30px 0;}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;flex:0 1 175px;min-width:150px;}
 .clickable-stat{cursor:pointer;transition:border-color .15s,transform .1s;}
 .clickable-stat:hover{border-color:var(--accent);transform:translateY(-1px);}
@@ -856,6 +843,64 @@ body.shelf-kindle .toolbar{justify-content:flex-end;}
 .k-stamp.cleared{color:var(--accent-deep);}
 .k-stamp.cleared span{font-size:19px;}
 .k-empty{padding:26px 4px;color:var(--muted);font-size:14px;}
+/* ---- Landscape book preview ---- */
+.modal.vl{max-width:980px;padding:0;overflow:hidden;}
+.vl-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 20px;border-bottom:1px solid var(--line);font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+.vl-top .annotate-link{letter-spacing:0;text-transform:none;}
+.vl-x{background:none;border:0;font-size:18px;line-height:1;color:var(--muted);cursor:pointer;padding:4px 6px;}
+.vl-body{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:0;padding:20px 24px 4px;}
+.vl-l{padding-right:24px;border-right:1px solid var(--line);}
+.vl-r{padding-left:24px;min-width:0;}
+.vl .modal-actions{margin:0;padding:12px 24px 18px;}
+@media(max-width:760px){.vl-body{grid-template-columns:1fr;padding:16px 16px 4px;}.vl-l{padding-right:0;border-right:0;padding-bottom:14px;}.vl-r{padding-left:0;}}
+.vc-wrap{position:relative;display:flex;justify-content:center;align-items:flex-start;margin:0 auto 10px;width:max-content;max-width:100%;}
+.vc-wrap.both{padding-right:78px;padding-bottom:34px;}
+.vc-front,.vc-audio{display:block;border:0;padding:0;background:var(--card-hover);cursor:zoom-in;}
+.vc-front{height:230px;border-radius:5px;box-shadow:0 8px 18px rgba(59,42,85,.28);}
+.vc-front img{height:100%;width:auto;max-width:100%;display:block;border-radius:5px;}
+.vc-audio{width:128px;height:128px;border-radius:10px;border:3px solid var(--card);box-shadow:0 6px 14px rgba(59,42,85,.32);overflow:hidden;}
+.vc-wrap.both .vc-audio{position:absolute;right:0;bottom:0;}
+.vc-audio.solo{width:190px;height:190px;}
+.vc-audio img{width:100%;height:100%;object-fit:contain;display:block;}
+.vc-none{width:150px;height:225px;border-radius:6px;border:1px dashed var(--line-strong);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;}
+.vc-dnf{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%) rotate(-16deg);border:3px double var(--dnf-deep);color:var(--dnf-deep);border-radius:6px;padding:0 12px;font-family:var(--font-stamp);font-weight:800;font-size:30px;letter-spacing:.16em;opacity:.55;pointer-events:none;background:rgba(255,255,255,.35);}
+.vc-tools{text-align:center;margin-bottom:12px;}
+.vl-chips{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:12px;}
+.vl-chip{font-size:11.5px;padding:3px 10px;border-radius:999px;background:var(--card-hover);border:1px solid var(--line-strong);color:var(--ink);}
+.vl-row{display:flex;gap:12px;font-size:13px;padding:8px 0;border-bottom:1px solid var(--line);}
+.vl-row .dl{width:92px;flex:none;color:var(--muted);}
+.vl-row .dv{flex:1;min-width:0;overflow-wrap:anywhere;}
+.vl-dnftag{color:var(--dnf-deep);font-weight:700;letter-spacing:.08em;}
+.vl-title{font-family:var(--font-display);font-size:30px;line-height:1.15;margin:0 0 4px;}
+.vl-author{font-style:italic;color:var(--muted);font-size:17px;margin:0 0 12px;}
+.vl-series{font-size:14px;margin:0;padding:10px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+.vl-h{font-family:var(--font-display);font-size:15px;margin:16px 0 6px;}
+.vl-blurb{font-size:14px;line-height:1.65;white-space:pre-wrap;}
+.vl-blurb.clamp{display:-webkit-box;-webkit-line-clamp:9;-webkit-box-orient:vertical;overflow:hidden;}
+.vl-more .detail-format-cover{display:none;}
+.vl-links h4{display:flex;align-items:center;gap:8px;}
+.vl-plus{width:22px;height:22px;border-radius:50%;border:1px solid var(--line-strong);background:var(--card);color:var(--ink);cursor:pointer;line-height:1;padding:0;}
+.vl-lrow{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:5px 0;}
+.vl-lrow a{color:var(--accent-deep);}
+.vl-lrow .sp{flex:1;}
+.vl-lrow button{background:none;border:0;color:var(--muted);cursor:pointer;font-size:13px;padding:0 3px;}
+.lnk{background:none;border:0;color:var(--accent-deep);text-decoration:underline;cursor:pointer;font-size:12.5px;padding:0;font-family:var(--font-body);}
+#lnkForm{display:none;margin:6px 0;gap:6px;flex-wrap:wrap;}
+#lnkForm input{flex:1;min-width:110px;padding:7px 9px;border:1px solid var(--line-strong);border-radius:7px;background:var(--card);font-size:12.5px;color:var(--ink);font-family:var(--font-body);}
+/* lightbox + cover manager */
+.cm-sec{padding:12px 0;border-bottom:1px solid var(--line);}
+.cm-h{font-weight:600;font-size:13.5px;margin-bottom:8px;}.cm-h em{font-weight:400;color:var(--muted);font-size:12px;}
+.cm-row{display:flex;gap:14px;align-items:flex-start;}
+.cm-prev{flex:none;width:84px;height:126px;border:1px solid var(--line-strong);border-radius:6px;background:var(--card-hover);display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:11px;color:var(--muted);}
+.cm-prev.sq{width:100px;height:100px;}
+.cm-prev img{width:100%;height:100%;object-fit:contain;}
+.cm-ctl{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;align-items:flex-start;}
+.cm-or{font-size:11px;color:var(--muted);}
+.cm-url{display:flex;gap:6px;width:100%;}
+.cm-url input{flex:1;min-width:0;padding:7px 9px;border:1px solid var(--line-strong);border-radius:7px;background:var(--card);font-size:12.5px;color:var(--ink);}
+.lb-tabs{display:flex;gap:6px;justify-content:center;margin-bottom:10px;}
+#cvLightbox img{max-width:min(92vw,520px);max-height:78vh;border-radius:8px;display:block;margin:0 auto;box-shadow:0 10px 30px rgba(0,0,0,.4);}
+
 .k-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
 .k-filters .k-search{flex:1 1 100%;margin-bottom:0;}
 .k-filters select{flex:0 0 auto;padding:7px 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);color:var(--ink);font-family:var(--font-body);font-size:13px;}
@@ -933,7 +978,6 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
       <div class="nav-dropdown-menu">
         <button type="button" class="nav-dropdown-item" id="navSeries">Series</button>
         <button type="button" class="nav-dropdown-item" id="navPlatforms">Platforms</button>
-        <button type="button" class="nav-dropdown-item" id="navCalendar">Calendar</button>
         <a class="nav-dropdown-item" href="./tbr.html">TBR List<span id="tbrCountBadge"></span></a>
       </div>
     </div>
@@ -1028,7 +1072,6 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
   <div id="seriesView" style="display:none;"></div>
   <div id="authorsView" style="display:none;"></div>
   <div id="platformsView" style="display:none;"></div>
-  <div id="calendarView" style="display:none;"></div>
   <div id="reviewsView" style="display:none;"></div>
 
   <div id="readerView" style="display:none;">
@@ -1284,8 +1327,8 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
 </div>
 
 <div class="overlay" id="viewOverlay" style="display:none;">
-  <div class="modal" style="max-width:560px;">
-    <div class="annotate-row"><a class="annotate-link" id="viewAnnotateLink" href="annotation-board.html">📝 Add annotation</a></div>
+  <div class="modal vl">
+    <div class="vl-top"><span>Book catalog / Preview</span><span style="display:flex;align-items:center;gap:12px;"><a class="annotate-link" id="viewAnnotateLink" href="annotation-board.html">📝 Add annotation</a><button type="button" class="vl-x" id="viewXBtn" aria-label="Close">&#10005;</button></span></div>
     <div id="viewContent"></div>
     <div class="modal-actions">
       <button type="button" class="btn-secondary" id="viewCloseBtn">Close</button>
@@ -1293,6 +1336,16 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
     </div>
   </div>
 </div>
+
+<div class="overlay" id="cvMgrOverlay" style="display:none;z-index:55;">
+  <div class="modal" style="max-width:520px;">
+    <h2 style="margin-bottom:4px;">Cover management</h2>
+    <p class="hint" style="margin:0 0 4px;">Upload an image or paste a link for each cover. You don't need both.</p>
+    <div id="cvMgrBody"></div>
+    <div class="modal-actions"><button type="button" class="btn-secondary" id="cvMgrCancel">Cancel</button><button type="button" class="btn-primary" id="cvMgrSave">Save covers</button></div>
+  </div>
+</div>
+<div class="overlay" id="cvLightbox" style="display:none;z-index:60;"><div id="cvLbInner" style="width:100%;"></div></div>
 
 <div class="overlay" id="libibResultOverlay" style="display:none;">
   <div class="modal" style="max-width:420px;">
@@ -2980,7 +3033,7 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
   }
   function kGroups(){
     var g = {}, order = [];
-    books.forEach(function(b){ var k = b.batchDate || ''; if(!g[k]){ g[k] = []; order.push(k); } g[k].push(b); });
+    books.forEach(function(b){ var k = (typeof b.batchDate === 'string') ? b.batchDate : ''; if(!g[k]){ g[k] = []; order.push(k); } g[k].push(b); });
     order.sort(function(a, b){ if(!a) return 1; if(!b) return -1; return a.localeCompare(b); });
     return {groups: g, order: order};
   }
@@ -3008,6 +3061,13 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
     return '<div class="k-boxes">' + gr.order.map(function(k){ return kBox(k, gr.groups[k]); }).join('') + '</div>';
   }
   function renderKindleDash(){
+    try{ renderKindleDashInner(); }catch(err){
+      console.error('Kindle view error:', err);
+      var box = document.getElementById('kindleDash');
+      if(box) box.innerHTML = '<div class="k-wrap"><div class="k-empty">The Kindle view hit an error: ' + escapeHtml(String(err && err.message || err)) + '</div></div>';
+    }
+  }
+  function renderKindleDashInner(){
     var el = document.getElementById('kindleDash');
     if(!el) return;
     var gr = kGroups();
@@ -4590,7 +4650,6 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
     navLibrary: 'libraryView',
     navSeries: 'seriesView',
     navPlatforms: 'platformsView',
-    navCalendar: 'calendarView',
     navReviews: 'reviewsView',
     navAmazon: 'libraryView',
     navReader: 'readerView'
@@ -4628,7 +4687,6 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
     }
     if(activeNavId === 'navSeries') renderSeriesView();
     if(activeNavId === 'navPlatforms') renderPlatformsView();
-    if(activeNavId === 'navCalendar') renderCalendarView();
     if(activeNavId === 'navReviews') renderReviewsView();
     updateNavDropdownHighlights();
   }
@@ -4638,7 +4696,7 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
   // their trigger button highlighted whenever one of their items is the active view,
   // and auto-closes the menu once a destination is picked.
   var NAV_DROPDOWN_GROUPS = {
-    navBrowseDropdown: {trigger: 'navBrowseTrigger', items: ['navSeries', 'navPlatforms', 'navCalendar']},
+    navBrowseDropdown: {trigger: 'navBrowseTrigger', items: ['navSeries', 'navPlatforms']},
     navProfileDropdown: {trigger: 'navProfileTrigger', items: ['navReader']}
   };
 
@@ -4678,7 +4736,6 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
   document.getElementById('navLibrary').onclick = function(){ switchView('navLibrary'); };
   document.getElementById('navSeries').onclick = function(){ switchView('navSeries'); };
   document.getElementById('navPlatforms').onclick = function(){ switchView('navPlatforms'); };
-  document.getElementById('navCalendar').onclick = function(){ switchView('navCalendar'); };
   document.getElementById('navReviews').onclick = function(){ switchView('navReviews'); };
   document.getElementById('navAmazon').onclick = function(){ switchView('navAmazon'); };
   document.getElementById('navReader').onclick = function(){ switchView('navReader'); };
@@ -5186,56 +5243,69 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
 
   var currentViewBookId = null;
 
+  // ---- covers: front (Paperback/EPUB share one), audiobook (square), back (stored, viewed in the lightbox) ----
+  function vcAudio(b){
+    if(b.audiobookCover) return b.audiobookCover;
+    var a = (b.formats || []).find(function(x){ return x.type === 'Audiobook' && x.cover; });
+    return a ? a.cover : '';
+  }
+  function vcFront(b){
+    var aud = vcAudio(b), c = '';
+    (b.formats || []).forEach(function(x){ if(!c && x.type !== 'Audiobook' && x.cover) c = x.cover; });
+    if(!c && b.cover && b.cover !== aud) c = b.cover;
+    return c;
+  }
+  function vcCoversHtml(b){
+    var fr = vcFront(b), au = vcAudio(b), inner;
+    function img(u, alt){ return '<img src="' + escapeHtml(u) + '" alt="' + alt + '">'; }
+    if(fr && au) inner = '<div class="vc-wrap both"><button type="button" class="vc-front" data-cv="front" title="Enlarge">' + img(fr, 'Front cover') + '</button><button type="button" class="vc-audio" data-cv="audio" title="Enlarge">' + img(au, 'Audiobook cover') + '</button>';
+    else if(fr) inner = '<div class="vc-wrap"><button type="button" class="vc-front" data-cv="front" title="Enlarge">' + img(fr, 'Front cover') + '</button>';
+    else if(au) inner = '<div class="vc-wrap"><button type="button" class="vc-audio solo" data-cv="audio" title="Enlarge">' + img(au, 'Audiobook cover') + '</button>';
+    else inner = '<div class="vc-wrap"><div class="vc-none">No cover</div>';
+    return inner + (b.status === 'dnf' ? '<div class="vc-dnf">DNF</div>' : '') + '</div>' +
+      '<div class="vc-tools"><button type="button" class="small-btn" id="vcEditBtn">Edit covers</button></div>';
+  }
+  function vlRow(label, html){ return '<div class="vl-row"><span class="dl">' + label + '</span><span class="dv">' + html + '</span></div>'; }
+
   function buildViewHtml(b){
     var formats = (b.formats && b.formats.length) ? b.formats : null;
-    var primaryCover = (formats && formats[0] && formats[0].cover) || b.cover;
-    var anyAudiobook = formats && formats.some(function(f){ return f.type === 'Audiobook'; });
-    var coverHtml = primaryCover ? '<img src="' + primaryCover + '" alt="">' : '<span class="ph">No cover</span>';
+    var chipNames = [];
+    (formats || []).forEach(function(f){
+      var n = f.type === 'eBook / ePub' ? 'EPUB' : f.type;
+      if(n && chipNames.indexOf(n) === -1) chipNames.push(n);
+    });
+    if(!formats && b.format) chipNames.push(b.format === 'eBook / ePub' ? 'EPUB' : b.format);
+    var chips = chipNames.length ? '<div class="vl-chips">' + chipNames.map(function(n){ return '<span class="vl-chip">' + escapeHtml(n) + '</span>'; }).join('') + '</div>' : '';
 
-    var rows = '';
-    if(!formats){
-      // Pre-migration fallback, shouldn't normally happen since loadBooks migrates on read.
-      var unit = b.format === 'Audiobook' ? 'Chapters' : 'Pages';
-      rows += '<div class="detail-row"><span class="dl">Status</span><span class="dv">' + escapeHtml(statusLabelFor(b)) + '</span></div>';
-      if(b.format) rows += '<div class="detail-row"><span class="dl">Format</span><span class="dv">' + escapeHtml(b.format) + '</span></div>';
-      if(b.totalPages) rows += '<div class="detail-row"><span class="dl">' + unit + '</span><span class="dv">' + (b.currentPage||0) + ' / ' + b.totalPages + '</span></div>';
-    } else {
-      rows += formats.map(function(f){ return buildFormatDetailBlock(b, f); }).join('');
+    // status + the one date that matters for that status
+    var st = b.status || 'want', stRow = '';
+    if(st === 'finished') stRow = vlRow(escapeHtml(statusLabelFor(b)), b.dateFinished ? fmtDate(b.dateFinished) : '');
+    else if(st === 'dnf') stRow = vlRow('Status', '<span class="vl-dnftag">DNF</span>' + (formats && formats.some(function(f){ return f.status === 'dnf' && f.dnfReason; }) ? ' \u00b7 ' + escapeHtml(formats.filter(function(f){ return f.dnfReason; })[0].dnfReason) : ''));
+    else {
+      var due = b.noDeadline ? 'No deadline' : (b.dueDate ? 'Due ' + fmtDate(b.dueDate) : '');
+      stRow = vlRow(escapeHtml(statusLabelFor(b)), due);
     }
+    var left = vcCoversHtml(b) + chips;
+    if(b.genre) left += vlRow('Genre', escapeHtml(b.genre));
+    if(b.tropes && b.tropes.length) left += vlRow('Tropes', escapeHtml(b.tropes.join(', ')));
+    if(b.isARC && b.arcSource) left += vlRow('ARC source', escapeHtml(b.arcSource));
+    left += stRow + buildLinksHtml(b);
 
-    if(b.genre) rows += '<div class="detail-row"><span class="dl">Genre</span><span class="dv">' + escapeHtml(b.genre) + '</span></div>';
-    if(b.tropes && b.tropes.length) rows += '<div class="detail-row"><span class="dl">Tropes</span><span class="dv">' + escapeHtml(b.tropes.join(', ')) + '</span></div>';
-    if(b.isARC){
-      rows += '<div class="detail-row"><span class="dl">ARC source</span><span class="dv">' + escapeHtml(b.arcSource || '—') + '</span></div>';
-      if(b.noDeadline) rows += '<div class="detail-row"><span class="dl">Review Due Date</span><span class="dv">No deadline (' + fmtDate(endOfMonthISO()) + ')</span></div>';
-      else if(b.dueDate) rows += '<div class="detail-row"><span class="dl">Review Due Date</span><span class="dv">' + fmtDate(b.dueDate) + '</span></div>';
-    }
-    if(b.nowPlaying) rows += '<div class="detail-row"><span class="dl">Now playing</span><span class="dv">🎵 ' + escapeHtml(b.nowPlaying) + '</span></div>';
+    var longBlurb = b.blurb && b.blurb.length > 520;
+    var blurbHtml = b.blurb ? '<h3 class="vl-h">Full Blurb</h3><div class="vl-blurb' + (longBlurb ? ' clamp' : '') + '" id="vlBlurb">' + escapeHtml(b.blurb) + '</div>' + (longBlurb ? '<button type="button" class="lnk" id="vlMore">Read more</button>' : '') : '';
 
-    var datesParts = [];
-    if(b.dateStarted) datesParts.push('Started ' + fmtDate(b.dateStarted));
-    if(b.dateFinished) datesParts.push('Finished ' + fmtDate(b.dateFinished));
-    var datesLine = datesParts.length ? '<p class="dates" style="margin:3px 0 0;">' + datesParts.join(' · ') + '</p>' : '';
+    var more = '';
+    if(formats) more += formats.map(function(f){ return buildFormatDetailBlock(b, f); }).join('');
+    if(b.nowPlaying) more += '<div class="detail-row"><span class="dl">Now playing</span><span class="dv">\uD83C\uDFB5 ' + escapeHtml(b.nowPlaying) + '</span></div>';
+    if(b.isbn) more += '<div class="detail-row"><span class="dl">ISBN</span><span class="dv">' + escapeHtml(b.isbn) + '</span></div>';
+    if(b.publishDate) more += '<div class="detail-row"><span class="dl">Published</span><span class="dv">' + escapeHtml(b.publishDate) + '</span></div>';
+    var moreHtml = more ? '<details class="blurb-toggle vl-more"><summary>Formats &amp; more details</summary>' + more + '</details>' : '';
 
-    var blurbHtml = b.blurb ? '<details class="blurb-toggle"><summary>Read Blurb</summary><div class="detail-blurb">' + escapeHtml(b.blurb) + '</div></details>' : '';
-
-    var pubRows = '';
-    if(b.isbn) pubRows += '<div class="detail-row"><span class="dl">ISBN</span><span class="dv">' + escapeHtml(b.isbn) + '</span></div>';
-    if(b.publishDate) pubRows += '<div class="detail-row"><span class="dl">Published</span><span class="dv">' + escapeHtml(b.publishDate) + '</span></div>';
-    var pubInfoHtml = pubRows ? '<details class="blurb-toggle"><summary>Additional Info</summary>' + pubRows + '</details>' : '';
-
-    return '<div class="view-header">' +
-      '<div class="view-cover' + (anyAudiobook && (!formats || formats.length === 1) ? ' audiobook-cover' : '') + '">' + coverHtml + '</div>' +
-      '<div>' +
-        '<h2 style="margin-bottom:2px;">' + escapeHtml(b.title) + '</h2>' +
-        (b.author ? '<p style="color:var(--muted);font-style:italic;margin:0 0 3px;">' + escapeHtml(b.author) + '</p>' : '') +
-        (b.series ? '<p style="color:var(--muted);font-size:12.5px;margin:0;">' + escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' · Book ' + b.seriesNumber : '') + '</p>' : '') +
-        datesLine +
-      '</div>' +
-    '</div>' +
-    blurbHtml +
-    pubInfoHtml +
-    rows + buildLinksHtml(b) + buildAcceptMigrationHtml(b);
+    var seriesHtml = b.series ? '<p class="vl-series">' + escapeHtml(b.series) + ((b.seriesNumber || b.seriesNumber === 0) ? ' &nbsp;|&nbsp; Book ' + escapeHtml(String(b.seriesNumber)) : '') + '</p>' : '';
+    return '<div class="vl-body"><div class="vl-l">' + left + '</div><div class="vl-r">' +
+      '<h2 class="vl-title">' + escapeHtml(b.title) + '</h2>' +
+      (b.author ? '<p class="vl-author">by ' + escapeHtml(b.author) + '</p>' : '') +
+      seriesHtml + blurbHtml + moreHtml + buildAcceptMigrationHtml(b) + '</div></div>';
   }
 
   function canMoveBackToTbr(b){
@@ -5338,29 +5408,17 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
   // Extra links only ever live on the book itself; they don't touch the
   // main Add/Edit form.
   function buildLinksHtml(b){
-    var extra = b.customLinks || [];
-    if(!b.arcFormLink && !extra.length) {
-      return '<div class="book-links"><h4>Links</h4>' +
-        '<p class="book-links-empty">No links added yet.</p>' +
-        buildLinkAddRowHtml() + '</div>';
-    }
-    var rowsHtml = '';
-    if(b.arcFormLink){
-      rowsHtml += '<div class="book-link-row"><a href="' + escapeHtml(b.arcFormLink) + '" target="_blank" rel="noopener">Review form</a><span></span></div>';
-    }
-    extra.forEach(function(link, idx){
-      rowsHtml += '<div class="book-link-row"><a href="' + escapeHtml(link.url) + '" target="_blank" rel="noopener">' + escapeHtml(link.label) + '</a>' +
-        '<button type="button" class="link-remove" data-idx="' + idx + '" title="Remove link">×</button></div>';
+    var extra = b.customLinks || [], rows = '';
+    if(b.arcFormLink) rows += '<div class="vl-lrow"><a href="' + escapeHtml(b.arcFormLink) + '" target="_blank" rel="noopener">Review Form \u2197</a></div>';
+    extra.forEach(function(l, i){
+      rows += '<div class="vl-lrow"><a href="' + escapeHtml(l.url) + '" target="_blank" rel="noopener">' + escapeHtml(l.label) + ' \u2197</a><span class="sp"></span>' +
+        '<button type="button" class="lnk-ed" data-idx="' + i + '" title="Edit link" aria-label="Edit link">\u270E</button>' +
+        '<button type="button" class="lnk-rm" data-idx="' + i + '" title="Remove link" aria-label="Remove link">\u00d7</button></div>';
     });
-    return '<div class="book-links"><h4>Links</h4>' + rowsHtml + buildLinkAddRowHtml() + '</div>';
-  }
-
-  function buildLinkAddRowHtml(){
-    return '<div class="book-link-add-row">' +
-      '<input type="text" id="linkNewLabel" placeholder="Label (e.g. Goodreads)">' +
-      '<input type="url" id="linkNewUrl" placeholder="https://...">' +
-      '<button type="button" class="small-btn" id="linkAddBtn">Add</button>' +
-      '</div>';
+    if(!rows) rows = '<p class="book-links-empty">No links yet.</p>';
+    return '<div class="book-links vl-links"><h4>Review Links <button type="button" class="vl-plus" id="lnkPlus" title="Add a link" aria-label="Add a link">+</button></h4>' + rows +
+      '<div id="lnkForm"><input type="text" id="lnkLabel" placeholder="Link label (e.g. Goodreads)"><input type="url" id="lnkUrl" placeholder="https://...">' +
+      '<button type="button" class="small-btn" id="lnkSave">Save</button><button type="button" class="small-btn" id="lnkCancel">Cancel</button></div></div>';
   }
 
   function wireLinksHandlers(){
@@ -5420,6 +5478,159 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
   document.getElementById('viewEditBtn').onclick = function(){
     document.getElementById('viewOverlay').style.display = 'none';
     if(currentViewBookId) openModal(currentViewBookId);
+  };
+
+
+  // ---- preview interactions (one delegated listener) ----
+  function viewBook(){ return books.find(function(x){ return x.id === currentViewBookId; }); }
+  function rerenderView(b){
+    document.getElementById('viewContent').innerHTML = buildViewHtml(b);
+    wireLinksHandlers();
+  }
+  function showLinkForm(idx){
+    var b = viewBook(), f = document.getElementById('lnkForm');
+    if(!b || !f) return;
+    var l = (idx !== null && b.customLinks) ? b.customLinks[idx] : null;
+    f.style.display = 'flex'; f.setAttribute('data-idx', idx === null ? '' : idx);
+    document.getElementById('lnkLabel').value = l ? l.label : '';
+    document.getElementById('lnkUrl').value = l ? l.url : '';
+    document.getElementById('lnkLabel').focus();
+  }
+  function saveLinkForm(){
+    var b = viewBook(); if(!b) return;
+    var label = document.getElementById('lnkLabel').value.trim(), url = document.getElementById('lnkUrl').value.trim();
+    if(!label || !url){ showBanner('Add both a label and a link first.'); return; }
+    if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    var at = document.getElementById('lnkForm').getAttribute('data-idx');
+    var list = (b.customLinks || []).slice();
+    if(at !== '' && list[+at]) list[+at] = {label: label, url: url}; else list.push({label: label, url: url});
+    b.customLinks = list;
+    books = books.map(function(x){ return x.id === b.id ? b : x; });
+    saveBookRemote(b);
+    rerenderView(b);
+  }
+  document.getElementById('viewContent').addEventListener('click', function(e){
+    var t = e.target, b = viewBook();
+    if(!b) return;
+    var cv = t.closest('[data-cv]');
+    if(cv){ openLightbox(b, cv.getAttribute('data-cv')); return; }
+    if(t.closest('#vcEditBtn')){ openCoverMgr(b); return; }
+    if(t.closest('#lnkPlus')){ showLinkForm(null); return; }
+    var ed = t.closest('.lnk-ed'); if(ed){ showLinkForm(parseInt(ed.getAttribute('data-idx'), 10)); return; }
+    var rm = t.closest('.lnk-rm'); if(rm){ removeCustomLink(parseInt(rm.getAttribute('data-idx'), 10)); return; }
+    if(t.closest('#lnkCancel')){ document.getElementById('lnkForm').style.display = 'none'; return; }
+    if(t.closest('#lnkSave')){ saveLinkForm(); return; }
+    if(t.closest('#vlMore')){
+      var bl = document.getElementById('vlBlurb'), clamped = bl.classList.toggle('clamp');
+      t.closest('#vlMore').textContent = clamped ? 'Read more' : 'Show less';
+    }
+  });
+  document.getElementById('viewXBtn').onclick = function(){ document.getElementById('viewOverlay').style.display = 'none'; };
+
+  // lightbox: bigger cover, with tabs for whichever of front / back / audiobook exist
+  function openLightbox(b, which){
+    var imgs = {front: vcFront(b), back: b.backCover || '', audio: vcAudio(b)};
+    var names = {front: 'Front', back: 'Back', audio: 'Audiobook'};
+    var keys = ['front', 'back', 'audio'].filter(function(k){ return imgs[k]; });
+    if(!imgs[which]) which = keys[0];
+    if(!which) return;
+    var tabs = keys.length > 1 ? '<div class="lb-tabs">' + keys.map(function(k){ return '<button type="button" class="small-btn" data-lb="' + k + '"' + (k === which ? ' style="border-color:var(--accent);font-weight:700;"' : '') + '>' + names[k] + '</button>'; }).join('') + '</div>' : '';
+    var inner = document.getElementById('cvLbInner');
+    inner.innerHTML = tabs + '<img src="' + escapeHtml(imgs[which]) + '" alt="' + names[which] + ' cover">';
+    inner.onclick = function(e){
+      var tb = e.target.closest('[data-lb]');
+      if(tb){ e.stopPropagation(); openLightbox(b, tb.getAttribute('data-lb')); }
+    };
+    document.getElementById('cvLightbox').style.display = 'flex';
+  }
+  document.getElementById('cvLightbox').addEventListener('click', function(e){
+    if(!e.target.closest('[data-lb]') && !e.target.closest('img')) this.style.display = 'none';
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key !== 'Escape') return;
+    var lb = document.getElementById('cvLightbox');
+    if(lb.style.display !== 'none'){ lb.style.display = 'none'; return; }
+    var cm = document.getElementById('cvMgrOverlay');
+    if(cm.style.display !== 'none') cm.style.display = 'none';
+  });
+
+  // cover management: front (required), back, audiobook; upload OR link for each
+  var cm = {id: null, v: {}, src: {}};
+  function cmFromUrl(raw){
+    return new Promise(function(res){
+      var url = (raw || '').trim();
+      if(!/^https?:\/\//i.test(url)){ res(null); return; }
+      var img = new Image(); img.crossOrigin = 'anonymous';
+      img.onload = function(){
+        try{
+          var sc = Math.min(1, 360 / img.width), w = Math.round(img.width * sc), h = Math.round(img.height * sc);
+          var c = document.createElement('canvas'); c.width = w; c.height = h;
+          c.getContext('2d').drawImage(img, 0, 0, w, h);
+          res(c.toDataURL('image/jpeg', 0.85));
+        }catch(err){ res(url); }
+      };
+      img.onerror = function(){ var p = new Image(); p.onload = function(){ res(url); }; p.onerror = function(){ res(null); }; p.src = url; };
+      img.src = url;
+    });
+  }
+  function cmSection(k, label, req, square){
+    var v = cm.v[k];
+    return '<div class="cm-sec"><div class="cm-h">' + label + ' <em>(' + (req ? 'Required' : 'Optional') + ')</em></div><div class="cm-row">' +
+      '<div class="cm-prev' + (square ? ' sq' : '') + '">' + (v ? '<img src="' + escapeHtml(v) + '" alt="">' : '<span>No image</span>') + '</div>' +
+      '<div class="cm-ctl"><label class="small-btn" style="cursor:pointer;">' + (v ? 'Replace image' : 'Upload image') + '<input type="file" accept="image/*" data-cm="file" data-k="' + k + '" hidden></label>' +
+      '<span class="cm-or">or</span>' +
+      '<div class="cm-url"><input type="url" placeholder="Paste image URL" id="cmUrl_' + k + '"><button type="button" class="small-btn" data-cm="url" data-k="' + k + '">Use link</button></div>' +
+      (v ? '<button type="button" class="lnk" data-cm="rm" data-k="' + k + '">Remove</button>' : '') + '</div></div></div>';
+  }
+  function cmRender(){
+    document.getElementById('cvMgrBody').innerHTML = cmSection('front', 'Front cover', true, false) + cmSection('back', 'Back cover', false, false) + cmSection('audio', 'Audiobook cover (square)', false, true);
+  }
+  function openCoverMgr(b){
+    cm = {id: b.id, v: {front: vcFront(b), back: b.backCover || '', audio: vcAudio(b)}, src: {}};
+    ['front', 'back', 'audio'].forEach(function(k){ cm.src[k] = cm.v[k] ? (/^data:/.test(cm.v[k]) ? 'upload' : 'url') : ''; });
+    cmRender();
+    document.getElementById('cvMgrOverlay').style.display = 'flex';
+  }
+  function cmSet(k, val, how){
+    if(cm.v[k] && cm.src[k] && cm.src[k] !== how && !window.confirm('This cover already has ' + (cm.src[k] === 'upload' ? 'an uploaded image' : 'an image from a link') + '. Replace it with the ' + (how === 'upload' ? 'uploaded image' : 'link') + '?')) return;
+    cm.v[k] = val; cm.src[k] = how; cmRender();
+  }
+  document.getElementById('cvMgrBody').addEventListener('change', function(e){
+    var inp = e.target; if(inp.getAttribute('data-cm') !== 'file' || !inp.files[0]) return;
+    var k = inp.getAttribute('data-k');
+    resizeImage(inp.files[0], 360, 0.85).then(function(d){ cmSet(k, d, 'upload'); }).catch(function(){ showBanner("Couldn't read that image."); });
+  });
+  document.getElementById('cvMgrBody').addEventListener('click', function(e){
+    var btn = e.target.closest('[data-cm]'); if(!btn) return;
+    var k = btn.getAttribute('data-k'), act = btn.getAttribute('data-cm');
+    if(act === 'rm'){ cm.v[k] = ''; cm.src[k] = ''; cmRender(); }
+    if(act === 'url'){
+      var raw = document.getElementById('cmUrl_' + k).value;
+      if(!raw.trim()) return;
+      cmFromUrl(raw).then(function(d){
+        if(!d){ showBanner("Couldn't load that image link. Use the direct image address (it usually ends in .jpg or .png)."); return; }
+        cmSet(k, d, 'url');
+      });
+    }
+  });
+  document.getElementById('cvMgrCancel').onclick = function(){ document.getElementById('cvMgrOverlay').style.display = 'none'; };
+  document.getElementById('cvMgrSave').onclick = function(){
+    var b = books.find(function(x){ return x.id === cm.id; });
+    if(!b) return;
+    var F = cm.v.front || '', K = cm.v.back || '', A = cm.v.audio || '';
+    var fm = b.formats || [];
+    var needsFront = !fm.length || fm.some(function(f){ return f.type !== 'Audiobook'; });
+    if(needsFront && !F){ showBanner('A front cover is required for this book.'); return; }
+    fm.forEach(function(f){ f.cover = (f.type === 'Audiobook') ? A : F; });
+    b.cover = F || (fm[0] && fm[0].cover) || A || '';
+    if(A) b.audiobookCover = A; else delete b.audiobookCover;
+    if(K) b.backCover = K; else delete b.backCover;
+    if(JSON.stringify(b).length > 950000){ showBanner('Those images are too large to save together. Try smaller ones.'); return; }
+    books = books.map(function(x){ return x.id === b.id ? b : x; });
+    saveBookRemote(b);
+    document.getElementById('cvMgrOverlay').style.display = 'none';
+    if(currentViewBookId === b.id) rerenderView(b);
+    render();
   };
 
   function buildReviewPageHtml(b){
@@ -7369,64 +7580,7 @@ function openBookView(id){
     if(id) openReviewPage(id);
   });
 
-  // ===================== Calendar view =====================
-  var calYear = new Date().getFullYear();
-  var calMonth = new Date().getMonth();
-
   function pad2(n){ return n < 10 ? '0' + n : '' + n; }
-
-  function renderCalendarView(){
-    var wrap = document.getElementById('calendarView');
-    var firstDay = new Date(calYear, calMonth, 1);
-    var startWeekday = firstDay.getDay();
-    var daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
-    var today = new Date(); today.setHours(0, 0, 0, 0);
-
-    var itemsByDate = {};
-    books.forEach(function(b){
-      var due = effectiveDueDate(b);
-      if(!due) return;
-      if(!itemsByDate[due]) itemsByDate[due] = [];
-      itemsByDate[due].push(b);
-    });
-
-    var dowHtml = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(function(d){
-      return '<div class="cal-dow">' + d + '</div>';
-    }).join('');
-
-    var cells = '';
-    for(var i = 0; i < startWeekday; i++){ cells += '<div class="cal-cell empty-cell"></div>'; }
-    for(var day = 1; day <= daysInMonth; day++){
-      var dateObj = new Date(calYear, calMonth, day);
-      var dateKey = calYear + '-' + pad2(calMonth + 1) + '-' + pad2(day);
-      var isToday = dateObj.getTime() === today.getTime();
-      var dayItems = itemsByDate[dateKey] || [];
-      var overdue = dateObj < today;
-      var itemsHtml = dayItems.map(function(b){
-        return '<div class="cal-item' + (overdue ? ' overdue' : '') + '" data-book-id="' + b.id + '" title="' + escapeHtml(b.title) + '">' + escapeHtml(b.title) + '</div>';
-      }).join('');
-      cells += '<div class="cal-cell' + (isToday ? ' today' : '') + '"><div class="cal-date-num">' + day + '</div>' + itemsHtml + '</div>';
-    }
-
-    wrap.innerHTML = '<div class="cal-header"><button class="cal-nav-btn" id="calPrevBtn">‹</button><h2>' + monthName(calMonth) + ' ' + calYear + '</h2><button class="cal-nav-btn" id="calNextBtn">›</button></div>' +
-      '<div class="cal-grid">' + dowHtml + cells + '</div>';
-
-    document.getElementById('calPrevBtn').onclick = function(){
-      calMonth--; if(calMonth < 0){ calMonth = 11; calYear--; }
-      renderCalendarView();
-    };
-    document.getElementById('calNextBtn').onclick = function(){
-      calMonth++; if(calMonth > 11){ calMonth = 0; calYear++; }
-      renderCalendarView();
-    };
-  }
-
-  document.getElementById('calendarView').addEventListener('click', function(e){
-    var item = e.target.closest('.cal-item');
-    if(!item) return;
-    var id = item.getAttribute('data-book-id');
-    if(id) openViewModal(id);
-  });
 
   // ===================== Year/Month wrapped export =====================
   var WRAPPED_PAGE_W = 559;  // ~A5 width at 96dpi
