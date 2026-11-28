@@ -1488,6 +1488,10 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
       // merge:true so saving one list (e.g. readerLinks) never wipes out the others
       await setDoc(metaDoc(), partial, {merge: true});
     },
+    async listAnnotations(){
+      const snap = await getDocs(collection(db, 'users', currentUser.uid, 'annotations'));
+      return snap.docs.map(function(d){ return d.data(); });
+    },
     async replaceAllBooks(arr){
       const existing = await getDocs(booksCol());
       const batch = writeBatch(db);
@@ -1913,6 +1917,11 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
       amazonShelf = amzMigration.books;
       if(amzMigration.touched){ amazonShelf.forEach(function(b){ b.shelf = 'amazon'; saveBookRemote(b); }); }
       mainShelf = books;
+      try{
+        window.cloudStore.listAnnotations().then(function(list){
+          window.__annotated = new Set(list.map(function(a){ return String(a.book || a.title || '').trim().toLowerCase(); }));
+        }).catch(function(){});
+      }catch(e){}
       if(data.tropeList && data.tropeList.length){ tropeList = data.tropeList; }
       else { tropeList = defaultTropes.slice(); saveTropeList(); }
       if(data.genreList && data.genreList.length){ genreList = data.genreList; }
@@ -5185,6 +5194,7 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
     currentViewBookId = id;
     document.getElementById('viewContent').innerHTML = buildViewHtml(b);
     document.getElementById('viewAnnotateLink').href = annotationHref(b);
+    setAnnotateLabel('viewAnnotateLink', b);
     wireLinksHandlers();
     document.getElementById('viewOverlay').style.display = 'flex';
   }
@@ -5789,6 +5799,12 @@ document.getElementById('f_author').addEventListener('change', function(){
 
 // Builds the link to this book's annotation board, passing along the details
 // the board uses to fill in its cover page (only short web links for the cover image).
+function setAnnotateLabel(id, b){
+  var el = document.getElementById(id);
+  if(!el) return;
+  var set = window.__annotated;
+  el.textContent = (set && set.has(String(b.title || '').trim().toLowerCase())) ? '\uD83D\uDCDD View annotation' : '\uD83D\uDCDD Add annotation';
+}
 function annotationHref(b){
   var q = 'book=' + encodeURIComponent(b.title || '');
   if (b.author) q += '&author=' + encodeURIComponent(b.author);
@@ -5826,6 +5842,7 @@ function openBookView(id){
     bvEditingField = null;
     document.getElementById('bookViewContent').innerHTML = buildBookViewHtml(b);
     document.getElementById('bookViewAnnotateLink').href = annotationHref(b);
+    setAnnotateLabel('bookViewAnnotateLink', b);
     document.getElementById('bookViewOverlay').style.display = 'flex';
   }
 
@@ -6776,6 +6793,7 @@ function openBookView(id){
         '<input type="text" id="reviewsSearchInput" placeholder="Search your shelf..." value="' + escapeHtml(reviewsSearchTerm) + '">' +
       '</div>' +
       '<select id="reviewsSortSelect">' + options + '</select>' +
+      '<a class="annotate-link" href="annotation-board.html" style="margin-left:auto;white-space:nowrap;">\uD83D\uDCDD Annotations</a>' +
       '</div>';
   }
 

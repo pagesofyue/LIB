@@ -16,6 +16,32 @@ h1{font-family:'Special Elite',monospace;font-weight:400;font-size:26px;margin:0
 #back:hover{text-decoration:underline}
 #cloud{float:right;margin-top:2px;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:999px;padding:4px 11px;font:600 12px system-ui,-apple-system,Segoe UI,sans-serif;cursor:pointer;opacity:.9}
 #cloud[data-s="ok"]{color:var(--acc);border-color:var(--acc)}#cloud[data-s="err"]{color:#c0504d;border-color:#c0504d}#cloud[data-s="busy"]{opacity:.65}
+/* ---- Annotations dashboard (shown when no ?book= is given) ---- */
+body.dash>*:not(#dash):not(script){display:none!important}
+#dash{display:none}body.dash #dash{display:block}
+.dwrap{max-width:900px;margin:0 auto;padding:18px 16px 70px}
+.dback{display:inline-block;color:var(--acc);font-weight:700;font-size:14px;text-decoration:none;background:none;border:0;padding:0;cursor:pointer;font-family:inherit}
+.dtop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0 2px}
+.dtop h1{font:600 28px Georgia,serif;margin:0}
+.dbtn{border:1px solid var(--acc);color:var(--acc);background:transparent;border-radius:999px;padding:7px 15px;font:600 13px system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.dstats{opacity:.6;font-size:13px;margin:4px 0 16px}
+.dsearch{width:100%;box-sizing:border-box;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:18px}
+.dgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px 14px}
+@media(min-width:640px){.dgrid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}}
+.dcard{display:block;text-decoration:none;color:var(--fg)}
+.dcov{aspect-ratio:2/3;border-radius:6px;background:var(--panel);border:1px solid var(--line);overflow:hidden;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;box-sizing:border-box;font:600 13px Georgia,serif}
+.dcov.has{padding:0}.dcov img{width:100%;height:100%;object-fit:cover;display:block}
+.dt{font-weight:600;font-size:13.5px;margin-top:8px;line-height:1.25}
+.da,.dm{font-size:12px;opacity:.65;margin-top:2px}
+.dm.loc{color:var(--acc);opacity:1}
+.dsec{font:700 11px system-ui,sans-serif;letter-spacing:.07em;text-transform:uppercase;opacity:.55;margin:22px 0 4px}
+.drow{display:flex;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);text-decoration:none;color:var(--fg)}
+.drow .rc{width:34px;height:50px;border-radius:3px;background:var(--panel);border:1px solid var(--line);flex:none;overflow:hidden}
+.drow .rc img{width:100%;height:100%;object-fit:cover;display:block}
+.drow .dt{margin-top:0}
+.rtag{margin-left:auto;font:700 10px system-ui,sans-serif;letter-spacing:.08em;color:var(--acc);border:1px solid var(--acc);border-radius:4px;padding:2px 6px;flex:none}
+.dmsg{padding:26px 4px;opacity:.75;font-size:14px;line-height:1.5}
+
 .bar{max-width:900px;margin:10px auto;padding:10px;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px}
 .grp{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .sep{width:1px;align-self:stretch;background:var(--line)}
@@ -150,6 +176,8 @@ textarea{font:inherit;font-size:14px;width:100%;color:var(--fg);background:var(-
 .hlFoot{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}.hlFoot span{margin-right:auto;font-size:13px;opacity:.8}
 </style></head>
 <body>
+<script>if(!new URLSearchParams(location.search).get("book"))document.body.classList.add("dash")</script>
+<div id="dash"></div>
 <header><button id="cloud" type="button" data-s="busy" title="Cloud sync">☁ Connecting…</button><a id="back" href="index.html">← Back to index</a><h1 id="bk">pahina ni yue</h1></header>
 
 <div class="bar" role="toolbar">
@@ -939,7 +967,91 @@ async function sync(){
 btn.onclick=async()=>{
  if(!uid){try{await signInWithPopup(auth,new GoogleAuthProvider())}catch(e){ui("out","☁ Sign in to sync","Sign-in was cancelled or blocked")}return}
  sync()};
-onAuthStateChanged(auth,u=>{uid=u?u.uid:null;ready=false;if(u)sync();else ui("out","☁ Sign in to sync","Sign in with the same Google account as your library to save notes to the cloud")});
+/* ---- Annotations dashboard: annotated books + an Add picker for the rest of your library ---- */
+const D=document.getElementById("dash");
+const dash={state:"loading",cloud:[],books:[],auth:{},q:"",add:false,signed:false};
+const key=x=>String(x||"").trim().toLowerCase(),enc=encodeURIComponent;
+const esc=x=>String(x==null?"":x).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const isHttp=u=>typeof u==="string"&&/^https?:\/\//i.test(u)&&u.length<1500;
+const isRead=b=>b.status==="finished"||(b.formats||[]).some(f=>f&&f.status==="finished");
+const insts=b=>b.formats&&b.formats.length?b.formats:(b.format?[{ownership:b.ownership,isARC:!!b.isARC,arcSource:b.arcSource,cover:b.cover}]:[]);
+function coverOf(b,any){const c=[b.cover].concat(insts(b).map(f=>f&&f.cover)).filter(x=>typeof x==="string"&&x);return c.find(isHttp)||(any?c[0]:"")||""}
+function handleFor(name){const info=dash.auth[name];if(!info||!info.socials||!info.socials.length)return"";
+ const pref=["instagram","tiktok","threads","twitter","facebook"];let pick=null;
+ for(let i=0;i<pref.length&&!pick;i++)pick=info.socials.find(x=>(x.label||"").toLowerCase().includes(pref[i])||(x.url||"").toLowerCase().includes(pref[i]));
+ if(!pick)pick=info.socials.find(x=>(x.label||"").trim().toLowerCase()==="x");
+ if(!pick)pick=info.socials[0];
+ try{const u=new URL(pick.url),seg=u.pathname.split("/").filter(Boolean),last=(seg[seg.length-1]||"").replace(/^@/,"");return last?"@"+last:u.hostname.replace(/^www\./,"")}catch(e){return String(pick.url||pick.label||"")}}
+/* same details index.html passes along when you tap "Add annotation" on a book */
+function bookHref(b){let q="book="+enc(b.title||"");
+ if(b.author)q+="&author="+enc(b.author);if(b.series)q+="&series="+enc(b.series);if(b.seriesNumber)q+="&idx="+enc(b.seriesNumber);
+ const cv=coverOf(b);if(cv)q+="&cover="+enc(cv);
+ if(b.genre)q+="&genre="+enc(b.genre);
+ if(b.tropes&&b.tropes.length)q+="&tropes="+enc(b.tropes.join(", ").slice(0,600));
+ const is=insts(b),arc=is.find(f=>f&&f.isARC);let src="";
+ if(arc||b.isARC){src="ARC";const from=(arc&&arc.arcSource)||b.arcSource||"";if(from)q+="&arc="+enc(from)}
+ else if(b.shelf==="amazon")src="Purchased";else if(is.some(f=>f&&f.ownership==="Borrowed"))src="Borrowed";else if(is.some(f=>f&&f.ownership==="Owned"))src="Purchased";
+ if(src)q+="&source="+enc(src);
+ const h=handleFor(b.author||"");if(h)q+="&handle="+enc(h);
+ if(b.rating>0)q+="&rating="+enc(b.rating);
+ if(b.blurb)q+="&blurb="+enc(String(b.blurb).slice(0,1200));
+ if(isHttp(b.amazonLink)&&b.amazonLink.length<500)q+="&amazon="+enc(b.amazonLink);
+ return"annotation-board.html?"+q}
+function annHref(a){let q="book="+enc(a.book||a.title||"");if(a.author)q+="&author="+enc(a.author);if(a.series)q+="&series="+enc(a.series);if(a.idx)q+="&idx="+enc(a.idx);if(isHttp(a.cover))q+="&cover="+enc(a.cover);return"annotation-board.html?"+q}
+function ago(ts){if(!ts)return"";const m=Math.round((Date.now()-ts)/6e4);if(m<1)return"just now";if(m<60)return m+"m ago";const h=Math.round(m/60);if(h<24)return h+"h ago";const d=Math.round(h/24);if(d<30)return d+"d ago";return new Date(ts).toLocaleDateString()}
+/* boards that so far only exist on this device (opening one uploads it) */
+function localAnn(){const out=[];
+ for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(!k||k.indexOf("marginalia-board-v1:")!==0)continue;
+  try{const o=JSON.parse(localStorage.getItem(k)),c=o.cover||{},nm=k.slice(20),notes=(o.pages||[]).reduce((n,pg)=>n+(pg||[]).length,0);
+   if(!nm||!notes)continue;
+   out.push({book:nm,title:c.title||nm,author:c.author||"",series:c.series||"",idx:c.idx||"",cover:isHttp(c.front)?c.front:"",ts:o._ts||0,pages:(o.pages||[]).length,notes,local:true})}catch(e){}}
+ return out}
+function annotated(){const m=new Map();localAnn().forEach(a=>m.set(key(a.book),a));
+ dash.cloud.forEach(a=>{const k=key(a.book),l=m.get(k);if(!l||(l.ts||0)<=(a.ts||0))m.set(k,a)});
+ return[...m.values()].sort((x,y)=>(y.ts||0)-(x.ts||0))}
+const libBy=()=>{const m=new Map();dash.books.forEach(b=>m.set(key(b.title),b));return m};
+const hit=(q,arr)=>!q||arr.join(" ").toLowerCase().includes(q);
+function drawShell(){
+ document.title="Annotations – pahina ni yue";
+ const ann=annotated(),ok=dash.state==="ok",lib=dash.books,readN=lib.filter(isRead).length;
+ const stats=ok?lib.length+" books · "+readN+" read · "+ann.length+" annotated":ann.length+" annotated";
+ let msg="";
+ if(dash.state==="loading")msg='<div class="dmsg">Loading your library…</div>';
+ else if(dash.state==="out")msg='<div class="dmsg">Sign in with the same Google account as your library to see everything and add more.<br><br><button class="dbtn" id="dSign">Sign in with Google</button></div>';
+ else if(dash.state==="err")msg='<div class="dmsg">Couldn’t load from the cloud'+(dash.err&&dash.err.code==="permission-denied"?" — Firestore rules need to allow users/{uid}/annotations.":".")+'</div>';
+ D.innerHTML='<div class="dwrap">'+
+  (dash.add?'<button class="dback" id="dBack">← Annotations</button><div class="dtop"><h1>Choose a book</h1></div><p class="dstats">Pick one to start annotating</p>':
+   '<a class="dback" href="index.html">← Back to index</a><div class="dtop"><h1>Annotations</h1>'+(ok?'<button class="dbtn" id="dAdd">＋ Add</button>':'')+'</div><p class="dstats">'+stats+'</p>')+
+  msg+'<input class="dsearch" id="dQ" placeholder="'+(dash.add?"Search your library…":"Search annotations…")+'" value="'+esc(dash.q)+'"><div id="dList"></div></div>';
+ const sg=document.getElementById("dSign");if(sg)sg.onclick=async()=>{try{await signInWithPopup(auth,new GoogleAuthProvider())}catch(e){}};
+ const ad=document.getElementById("dAdd");if(ad)ad.onclick=()=>{dash.add=true;dash.q="";drawShell()};
+ const bk=document.getElementById("dBack");if(bk)bk.onclick=()=>{dash.add=false;dash.q="";drawShell()};
+ const q=document.getElementById("dQ");q.oninput=()=>{dash.q=q.value;fillList()};
+ fillList()}
+function fillList(){
+ const L=document.getElementById("dList");if(!L)return;const q=dash.q.trim().toLowerCase(),by=libBy();
+ if(dash.add){
+  const have=new Set(annotated().map(a=>key(a.book)));
+  const rest=dash.books.filter(b=>!have.has(key(b.title))&&hit(q,[b.title,b.author,b.series])).sort((x,y)=>String(x.title).localeCompare(String(y.title)));
+  const rd=rest.filter(isRead),ot=rest.filter(b=>!isRead(b));
+  const row=b=>{const cv=coverOf(b,true);return'<a class="drow" href="'+esc(bookHref(b))+'"><span class="rc">'+(cv?'<img loading="lazy" src="'+esc(cv)+'" alt="">':'')+'</span><span><div class="dt">'+esc(b.title)+'</div><div class="da">'+esc(b.author||"")+'</div></span>'+(isRead(b)?'<span class="rtag">READ</span>':'')+'</a>'};
+  L.innerHTML=(rd.length?'<div class="dsec">Read, not annotated yet ('+rd.length+')</div>'+rd.map(row).join(""):"")+(ot.length?'<div class="dsec">Everything else ('+ot.length+')</div>'+ot.map(row).join(""):"")+(rest.length?"":'<div class="dmsg">Nothing to add'+(q?" for that search":"")+'.</div>');
+  return}
+ const ann=annotated().filter(a=>hit(q,[a.title,a.book,a.author,a.series]));
+ if(!ann.length){L.innerHTML=dash.state==="loading"?"":'<div class="dmsg">'+(q?"No annotations match that search.":"No annotations yet. Press ＋ Add to start one.")+'</div>';return}
+ L.innerHTML='<div class="dgrid">'+ann.map(a=>{const lb=by.get(key(a.book)),cv=(lb&&coverOf(lb,true))||a.cover||"",href=lb?bookHref(lb):annHref(a);
+  return'<a class="dcard" href="'+esc(href)+'"><div class="dcov'+(cv?" has":"")+'">'+(cv?'<img loading="lazy" src="'+esc(cv)+'" alt="">':esc(a.title||a.book))+'</div><div class="dt">'+esc(a.title||a.book)+'</div>'+(a.author?'<div class="da">'+esc(a.author)+'</div>':"")+
+  '<div class="dm'+(a.local?" loc":"")+'">'+(a.local?"on this device only · open to upload":a.notes+" notes · "+a.pages+" pages"+(a.ts?" · "+ago(a.ts):""))+'</div></a>'}).join("")+'</div>'}
+async function dashLoad(){
+ dash.state="loading";drawShell();
+ try{
+  const [as,bs,ms]=await Promise.all([getDocs(collection(db,"users",uid,"annotations")),getDocs(collection(db,"users",uid,"books")),getDoc(doc(db,"users",uid,"meta","settings")).catch(()=>null)]);
+  dash.cloud=as.docs.map(d=>d.data());dash.books=bs.docs.map(d=>Object.assign({id:d.id},d.data()));
+  dash.auth=(ms&&ms.exists()&&ms.data().authorLinks)||{};dash.state="ok"
+ }catch(e){console.error("dashboard:",e);dash.state="err";dash.err=e}
+ drawShell()}
+if(!B.BOOK)drawShell();
+onAuthStateChanged(auth,u=>{uid=u?u.uid:null;ready=false;if(!B.BOOK){dash.signed=!!u;if(u)dashLoad();else{dash.state="out";drawShell()}return}if(u)sync();else ui("out","☁ Sign in to sync","Sign in with the same Google account as your library to save notes to the cloud")});
 const flushNow=()=>{if(document.visibilityState==="hidden"&&uid&&ready&&qt)push()};
 document.addEventListener("visibilitychange",flushNow);addEventListener("pagehide",flushNow);
 </script></body></html>
