@@ -39,6 +39,7 @@ body.dash>*:not(#dash):not(script){display:none!important}
 .drow .rc{width:34px;height:50px;border-radius:3px;background:var(--panel);border:1px solid var(--line);flex:none;overflow:hidden}
 .drow .rc img{width:100%;height:100%;object-fit:cover;display:block}
 .drow .dt{margin-top:0}
+.rtag.dnf{color:#b4483f;border-color:#b4483f}
 .rtag{margin-left:auto;font:700 10px system-ui,sans-serif;letter-spacing:.08em;color:var(--acc);border:1px solid var(--acc);border-radius:4px;padding:2px 6px;flex:none}
 .dmsg{padding:26px 4px;opacity:.75;font-size:14px;line-height:1.5}
 
@@ -974,6 +975,7 @@ const key=x=>String(x||"").trim().toLowerCase(),enc=encodeURIComponent;
 const esc=x=>String(x==null?"":x).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const isHttp=u=>typeof u==="string"&&/^https?:\/\//i.test(u)&&u.length<1500;
 const isRead=b=>b.status==="finished"||(b.formats||[]).some(f=>f&&f.status==="finished");
+const isDnf=b=>!isRead(b)&&(b.status==="dnf"||(b.formats||[]).some(f=>f&&f.status==="dnf"));
 const insts=b=>b.formats&&b.formats.length?b.formats:(b.format?[{ownership:b.ownership,isARC:!!b.isARC,arcSource:b.arcSource,cover:b.cover}]:[]);
 function coverOf(b,any){const c=[b.cover].concat(insts(b).map(f=>f&&f.cover)).filter(x=>typeof x==="string"&&x);return c.find(isHttp)||(any?c[0]:"")||""}
 function handleFor(name){const info=dash.auth[name];if(!info||!info.socials||!info.socials.length)return"";
@@ -1034,7 +1036,7 @@ function fillList(){
   const have=new Set(annotated().map(a=>key(a.book)));
   const rest=dash.books.filter(b=>!have.has(key(b.title))&&hit(q,[b.title,b.author,b.series])).sort((x,y)=>String(x.title).localeCompare(String(y.title)));
   const rd=rest.filter(isRead),ot=rest.filter(b=>!isRead(b));
-  const row=b=>{const cv=coverOf(b,true);return'<a class="drow" href="'+esc(bookHref(b))+'"><span class="rc">'+(cv?'<img loading="lazy" src="'+esc(cv)+'" alt="">':'')+'</span><span><div class="dt">'+esc(b.title)+'</div><div class="da">'+esc(b.author||"")+'</div></span>'+(isRead(b)?'<span class="rtag">READ</span>':'')+'</a>'};
+  const row=b=>{const cv=coverOf(b,true);return'<a class="drow" href="'+esc(bookHref(b))+'"><span class="rc">'+(cv?'<img loading="lazy" src="'+esc(cv)+'" alt="">':'')+'</span><span><div class="dt">'+esc(b.title)+'</div><div class="da">'+esc(b.author||"")+'</div></span>'+(isRead(b)?'<span class="rtag">READ</span>':isDnf(b)?'<span class="rtag dnf">DNF</span>':'')+'</a>'};
   L.innerHTML=(rd.length?'<div class="dsec">Read, not annotated yet ('+rd.length+')</div>'+rd.map(row).join(""):"")+(ot.length?'<div class="dsec">Everything else ('+ot.length+')</div>'+ot.map(row).join(""):"")+(rest.length?"":'<div class="dmsg">Nothing to add'+(q?" for that search":"")+'.</div>');
   return}
  const ann=annotated().filter(a=>hit(q,[a.title,a.book,a.author,a.series]));
@@ -1053,5 +1055,6 @@ async function dashLoad(){
 if(!B.BOOK)drawShell();
 onAuthStateChanged(auth,u=>{uid=u?u.uid:null;ready=false;if(!B.BOOK){dash.signed=!!u;if(u)dashLoad();else{dash.state="out";drawShell()}return}if(u)sync();else ui("out","☁ Sign in to sync","Sign in with the same Google account as your library to save notes to the cloud")});
 const flushNow=()=>{if(document.visibilityState==="hidden"&&uid&&ready&&qt)push()};
-document.addEventListener("visibilitychange",flushNow);addEventListener("pagehide",flushNow);
+document.addEventListener("visibilitychange",flushNow);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState!=="visible"||!uid)return;if(!B.BOOK){if(dash.state==="ok")dashLoad();return}if(ready&&!busy&&!qt)sync()});addEventListener("pagehide",flushNow);
 </script></body></html>

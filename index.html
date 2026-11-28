@@ -856,6 +856,10 @@ body.shelf-kindle .toolbar{justify-content:flex-end;}
 .k-stamp.cleared{color:var(--accent-deep);}
 .k-stamp.cleared span{font-size:19px;}
 .k-empty{padding:26px 4px;color:var(--muted);font-size:14px;}
+.k-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+.k-filters .k-search{flex:1 1 100%;margin-bottom:0;}
+.k-filters select{flex:0 0 auto;padding:7px 10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);color:var(--ink);font-family:var(--font-body);font-size:13px;}
+.k-rename{flex:1;min-width:0;font-family:var(--font-display);font-size:20px;font-weight:600;color:var(--ink);background:var(--card);border:1px solid var(--accent);border-radius:8px;padding:4px 10px;}
 
 .card-pages{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin:3px 0 0;}
 body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .arcHint,body.shelf-kindle #providerFilter,body.shelf-kindle #statDueSoon{display:none !important;}
@@ -2926,15 +2930,15 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
   var lastFilterSignature = '';
 
   // ---------- Kindle tab: minimalist batch boxes ----------
-  var kindleDash = {batch: null, q: ''};
+  var kindleDash = {batch: null, q: '', status: '', genre: '', renaming: false};
   function kDone(b){ return b.status === 'finished' || b.status === 'dnf'; }
   function kCover(b){ var f = (b.formats && b.formats[0]) || {}; return b.cover || f.cover || ''; }
-  function kBatchName(key){
-    if(kindleBatchNames[key]) return kindleBatchNames[key];
+  function kDefaultName(key){
     if(!key) return 'No batch date';
     var d = new Date(key + 'T00:00:00');
     return 'SYKD - ' + (isNaN(d.getTime()) ? key : d.toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'}));
   }
+  function kBatchName(key){ return kindleBatchNames[key] || kDefaultName(key); }
   function kStampDate(s){ var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || ''); return m ? (m[2] + '.' + m[3] + '.' + m[1].slice(2)) : ''; }
   function kRank(b){ return b.status === 'finished' ? 2 : (b.status === 'dnf' ? 1 : 0); }
   function kSort(a, b){
@@ -2980,15 +2984,26 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
     order.sort(function(a, b){ if(!a) return 1; if(!b) return -1; return a.localeCompare(b); });
     return {groups: g, order: order};
   }
+  function kFilterOn(){ return !!(kindleDash.q.trim() || kindleDash.status || kindleDash.genre); }
+  function kFiltered(base){
+    var q = kindleDash.q.trim().toLowerCase(), st = kindleDash.status, g = kindleDash.genre;
+    return base.filter(function(b){
+      if(q && [b.title, b.author, b.series, (b.tropes || []).join(' ')].join(' ').toLowerCase().indexOf(q) === -1) return false;
+      if(st === 'unread' && kDone(b)) return false;
+      if(st === 'read' && b.status !== 'finished') return false;
+      if(st === 'dnf' && b.status !== 'dnf') return false;
+      if(g && b.genre !== g) return false;
+      return true;
+    });
+  }
   function kBodyHtml(){
-    var q = kindleDash.q.trim().toLowerCase(), gr = kGroups();
-    if(q){
-      var hits = books.filter(function(b){ return [b.title, b.author, b.series, (b.tropes || []).join(' ')].join(' ').toLowerCase().indexOf(q) !== -1; }).sort(kSort);
-      return hits.length ? '<div class="k-tiles">' + hits.map(kTile).join('') + '</div>' : '<div class="k-empty">No Kindle books match that search.</div>';
+    var gr = kGroups(), inBatch = kindleDash.batch !== null;
+    var base = inBatch ? (gr.groups[kindleDash.batch] || []) : books;
+    if(kFilterOn()){
+      var hits = kFiltered(base).sort(kSort);
+      return hits.length ? '<div class="k-tiles">' + hits.map(kTile).join('') + '</div>' : '<div class="k-empty">No Kindle books match.</div>';
     }
-    if(kindleDash.batch !== null){
-      return '<div class="k-tiles">' + (gr.groups[kindleDash.batch] || []).slice().sort(kSort).map(kTile).join('') + '</div>';
-    }
+    if(inBatch) return '<div class="k-tiles">' + base.slice().sort(kSort).map(kTile).join('') + '</div>';
     if(!books.length) return '<div class="k-empty">No Kindle books yet. Press + to add your first one.</div>';
     return '<div class="k-boxes">' + gr.order.map(function(k){ return kBox(k, gr.groups[k]); }).join('') + '</div>';
   }
@@ -2996,29 +3011,57 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
     var el = document.getElementById('kindleDash');
     if(!el) return;
     var gr = kGroups();
-    if(kindleDash.batch !== null && !gr.groups[kindleDash.batch]) kindleDash.batch = null;
+    if(kindleDash.batch !== null && !gr.groups[kindleDash.batch]){ kindleDash.batch = null; kindleDash.renaming = false; }
     var readN = books.filter(function(b){ return b.status === 'finished'; }).length;
     var top;
     if(kindleDash.batch !== null){
       var list = gr.groups[kindleDash.batch], r = list.filter(function(b){ return b.status === 'finished'; }).length;
-      top = '<button class="k-back" data-k="back" type="button">\u2190 All boxes</button>' +
-        '<div class="k-top"><h2>' + escapeHtml(kBatchName(kindleDash.batch)) + '</h2><button class="k-edit" data-k="rename" type="button" title="Rename this box">\u270E</button></div>' +
+      var head = kindleDash.renaming
+        ? '<input class="k-rename" id="kRename" type="text" maxlength="60" value="' + escapeHtml(kBatchName(kindleDash.batch)) + '"><button class="k-edit" data-k="save" type="button" title="Save name">\u2713</button><button class="k-edit" data-k="cancel" type="button" title="Cancel">\u2715</button>'
+        : '<h2>' + escapeHtml(kBatchName(kindleDash.batch)) + '</h2><button class="k-edit" data-k="rename" type="button" title="Rename this box">\u270E</button>';
+      top = '<button class="k-back" data-k="back" type="button">\u2190 All boxes</button><div class="k-top">' + head + '</div>' +
         '<p class="k-stats">' + list.length + ' book' + (list.length === 1 ? '' : 's') + ' \u00b7 ' + r + ' read</p>';
     } else {
       top = '<div class="k-top"><h2>Kindle</h2></div><p class="k-stats">' + gr.order.length + ' box' + (gr.order.length === 1 ? '' : 'es') + ' \u00b7 ' + books.length + ' books \u00b7 ' + readN + ' read</p>';
     }
-    el.innerHTML = '<div class="k-wrap">' + top + '<input class="k-search" id="kSearch" type="text" placeholder="Search Kindle books..." value="' + escapeHtml(kindleDash.q) + '"><div id="kBody">' + kBodyHtml() + '</div></div>';
+    var genres = [];
+    books.forEach(function(b){ if(b.genre && genres.indexOf(b.genre) === -1) genres.push(b.genre); });
+    genres.sort();
+    function opt(v, label, cur){ return '<option value="' + escapeHtml(v) + '"' + (v === cur ? ' selected' : '') + '>' + escapeHtml(label) + '</option>'; }
+    var filters = '<div class="k-filters"><input class="k-search" id="kSearch" type="text" placeholder="Search Kindle books..." value="' + escapeHtml(kindleDash.q) + '">' +
+      '<select id="kStatus">' + opt('', 'All', kindleDash.status) + opt('unread', 'Unread', kindleDash.status) + opt('read', 'Read', kindleDash.status) + opt('dnf', 'DNF', kindleDash.status) + '</select>' +
+      (genres.length ? '<select id="kGenre">' + opt('', 'All genres', kindleDash.genre) + genres.map(function(g){ return opt(g, g, kindleDash.genre); }).join('') + '</select>' : '') + '</div>';
+    el.innerHTML = '<div class="k-wrap">' + top + filters + '<div id="kBody">' + kBodyHtml() + '</div></div>';
+    if(kindleDash.renaming){ var ri = document.getElementById('kRename'); if(ri){ ri.focus(); ri.select(); } }
   }
   (function wireKindleDash(){
     var el = document.getElementById('kindleDash');
     if(!el) return;
-    function openBox(box){ kindleDash.batch = box.getAttribute('data-batch'); renderKindleDash(); window.scrollTo(0, 0); }
+    function openBox(box){ kindleDash.batch = box.getAttribute('data-batch'); kindleDash.renaming = false; renderKindleDash(); window.scrollTo(0, 0); }
+    function refreshBody(){ document.getElementById('kBody').innerHTML = kBodyHtml(); }
+    function saveName(){
+      var key = kindleDash.batch, inp = document.getElementById('kRename');
+      var name = inp ? inp.value.trim() : '';
+      if(name && name !== kDefaultName(key)) kindleBatchNames[key] = name; else delete kindleBatchNames[key];
+      kindleDash.renaming = false;
+      saveKindleBatchNames();
+      renderKindleDash();
+    }
     el.addEventListener('input', function(e){
       if(e.target.id !== 'kSearch') return;
       kindleDash.q = e.target.value;
-      document.getElementById('kBody').innerHTML = kBodyHtml();
+      refreshBody();
+    });
+    el.addEventListener('change', function(e){
+      if(e.target.id === 'kStatus'){ kindleDash.status = e.target.value; refreshBody(); }
+      if(e.target.id === 'kGenre'){ kindleDash.genre = e.target.value; refreshBody(); }
     });
     el.addEventListener('keydown', function(e){
+      if(e.target.id === 'kRename'){
+        if(e.key === 'Enter'){ e.preventDefault(); saveName(); }
+        if(e.key === 'Escape'){ kindleDash.renaming = false; renderKindleDash(); }
+        return;
+      }
       if(e.key !== 'Enter') return;
       var box = e.target.closest && e.target.closest('.k-box');
       if(box) openBox(box);
@@ -3026,17 +3069,10 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
     el.addEventListener('click', function(e){
       var t = e.target;
       if(t.closest('.k-note')) return;
-      if(t.closest('[data-k="back"]')){ kindleDash.batch = null; kindleDash.q = ''; renderKindleDash(); window.scrollTo(0, 0); return; }
-      if(t.closest('[data-k="rename"]')){
-        var key = kindleDash.batch;
-        var name = window.prompt('Name this box (leave empty to go back to the default name):', kBatchName(key));
-        if(name === null) return;
-        name = name.trim();
-        if(name) kindleBatchNames[key] = name; else delete kindleBatchNames[key];
-        saveKindleBatchNames();
-        renderKindleDash();
-        return;
-      }
+      if(t.closest('[data-k="back"]')){ kindleDash.batch = null; kindleDash.q = ''; kindleDash.status = ''; kindleDash.genre = ''; kindleDash.renaming = false; renderKindleDash(); window.scrollTo(0, 0); return; }
+      if(t.closest('[data-k="rename"]')){ kindleDash.renaming = true; renderKindleDash(); return; }
+      if(t.closest('[data-k="save"]')){ saveName(); return; }
+      if(t.closest('[data-k="cancel"]')){ kindleDash.renaming = false; renderKindleDash(); return; }
       var box = t.closest('.k-box');
       if(box){ openBox(box); return; }
       var tile = t.closest('.k-tile');
