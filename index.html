@@ -816,6 +816,47 @@ select:disabled{opacity:0.55;cursor:not-allowed;}
 .sort-check-row.kindle-only{display:none;}body.shelf-kindle .sort-check-row.kindle-only{display:flex;}
 .batch-head{grid-column:1/-1;font-family:var(--font-mono);font-size:12px;letter-spacing:.04em;color:var(--muted);border-bottom:1px solid var(--line-strong);padding:10px 2px 6px;margin-top:6px;}
 .batch-head:first-child{margin-top:0;}
+/* ---- Kindle tab: minimalist batch boxes + READ / DNF stamps ---- */
+#kindleDash{display:none}
+body.shelf-kindle #kindleDash{display:block}
+body.shelf-kindle #statusTabs,body.shelf-kindle #grid,body.shelf-kindle #pagination,body.shelf-kindle #emptyState,body.shelf-kindle #stats,body.shelf-kindle #shelfBanner,body.shelf-kindle .toolbar-scroll,body.shelf-kindle #sortDropdownWrap{display:none !important;}
+body.shelf-kindle .toolbar{justify-content:flex-end;}
+.k-wrap{max-width:900px;margin:0 auto;padding:4px 2px 60px;}
+.k-top{display:flex;align-items:center;gap:10px;margin:6px 0 0;}
+.k-top h2{font-family:var(--font-display);font-size:26px;font-weight:600;margin:0;color:var(--ink);}
+.k-edit,.k-back{background:none;border:0;color:var(--accent-deep);cursor:pointer;font-family:var(--font-body);font-size:14px;font-weight:700;padding:2px 4px;}
+.k-edit{font-size:16px;}
+.k-stats{color:var(--muted);font-size:13px;margin:4px 0 14px;}
+.k-search{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--line-strong);border-radius:10px;background:var(--card);color:var(--ink);font-family:var(--font-body);font-size:14px;margin-bottom:18px;}
+.k-boxes{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+.k-tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:20px 14px;}
+@media(min-width:640px){.k-boxes{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));}.k-tiles{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));}}
+.k-box{position:relative;border:1px solid var(--line-strong);border-radius:12px;background:var(--card);padding:18px 10px 12px;text-align:center;cursor:pointer;overflow:hidden;}
+.k-box:hover{border-color:var(--accent);}
+.k-stack{position:relative;width:112px;height:84px;margin:0 auto 12px;}
+.k-mini{position:absolute;bottom:0;left:calc(var(--i) * 30px);width:52px;height:78px;border-radius:3px;border:1px solid var(--line-strong);background:var(--paper);overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.18);transform:rotate(calc((var(--i) - 1) * 4deg));z-index:calc(3 - var(--i));}
+.k-mini img{width:100%;height:100%;object-fit:cover;display:block;}
+.k-mini.done{opacity:.6;}.k-mini.done img{opacity:.55;filter:grayscale(1);}
+.k-bname{font-family:var(--font-display);font-size:14px;font-weight:600;color:var(--ink);line-height:1.25;}
+.k-bmeta{font-size:12px;color:var(--muted);margin-top:3px;}
+.k-bar{height:3px;border-radius:2px;background:var(--line);margin:9px 6px 0;overflow:hidden;}
+.k-bar i{display:block;height:100%;background:var(--accent);}
+.k-tile{cursor:pointer;}
+.k-cov{aspect-ratio:2/3;border-radius:6px;overflow:hidden;background:var(--card);border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;box-sizing:border-box;font-size:12px;color:var(--muted);}
+.k-cov img{width:100%;height:100%;object-fit:cover;display:block;margin:-8px;padding:0;width:calc(100% + 16px);height:calc(100% + 16px);max-width:none;}
+.k-info{position:relative;min-height:72px;padding:8px 2px 4px;}
+.k-title{font-size:13.5px;font-weight:700;color:var(--ink);line-height:1.25;padding-right:20px;}
+.k-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.k-note{position:absolute;top:6px;right:0;z-index:3;text-decoration:none;font-size:14px;}
+.k-stamp{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;overflow:hidden;z-index:2;}
+.k-stamp span{display:block;transform:rotate(-9deg);border:3px double currentColor;border-radius:6px;padding:1px 12px;font-family:var(--font-stamp);font-weight:800;font-size:24px;letter-spacing:.18em;opacity:.42;text-align:center;line-height:1.15;}
+.k-stamp small{display:block;font-size:11px;letter-spacing:.1em;font-weight:700;}
+.k-stamp.read{color:var(--accent-deep);}
+.k-stamp.dnf{color:#b4483f;}
+.k-stamp.cleared{color:var(--accent-deep);}
+.k-stamp.cleared span{font-size:19px;}
+.k-empty{padding:26px 4px;color:var(--muted);font-size:14px;}
+
 .card-pages{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin:3px 0 0;}
 body.shelf-kindle .fmtArcRow,body.shelf-kindle .fmtArcFields,body.shelf-kindle .arcHint,body.shelf-kindle #providerFilter,body.shelf-kindle #statDueSoon{display:none !important;}
 #kindleExtras{display:none;}
@@ -966,6 +1007,7 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
     </button>
   </div>
 
+  <div id="kindleDash"></div>
   <div class="tabs" id="statusTabs"></div>
 
   <div class="grid" id="grid"></div>
@@ -1116,6 +1158,9 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
               <span class="rating-out-of">/ 5</span>
             </div>
           </div>
+        </div>
+        <div class="field">
+          <label style="display:flex;align-items:center;gap:8px;font-weight:400;"><input type="checkbox" id="f_kDnf" style="width:auto;"> Didn't finish (DNF) <span style="color:var(--muted);font-size:12px;">· "Date finished" above is used as the DNF date</span></label>
         </div>
         <div class="field">
           <label>Amazon link</label>
@@ -1472,7 +1517,8 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
         arcSourcePrefixes: meta.arcSourcePrefixes || {},
         arcTeams: meta.arcTeams || [],
         reviewPlatforms: meta.reviewPlatforms || [],
-        tbrList: Array.isArray(meta.tbrList) ? meta.tbrList : []
+        tbrList: Array.isArray(meta.tbrList) ? meta.tbrList : [],
+        kindleBatchNames: meta.kindleBatchNames || {}
       };
     },
     async saveBook(book){
@@ -1646,6 +1692,7 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
   var activeShelf = 'main';
   var mainShelf = [];
   var amazonShelf = [];
+  var kindleBatchNames = {};
   function tagShelf(b){ if(activeShelf === 'amazon') b.shelf = 'amazon'; return b; }
   var sortByShelf = {main: ['due'], amazon: ['batch', 'pages']};
   function setShelf(target){
@@ -1920,6 +1967,7 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
       try{
         window.cloudStore.listAnnotations().then(function(list){
           window.__annotated = new Set(list.map(function(a){ return String(a.book || a.title || '').trim().toLowerCase(); }));
+          if(activeShelf === 'amazon'){ try{ render(); }catch(e){} }
         }).catch(function(){});
       }catch(e){}
       if(data.tropeList && data.tropeList.length){ tropeList = data.tropeList; }
@@ -1934,6 +1982,7 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
       seriesInfo = data.seriesInfo || {};
       authorLinks = data.authorLinks || {};
       sourceInfo = data.sourceInfo || {};
+      kindleBatchNames = data.kindleBatchNames || {};
       customGenreColors = data.customGenreColors || {};
       arcSourcePrefixes = data.arcSourcePrefixes || {};
       arcTeams = data.arcTeams || [];
@@ -2876,7 +2925,132 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
   var currentPageNum = 1;
   var lastFilterSignature = '';
 
+  // ---------- Kindle tab: minimalist batch boxes ----------
+  var kindleDash = {batch: null, q: ''};
+  function kDone(b){ return b.status === 'finished' || b.status === 'dnf'; }
+  function kCover(b){ var f = (b.formats && b.formats[0]) || {}; return b.cover || f.cover || ''; }
+  function kBatchName(key){
+    if(kindleBatchNames[key]) return kindleBatchNames[key];
+    if(!key) return 'No batch date';
+    var d = new Date(key + 'T00:00:00');
+    return 'SYKD - ' + (isNaN(d.getTime()) ? key : d.toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'}));
+  }
+  function kStampDate(s){ var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || ''); return m ? (m[2] + '.' + m[3] + '.' + m[1].slice(2)) : ''; }
+  function kRank(b){ return b.status === 'finished' ? 2 : (b.status === 'dnf' ? 1 : 0); }
+  function kSort(a, b){
+    if(kRank(a) !== kRank(b)) return kRank(a) - kRank(b);
+    var sa = a.series || '\uffff', sb = b.series || '\uffff';
+    if(sa !== sb) return sa.localeCompare(sb);
+    if((a.seriesNumber || 0) !== (b.seriesNumber || 0)) return (a.seriesNumber || 0) - (b.seriesNumber || 0);
+    return String(a.title || '').localeCompare(String(b.title || ''));
+  }
+  function kTile(b){
+    var st = b.status === 'finished' ? 'read' : (b.status === 'dnf' ? 'dnf' : '');
+    var cov = kCover(b), meta = [];
+    if(b.series) meta.push(escapeHtml(b.series) + (b.seriesNumber ? ' #' + escapeHtml(String(b.seriesNumber)) : ''));
+    if(b.rating > 0) meta.push('\u2605 ' + fmtRatingNum(b.rating));
+    var stamp = st ? '<div class="k-stamp ' + st + '"><span>' + (st === 'read' ? 'READ' : 'DNF') + (b.dateFinished ? '<small>' + kStampDate(b.dateFinished) + '</small>' : '') + '</span></div>' : '';
+    var noted = window.__annotated && window.__annotated.has(String(b.title || '').trim().toLowerCase());
+    return '<div class="k-tile" data-id="' + escapeHtml(b.id) + '">' +
+      '<div class="k-cov">' + (cov ? '<img loading="lazy" src="' + escapeHtml(cov) + '" alt="">' : '<span>' + escapeHtml(b.title || '') + '</span>') + '</div>' +
+      '<div class="k-info"><div class="k-title">' + escapeHtml(b.title || 'Untitled') + '</div>' +
+      (b.author ? '<div class="k-sub">' + escapeHtml(b.author) + '</div>' : '') +
+      (meta.length ? '<div class="k-sub">' + meta.join(' \u00b7 ') + '</div>' : '') +
+      (noted ? '<a class="k-note" href="' + escapeHtml(annotationHref(b)) + '" title="View annotation">\uD83D\uDCDD</a>' : '') +
+      stamp + '</div></div>';
+  }
+  function kBox(key, list){
+    var read = list.filter(function(b){ return b.status === 'finished'; }).length;
+    var dnf = list.filter(function(b){ return b.status === 'dnf'; }).length;
+    var done = read + dnf;
+    var covers = list.slice().sort(kSort).slice(0, 3).map(function(b, i){
+      var cov = kCover(b);
+      return '<span class="k-mini' + (kDone(b) ? ' done' : '') + '" style="--i:' + i + '">' + (cov ? '<img loading="lazy" src="' + escapeHtml(cov) + '" alt="">' : '') + '</span>';
+    }).join('');
+    return '<div class="k-box" role="button" tabindex="0" data-batch="' + escapeHtml(key) + '">' +
+      '<div class="k-stack">' + covers + '</div>' +
+      '<div class="k-bname">' + escapeHtml(kBatchName(key)) + '</div>' +
+      '<div class="k-bmeta">' + read + ' of ' + list.length + ' read' + (dnf ? ' \u00b7 ' + dnf + ' DNF' : '') + '</div>' +
+      '<div class="k-bar"><i style="width:' + Math.round(done / list.length * 100) + '%"></i></div>' +
+      (done === list.length ? '<div class="k-stamp cleared"><span>CLEARED</span></div>' : '') + '</div>';
+  }
+  function kGroups(){
+    var g = {}, order = [];
+    books.forEach(function(b){ var k = b.batchDate || ''; if(!g[k]){ g[k] = []; order.push(k); } g[k].push(b); });
+    order.sort(function(a, b){ if(!a) return 1; if(!b) return -1; return a.localeCompare(b); });
+    return {groups: g, order: order};
+  }
+  function kBodyHtml(){
+    var q = kindleDash.q.trim().toLowerCase(), gr = kGroups();
+    if(q){
+      var hits = books.filter(function(b){ return [b.title, b.author, b.series, (b.tropes || []).join(' ')].join(' ').toLowerCase().indexOf(q) !== -1; }).sort(kSort);
+      return hits.length ? '<div class="k-tiles">' + hits.map(kTile).join('') + '</div>' : '<div class="k-empty">No Kindle books match that search.</div>';
+    }
+    if(kindleDash.batch !== null){
+      return '<div class="k-tiles">' + (gr.groups[kindleDash.batch] || []).slice().sort(kSort).map(kTile).join('') + '</div>';
+    }
+    if(!books.length) return '<div class="k-empty">No Kindle books yet. Press + to add your first one.</div>';
+    return '<div class="k-boxes">' + gr.order.map(function(k){ return kBox(k, gr.groups[k]); }).join('') + '</div>';
+  }
+  function renderKindleDash(){
+    var el = document.getElementById('kindleDash');
+    if(!el) return;
+    var gr = kGroups();
+    if(kindleDash.batch !== null && !gr.groups[kindleDash.batch]) kindleDash.batch = null;
+    var readN = books.filter(function(b){ return b.status === 'finished'; }).length;
+    var top;
+    if(kindleDash.batch !== null){
+      var list = gr.groups[kindleDash.batch], r = list.filter(function(b){ return b.status === 'finished'; }).length;
+      top = '<button class="k-back" data-k="back" type="button">\u2190 All boxes</button>' +
+        '<div class="k-top"><h2>' + escapeHtml(kBatchName(kindleDash.batch)) + '</h2><button class="k-edit" data-k="rename" type="button" title="Rename this box">\u270E</button></div>' +
+        '<p class="k-stats">' + list.length + ' book' + (list.length === 1 ? '' : 's') + ' \u00b7 ' + r + ' read</p>';
+    } else {
+      top = '<div class="k-top"><h2>Kindle</h2></div><p class="k-stats">' + gr.order.length + ' box' + (gr.order.length === 1 ? '' : 'es') + ' \u00b7 ' + books.length + ' books \u00b7 ' + readN + ' read</p>';
+    }
+    el.innerHTML = '<div class="k-wrap">' + top + '<input class="k-search" id="kSearch" type="text" placeholder="Search Kindle books..." value="' + escapeHtml(kindleDash.q) + '"><div id="kBody">' + kBodyHtml() + '</div></div>';
+  }
+  (function wireKindleDash(){
+    var el = document.getElementById('kindleDash');
+    if(!el) return;
+    function openBox(box){ kindleDash.batch = box.getAttribute('data-batch'); renderKindleDash(); window.scrollTo(0, 0); }
+    el.addEventListener('input', function(e){
+      if(e.target.id !== 'kSearch') return;
+      kindleDash.q = e.target.value;
+      document.getElementById('kBody').innerHTML = kBodyHtml();
+    });
+    el.addEventListener('keydown', function(e){
+      if(e.key !== 'Enter') return;
+      var box = e.target.closest && e.target.closest('.k-box');
+      if(box) openBox(box);
+    });
+    el.addEventListener('click', function(e){
+      var t = e.target;
+      if(t.closest('.k-note')) return;
+      if(t.closest('[data-k="back"]')){ kindleDash.batch = null; kindleDash.q = ''; renderKindleDash(); window.scrollTo(0, 0); return; }
+      if(t.closest('[data-k="rename"]')){
+        var key = kindleDash.batch;
+        var name = window.prompt('Name this box (leave empty to go back to the default name):', kBatchName(key));
+        if(name === null) return;
+        name = name.trim();
+        if(name) kindleBatchNames[key] = name; else delete kindleBatchNames[key];
+        saveKindleBatchNames();
+        renderKindleDash();
+        return;
+      }
+      var box = t.closest('.k-box');
+      if(box){ openBox(box); return; }
+      var tile = t.closest('.k-tile');
+      if(tile) openViewModal(tile.getAttribute('data-id'));
+    });
+  })();
+  async function saveKindleBatchNames(){
+    try{ await window.cloudStore.saveMeta({kindleBatchNames: kindleBatchNames}); }catch(e){
+      showBanner("Couldn't save that box name. Try again.");
+    }
+  }
+
   function render(){
+    if(activeShelf === 'amazon'){ renderKindleDash(); return; }
     computeDuplicateIds();
     renderStats();
     renderTabs();
@@ -3702,7 +3876,8 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
   function buildKindleFormats(existingBook){
     var started = document.getElementById('f_dateStarted').value;
     var finished = document.getElementById('f_dateFinished').value;
-    var status = finished ? 'finished' : (started ? 'reading' : 'want');
+    var kDnf = document.getElementById('f_kDnf').checked;
+    var status = kDnf ? 'dnf' : (finished ? 'finished' : (started ? 'reading' : 'want'));
     var len = document.getElementById('f_bookLength').value ? Number(document.getElementById('f_bookLength').value) : null;
     var old = (existingBook && existingBook.formats && existingBook.formats[0]) ? existingBook.formats[0] : {};
     var cur = (status === 'finished' && len) ? len : ((old.currentPage || old.currentPage === 0) ? old.currentPage : null);
@@ -3954,6 +4129,7 @@ body.kindle-form #blurbToggle,body.kindle-form #pubInfoToggle{border:none;paddin
       document.getElementById('f_batchDate').value = b ? (b.batchDate || '') : lastBatchDate;
       document.getElementById('f_amazonLink').value = b ? (b.amazonLink || '') : '';
       document.getElementById('f_kRating').value = (b && b.rating) ? fmtRatingNum(b.rating) : '';
+      document.getElementById('f_kDnf').checked = !!(b && b.status === 'dnf');
     }
     document.getElementById('overlay').style.display = 'flex';
     if(!isReviewOnly) document.getElementById('f_title').focus();
